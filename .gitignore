@@ -1,0 +1,46 @@
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+out/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+
+# Logs
+*.log
+logs/
+
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json

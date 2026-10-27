@@ -1,0 +1,499 @@
+<title>WibeBlock Plan Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<!--
+  WibeBlock plan map. Source of truth is docs/plan/*.md; this page visualises it.
+  To update: edit the DATA block in the <script> at the bottom (parts, features, epics, decisions, status),
+  then republish the artifact to the same URL (link recorded in docs/plan/00-master.md).
+-->
+<style>
+/* Layout: one reading column of sections; the explorer is a two-pane tool (index | detail) that stacks on phones.
+   Motif: user-owned Frames are dashed outlines, AI-owned Bodies are solid fills. */
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --sunken: #eceef5;
+  --fg: #161a2b;
+  --muted: #5b6178;
+  --line: #d6d9e6;
+  --frame: #3157d6;
+  --body: #e08a1e;
+  --studio: #3157d6;
+  --mobile: #0e8c7f;
+  --platform: #7a46c4;
+  --learning: #b46d10;
+  --ok: #1f8a4c;
+  --warn: #b7791f;
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --text: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1220; --surface: #171b2d; --sunken: #1e2338; --fg: #e8eaf4; --muted: #9aa0bb; --line: #2c3250;
+    --frame: #7c9bff; --body: #f2a849; --studio: #7c9bff; --mobile: #3cc7b6; --platform: #b48cf0; --learning: #e6a54a;
+    --ok: #4fc483; --warn: #e6a54a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1220; --surface: #171b2d; --sunken: #1e2338; --fg: #e8eaf4; --muted: #9aa0bb; --line: #2c3250;
+  --frame: #7c9bff; --body: #f2a849; --studio: #7c9bff; --mobile: #3cc7b6; --platform: #b48cf0; --learning: #e6a54a;
+  --ok: #4fc483; --warn: #e6a54a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--text); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h2 { font-size: 1.55rem; font-weight: 800; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: .86em; }
+.eyebrow { font-family: var(--mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+section { padding-block: 44px 0; display: grid; gap: 18px; }
+.lead { color: var(--muted); max-width: 68ch; }
+a { color: var(--frame); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--frame); outline-offset: 2px; }
+
+/* Header */
+header { padding-block: 40px 8px; display: grid; gap: 14px; }
+header h1 { font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 800; letter-spacing: -.02em; }
+header h1 span { color: var(--frame); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: .9rem; }
+.meta b { color: var(--fg); font-weight: 600; }
+
+/* Frame / Body concept */
+.concept { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: center; }
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; }
+.demo-frame { border: 2px dashed var(--frame); border-radius: 8px; padding: 10px; display: flex; gap: 10px; position: relative; }
+.demo-frame.col { flex-direction: column; }
+.demo-tag { position: absolute; top: -11px; left: 10px; background: var(--surface); padding: 0 6px; font-family: var(--mono); font-size: .7rem; color: var(--frame); }
+.demo-body { flex: 1; min-width: 0; border-radius: 6px; background: color-mix(in srgb, var(--body) 18%, var(--surface)); border: 1px solid color-mix(in srgb, var(--body) 55%, transparent); padding: 10px 12px; font-size: .82rem; }
+.demo-body i { display: block; font-style: normal; font-family: var(--mono); font-size: .7rem; color: var(--body); margin-bottom: 4px; }
+.legend { display: grid; gap: 12px; }
+.legend-row { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+.sw { width: 28px; height: 20px; border-radius: 4px; margin-top: 2px; }
+.sw.frame { border: 2px dashed var(--frame); }
+.sw.body { background: color-mix(in srgb, var(--body) 25%, var(--surface)); border: 1px solid var(--body); }
+.sw.theme { background: linear-gradient(90deg, var(--studio) 0 33%, var(--mobile) 33% 66%, var(--learning) 66%); }
+
+/* Modes */
+.modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.mode { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 8px; align-content: start; }
+.mode .when { font-family: var(--mono); font-size: .74rem; color: var(--muted); }
+.mode ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: .9rem; }
+
+/* Architecture */
+.arch-scroll { overflow-x: auto; }
+.arch { min-width: 860px; display: grid; gap: 12px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+.box h3 { font-size: .95rem; }
+.box small { color: var(--muted); display: block; font-size: .8rem; line-height: 1.4; }
+.studio-bar { border: 2px solid var(--studio); display: grid; gap: 8px; }
+.adapters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--mono); font-size: .72rem; padding: 2px 8px; border-radius: 999px; background: var(--sunken); color: var(--muted); white-space: nowrap; }
+.arch-cols { display: grid; grid-template-columns: 300px 1fr; gap: 12px; }
+.link-label { font-family: var(--mono); font-size: .72rem; color: var(--muted); text-align: center; }
+.local { border-top: 3px solid var(--studio); display: grid; gap: 8px; align-content: start; }
+.local ul, .svc ul { margin: 0; padding-left: 16px; font-size: .82rem; color: var(--muted); }
+.platform { border-top: 3px solid var(--platform); display: grid; gap: 10px; }
+.svc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.svc { background: var(--sunken); border-radius: 8px; padding: 10px; display: grid; gap: 4px; align-content: start; }
+.svc.gw { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.svc h3 { font-size: .86rem; }
+.stores { display: flex; flex-wrap: wrap; gap: 6px; }
+.async { border-left: 3px solid var(--learning); padding: 8px 10px; background: var(--sunken); border-radius: 0 8px 8px 0; font-size: .82rem; color: var(--muted); }
+.async b { color: var(--fg); }
+.shared { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.runs { font-size: .84rem; color: var(--muted); }
+.flows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.flow { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; }
+.steps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .82rem; }
+.steps span { background: var(--sunken); border-radius: 6px; padding: 3px 8px; }
+.steps em { font-style: normal; color: var(--muted); font-family: var(--mono); font-size: .72rem; }
+
+/* Roadmap */
+.roadmap { display: grid; gap: 8px; }
+.phase { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; align-items: start; }
+.phase .num { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.phase h3 { font-size: .98rem; }
+.phase p { font-size: .84rem; color: var(--muted); }
+.phase.optional { border-style: dashed; }
+.ep-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.ep {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 7px; padding: 3px 8px 3px 6px; font-size: .8rem; cursor: pointer; text-align: left;
+}
+.ep:hover { border-color: currentColor; }
+.ep .id { font-family: var(--mono); font-size: .72rem; font-weight: 500; padding: 1px 5px; border-radius: 4px; color: #fff; }
+.ep .nm { color: var(--fg); }
+.ep[data-part="studio"] .id { background: var(--studio); } .ep[data-part="studio"] { color: var(--studio); }
+.ep[data-part="mobile"] .id { background: var(--mobile); } .ep[data-part="mobile"] { color: var(--mobile); }
+.ep[data-part="platform"] .id { background: var(--platform); } .ep[data-part="platform"] { color: var(--platform); }
+.ep[data-part="learning"] .id { background: var(--learning); } .ep[data-part="learning"] { color: var(--learning); }
+:root[data-theme="dark"] .ep .id { color: #0f1220; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ep .id { color: #0f1220; } }
+.ep.sel { outline: 2px solid currentColor; outline-offset: 1px; }
+.ep.dim { opacity: .35; }
+
+/* Explorer */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 14px; cursor: pointer; font-size: .88rem; display: inline-flex; gap: 8px; align-items: center; }
+.tab .dot { width: 9px; height: 9px; border-radius: 50%; }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.explorer { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.part-head { display: grid; gap: 6px; margin-bottom: 12px; }
+.part-head p { color: var(--muted); font-size: .9rem; max-width: 70ch; }
+.features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.feature { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 8px; align-content: start; }
+.feature .path { font-family: var(--mono); font-size: .7rem; color: var(--muted); word-break: break-all; }
+.feature p { font-size: .84rem; color: var(--muted); }
+.detail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 12px; }
+.detail h3 { font-size: 1.2rem; }
+.kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; font-size: .86rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: var(--sunken); }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.status.draft::before { background: var(--warn); }
+.status.ready::before, .status.done::before { background: var(--ok); }
+.status.progress::before { background: var(--frame); }
+.empty { color: var(--muted); font-size: .86rem; }
+
+/* Decisions */
+.decisions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 22px; }
+.dec { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding-block: 8px; border-bottom: 1px solid var(--line); font-size: .88rem; }
+.dec b { font-family: var(--mono); font-weight: 500; font-size: .78rem; color: var(--muted); padding-top: 2px; }
+.next { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 14px 16px; color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 860px) {
+  .concept, .explorer, .flows, .decisions { grid-template-columns: minmax(0, 1fr); }
+  .modes { grid-template-columns: minmax(0, 1fr); }
+  .features { grid-template-columns: minmax(0, 1fr); }
+  .phase { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .detail { position: static; }
+}
+@media (prefers-reduced-motion: no-preference) { .ep, .tab { transition: border-color .15s, opacity .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Development plan · v1 · 2026-10-27</div>
+    <h1>Wibe<span>Block</span> plan map</h1>
+    <p class="lead">You lay out the frames and the AI fills the bodies. Compact then exports a project you own. This map shows the four plan parts, their features, all epics with dependencies and phases, and how the system fits together. The plan is a direction, and it changes as development goes on.</p>
+    <div class="meta" id="counts"></div>
+  </header>
+
+  <section aria-labelledby="h-concept">
+    <div class="eyebrow">Core idea</div>
+    <h2 id="h-concept">The user owns the frame, the AI owns the body</h2>
+    <div class="concept">
+      <div class="demo" aria-hidden="true">
+        <div class="demo-frame col">
+          <span class="demo-tag">page root · flex column</span>
+          <div class="demo-frame" style="margin-top:6px">
+            <span class="demo-tag">header · flex row · fill</span>
+            <div class="demo-body"><i>body</i>Logo and nav links, generated from "minimal top bar"</div>
+            <div class="demo-body" style="flex:.5"><i>body</i>Sign-in button</div>
+          </div>
+          <div class="demo-frame" style="margin-top:8px">
+            <span class="demo-tag">hero · leaf · hug</span>
+            <div class="demo-body"><i>body · stale</i>Headline, subtext and call to action, from "bold launch hero, dark"</div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-row"><span class="sw frame"></span><p><b>Frame (user)</b>: the block tree, flex/grid layout, sizing (fixed / fill / hug), and a mobile override for each block. The AI never changes it.</p></div>
+        <div class="legend-row"><span class="sw body"></span><p><b>Body (AI)</b>: HTML and Tailwind generated from the block prompt inside the frame. You can edit it, regenerate it, or eject it into child blocks. It goes stale when the global prompt or skills change.</p></div>
+        <div class="legend-row"><span class="sw theme"></span><p><b>Theme</b>: design tokens as CSS variables. Changing a token restyles every block live, with no regeneration. <b>Compact</b> turns the framework-neutral JSON into a React project (Vue, Angular and React Native later).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-modes">
+    <div class="eyebrow">One Studio, three modes</div>
+    <h2 id="h-modes">Modes</h2>
+    <div class="modes">
+      <div class="mode"><span class="when">Phase 1 · no backend</span><h3>Local</h3><ul><li>Studio + Node Runner, started with <code>npm start</code></li><li>Project is a folder of JSON files</li><li>Your own API key (any provider), or Claude Code through the MCP server</li></ul></div>
+      <div class="mode"><span class="when">Phase 3 · on your machine</span><h3>Connected</h3><ul><li>Studio + platform services under Aspire and Docker</li><li>Accounts, projects in Postgres, server-side AI and export</li><li>Upload and download projects between Local and Connected</li></ul></div>
+      <div class="mode"><span class="when">Phase 6 · optional</span><h3>Cloud</h3><ul><li>The same platform deployed to Azure with Terraform</li><li>Cheapest services first; the cluster stops when idle</li><li>Plans and billing (Stripe test mode)</li></ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-arch">
+    <div class="eyebrow">System</div>
+    <h2 id="h-arch">Architecture</h2>
+    <div class="arch-scroll">
+      <div class="arch">
+        <div class="box studio-bar">
+          <h3>Studio <small style="display:inline">React · TypeScript · Vite · shared in all modes</small></h3>
+          <div class="adapters"><span class="chip">layout editor</span><span class="chip">block prompts</span><span class="chip">theme</span><span class="chip">preview</span><span class="chip">mobile view</span><span class="chip">developer mode</span><span class="chip">compact</span></div>
+          <small>Adapters: storage · ai · auth · export · realtime. They point at the Runner (Local) or at the Gateway (Connected / Cloud).</small>
+        </div>
+        <div class="arch-cols">
+          <div class="link-label">HTTP + WebSocket ↓</div>
+          <div class="link-label">HTTPS + SignalR via Gateway ↓</div>
+        </div>
+        <div class="arch-cols">
+          <div class="box local">
+            <h3>Node Runner <small style="display:inline">Local mode</small></h3>
+            <ul><li>project folder: <code>wibeblock/*.json</code></li><li>Vite preview of <code>out/&lt;target&gt;/</code></li><li>AI via Vercel AI SDK (your key)</li><li>MCP server for Claude Code</li><li>codegen and Compact</li></ul>
+            <small>Also hosted by the VS Code extension, a browser-only fallback, and the Expo companion app for previews on a phone.</small>
+          </div>
+          <div class="box platform">
+            <h3>Platform <small style="display:inline">.NET 10 + Node · local first</small></h3>
+            <div class="svc-grid">
+              <div class="svc gw"><h3>Gateway</h3><small>YARP · JWT validation · rate limits · SignalR pass-through</small></div>
+              <div class="svc"><h3>Identity</h3><small>OpenIddict OIDC, GitHub and Google login, PKCE</small></div>
+              <div class="svc"><h3>Core API</h3><small>modular monolith: Projects, Realtime, Billing, Metering, Prompt Library, Notifications</small></div>
+              <div class="svc"><h3>AI Generation</h3><small>gRPC streaming · Anthropic SDK · fake provider</small></div>
+              <div class="svc"><h3>Export</h3><small>Node · codegen · zip or GitHub push</small></div>
+            </div>
+            <div class="stores"><span class="chip">PostgreSQL · JSONB</span><span class="chip">Redis</span><span class="chip">Blob · Azurite</span><span class="chip">Kafka</span><span class="chip">Neo4j read model</span><span class="chip">Key Vault</span></div>
+            <div class="async"><b>Async:</b> outbox → Kafka → Metering, Notifications, Design Graph (Neo4j), Analytics. <b>Sync:</b> gRPC, where a user is waiting.</div>
+          </div>
+        </div>
+        <div class="box shared"><h3 style="font-size:.86rem">Shared packages</h3><span class="chip">core · schema + codegen</span><span class="chip">prompts · skills as data</span><span class="chip">ai · providers + fake</span><span class="chip">ui · Studio design system</span></div>
+        <p class="runs">Everything runs locally under .NET Aspire and Docker, and in kind/k3d to learn Kubernetes. Azure comes last and is optional: Blob and static hosting, then Postgres, then AKS, then Kafka.</p>
+      </div>
+    </div>
+    <div class="flows">
+      <div class="flow"><h3>Interactive generation</h3><div class="steps"><span>Studio</span><em>→</em><span>Gateway</span><em>→</em><span>Core API: quota check</span><em>gRPC stream →</em><span>AI Generation</span><em>→</em><span>Claude</span><em>tokens → SignalR →</em><span>Studio renders</span><em>→</em><span>outbox event</span></div></div>
+      <div class="flow"><h3>Export</h3><div class="steps"><span>Studio</span><em>→</em><span>Core API: export job</span><em>gRPC →</em><span>Export service: codegen</span><em>→</em><span>zip in Blob / GitHub push</span><em>status → SignalR →</em><span>download link</span></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-road">
+    <div class="eyebrow">Order of work</div>
+    <h2 id="h-road">Roadmap</h2>
+    <p class="lead">Phases 3–6 are optional additions. Local mode stays fully usable without them. Click an epic to open it in the explorer.</p>
+    <div class="roadmap" id="roadmap"></div>
+  </section>
+
+  <section aria-labelledby="h-explore" id="explorer-section">
+    <div class="eyebrow">Parts → features → epics</div>
+    <h2 id="h-explore">Plan explorer</h2>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="explorer">
+      <div id="part-view"></div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <div class="eyebrow">docs/plan/decisions.md</div>
+    <h2 id="h-dec">Key decisions</h2>
+    <div class="decisions" id="decisions"></div>
+  </section>
+
+  <section aria-labelledby="h-next">
+    <h2 id="h-next">Next</h2>
+    <div class="next">No epic files are written yet: every epic above is still <span class="status">planned</span>, listed only in its feature doc. Each <code>/plan-part</code> session writes epics as <span class="status draft">draft</span>, then <span class="status ready">ready</span>, and this map is updated after it. Studio screens and UI decisions get added after the Studio planning session.</div>
+  </section>
+</div>
+
+<script>
+/* ===== DATA (update this block when the plan changes) ===== */
+const PARTS = [
+  { id: "studio", name: "Studio", prefix: "S", doc: "parts/studio/studio.md",
+    about: "Editor, AI generation, codegen and the local runners: everything you need to build an app on one machine without a backend." },
+  { id: "mobile", name: "Mobile", prefix: "M", doc: "parts/mobile/mobile.md",
+    about: "Mobile is a first-class view: check and adjust the mobile layout, preview on a real phone, and later generate a native app." },
+  { id: "platform", name: "Platform", prefix: "P", doc: "parts/platform/platform.md",
+    about: "Backend services behind Connected and Cloud modes. They run on your machine first; Azure deployment is one late, optional epic." },
+  { id: "learning", name: "Learning track", prefix: "L", doc: "parts/learning-track/learning-track.md",
+    about: "Technologies added mainly to learn them. Each has a real job in the platform, and everything runs locally first." }
+];
+const FEATURES = [
+  { id: "editor", part: "studio", name: "Editor", path: "studio/editor", about: "App shell, projects and pages, the layout editor (tree, canvas, inspector), history." },
+  { id: "generation", part: "studio", name: "Generation", path: "studio/generation", about: "Block prompts, streamed body generation with validation, staleness, providers, prompt library." },
+  { id: "design", part: "studio", name: "Design", path: "studio/design", about: "Theme tokens, light/dark, global prompt, assets and icons." },
+  { id: "preview", part: "studio", name: "Preview", path: "studio/preview", about: "Live preview of the real generated code; Developer-mode code panels." },
+  { id: "codegen", part: "studio", name: "Codegen", path: "studio/codegen", about: "Framework-neutral project format, codegen engine and targets, Compact." },
+  { id: "runner", part: "studio", name: "Runner & hosts", path: "studio/runner-and-hosts", about: "Node Runner, Claude Code over MCP, VS Code extension, browser-only mode." },
+  { id: "ux", part: "studio", name: "Studio UX", path: "studio/studio-ux", about: "The Studio's own design system, onboarding and polish." },
+  { id: "mobile-layout", part: "mobile", name: "Mobile layout", path: "mobile/mobile-layout", about: "Mobile view, computed defaults, per-block overrides, diagnostics." },
+  { id: "companion", part: "mobile", name: "Companion app", path: "mobile/companion-app", about: "Expo app: scan a QR code, see the live preview on your phone." },
+  { id: "native", part: "mobile", name: "Native target", path: "mobile/native-target", about: "React Native / Expo codegen target." },
+  { id: "foundation", part: "platform", name: "Foundation", path: "platform/foundation", about: ".NET solution, Aspire, OpenTelemetry, conventions; Terraform deployment." },
+  { id: "gateway", part: "platform", name: "Gateway", path: "platform/gateway", about: "YARP entry point: routing, JWT validation, rate limits." },
+  { id: "identity", part: "platform", name: "Identity", path: "platform/identity", about: "OpenIddict OIDC server, external logins, roles." },
+  { id: "core-api", part: "platform", name: "Core API", path: "platform/core-api", about: "Modular monolith: Projects, Realtime, Billing, Metering, Prompt Library, Notifications." },
+  { id: "ai-service", part: "platform", name: "AI service", path: "platform/ai-service", about: "gRPC-streaming generation with the platform's key." },
+  { id: "export", part: "platform", name: "Export service", path: "platform/export-service", about: "Node gRPC service: codegen, zip or GitHub push." },
+  { id: "connected", part: "platform", name: "Connected mode", path: "platform/connected-mode", about: "Studio adapters for the platform; website and account pages." },
+  { id: "events", part: "learning", name: "Events", path: "learning-track/events", about: "Kafka backbone, outbox, idempotent consumers; Billing extraction." },
+  { id: "design-graph", part: "learning", name: "Design Graph", path: "learning-track/design-graph", about: "Neo4j read model for insights on prompts, skills and blocks." },
+  { id: "observability", part: "learning", name: "Observability", path: "learning-track/observability", about: "OpenTelemetry + Grafana, load tests, resilience and chaos." },
+  { id: "kubernetes", part: "learning", name: "Kubernetes", path: "learning-track/kubernetes", about: "Helm, KEDA, Argo CD locally in kind; preview hosting." },
+  { id: "analytics", part: "learning", name: "Analytics", path: "learning-track/analytics", about: "ClickHouse fed from Kafka." },
+  { id: "collaboration", part: "learning", name: "Collaboration", path: "learning-track/collaboration", about: "Yjs + SignalR multi-user editing." },
+  { id: "multi-cloud", part: "learning", name: "Multi-cloud", path: "learning-track/multi-cloud", about: "Move one service to AWS as an exercise." }
+];
+// status: planned | draft | ready | progress | done
+const EPICS = [
+  ["S-01","Project schema & codegen engine","codegen",1,[],"JSON schema, validation, migrations, body sanitiser, react-vite target, deterministic output."],
+  ["S-02","Studio shell & project lifecycle","editor",1,["S-01","S-09"],"App shell, projects and pages, settings, Developer mode toggle, shortcuts, command palette."],
+  ["S-03","Layout editor","editor",1,["S-02"],"Tree, canvas, inspector; flex/grid, sizing, drag to reorder and reparent, absolute opt-in."],
+  ["S-04","Block body generation","generation",1,["S-03","S-07"],"Prompt, streaming, validation and repair, refine, edit, eject, surface bodies, staleness."],
+  ["S-05","Theme & global prompt","design",1,["S-02"],"Token editor, light/dark, presets, CSS variables, global prompt and its propagation rules."],
+  ["S-06","Live preview & Developer panels","preview",1,["S-01","S-09"],"Iframe preview, viewports, select-in-preview, Monaco code panel, class chips, file tree."],
+  ["S-07","AI provider layer","generation",1,["S-01"],"Vercel AI SDK, provider config, key storage, streaming, usage and cost, fake provider."],
+  ["S-08","Prompt & skills library","generation",2,["S-04"],"Skills as versioned data, prompt gallery, per-project pins, evaluation harness."],
+  ["S-09","Node Runner","runner",1,["S-01"],"Local server: files, watcher, Vite lifecycle, AI proxy, Compact, one npm start."],
+  ["S-10","Claude Code connection","runner",2,["S-04","S-09"],"MCP server and tools, .mcp.json + skills in each project, live sync with the Studio."],
+  ["S-11","VS Code extension","runner",2,["S-09"],"Studio in a webview, the extension host acts as the Runner."],
+  ["S-12","Browser-only mode","runner",7,["S-01","S-06"],"File System Access API, in-browser codegen, Sandpack preview."],
+  ["S-13","Compact & export UX","codegen",1,["S-01","S-09"],"Compact dialog, options, progress, reproducible clean output."],
+  ["S-14","Studio design system & polish","ux",2,["S-02"],"Visual language, primitives, onboarding, templates, motion, accessibility."],
+  ["S-15","History, undo/redo & snapshots","editor",2,["S-03"],"Command-based undo/redo, named snapshots, diff and restore."],
+  ["S-16","Assets & media","design",2,["S-04"],"Image import and optimisation, placeholders, icon library, asset panel."],
+  ["S-17","Additional codegen targets","codegen",7,["S-01","S-13"],"Vue and Angular targets, a hardened target plugin API."],
+  ["M-01","Mobile layout workflow","mobile-layout",1,["S-03","S-06"],"Mobile view, computed defaults, overrides with reset, diagnostics, AI-proposed adaptations."],
+  ["M-02","Companion app","companion",7,["S-06","S-09"],"QR pairing, live preview on a device, LAN security, notifications later."],
+  ["M-03","React Native / Expo target","native",7,["S-17","M-01"],"HTML to native mapping with NativeWind, conformance validator, Expo Router."],
+  ["P-01","Backend foundation","foundation",3,[],"Solution, Aspire, module boundaries, EF Core + Postgres, Redis, Azurite, OpenTelemetry."],
+  ["P-02","Gateway (YARP)","gateway",3,["P-01"],"Routing, JWT, rate limits, CORS, SignalR proxying, local TLS."],
+  ["P-03","Identity service","identity",3,["P-01"],"OpenIddict, sign-up and login, GitHub and Google, roles, Studio PKCE flow."],
+  ["P-04","Projects module","core-api",3,["P-01","P-03"],"JSONB projects with schema validation, versions, assets, upload and download."],
+  ["P-05","AI Generation service","ai-service",3,["P-01"],"gRPC streaming, Anthropic SDK, retries, fake provider, parity with local generation."],
+  ["P-06","Real-time delivery","core-api",3,["P-02","P-04"],"SignalR hub, Redis backplane, streamed tokens and job status."],
+  ["P-07","Export service","export",3,["P-01","P-04"],"Node gRPC, zip to Blob, GitHub push, job events."],
+  ["P-08","Studio connected mode","connected",3,["P-03","P-04","P-05","P-06","P-07"],"Platform adapters, login, dashboard, Local and Connected upload/download."],
+  ["P-09","Billing module","core-api",4,["P-04"],"Plans, Stripe test mode, idempotent webhooks, entitlements."],
+  ["P-10","Usage & metering","core-api",4,["P-05","P-09"],"Token counting, quotas, enforcement, usage dashboard."],
+  ["P-11","Prompt Library module","core-api",4,["P-05"],"Serve versioned skills, per-project pins, experiment flags."],
+  ["P-12","Notifications","core-api",4,["P-06"],"In-app notification centre, email (Mailpit locally), event-driven notices."],
+  ["P-13","Cloud deployment (Azure, Terraform)","foundation",6,["P-08","L-08"],"Terraform deploys cheapest services first; release workflows; cost controls."],
+  ["P-14","Website & account management","connected",4,["P-03","P-09"],"Landing page, docs, pricing, account and data export."],
+  ["L-01","Event backbone (Kafka)","events",5,["P-01","P-04"],"Topics, contracts, outbox publisher, idempotent consumers, dead-letter topics, replay."],
+  ["L-02","Design Graph read model (Neo4j)","design-graph",5,["L-01","P-11"],"Kafka projection, Cypher insights, Studio Insights panel."],
+  ["L-03","Observability","observability",5,["P-01","L-01"],"Traces across every transport, Grafana stack, dashboards, SLOs."],
+  ["L-04","Load & performance testing","observability",5,["P-05","L-03"],"k6 + NBomber with the fake provider, capacity report."],
+  ["L-05","Resilience & chaos","observability",5,["L-03","L-08"],"Polly, bulkheads, Chaos Mesh experiments, game days."],
+  ["L-06","Service extraction: Billing & Metering","events",5,["P-09","P-10","L-01"],"Separate service and database, gRPC quota checks, saga with compensation."],
+  ["L-07","Analytics store","analytics",7,["L-01"],"ClickHouse from Kafka, materialised views, dashboards."],
+  ["L-08","Kubernetes maturity","kubernetes",5,["P-07"],"Helm, kind, KEDA + HPA, Argo CD, network policies, scale to zero."],
+  ["L-09","Real-time collaboration","collaboration",7,["P-06","P-08"],"Yjs documents, presence and cursors, permissions."],
+  ["L-10","Preview hosting","kubernetes",7,["P-07","L-08"],"Build exported projects and host each under its own subdomain."],
+  ["L-11","AWS migration exercise","multi-cloud",7,["P-13"],"Move one service to EKS, compare costs."]
+].map(([id, name, feature, phase, deps, summary]) => ({ id, name, feature, phase, deps, summary, status: "planned" }));
+const PHASES = [
+  [1, "Studio MVP (local)", "The core loop: layout → prompt → body → preview → mobile check → Compact. No backend."],
+  [2, "Studio polish", "Claude Code connection, prompt library, history, assets, VS Code, design system."],
+  [3, "Platform, locally", "Backend services under Aspire, Connected mode, local Kubernetes.", true],
+  [4, "Product features", "Accounts, billing in Stripe test mode, metering, notifications, website.", true],
+  [5, "Learning track", "Kafka, Design Graph, observability, load, chaos, extraction, Kubernetes depth.", true],
+  [6, "Cloud deployment", "Terraform to Azure, cheapest first, stopped when idle.", true],
+  [7, "Later", "More targets, companion app, collaboration, preview hosting, analytics, AWS."]
+];
+const DECISIONS = [
+  ["D-01","Flex/grid block tree, no free coordinates"],["D-02","Frame (user) / Body (AI); bodies are HTML + Tailwind"],
+  ["D-03","Tailwind v4 + CSS-variable tokens; the global prompt marks bodies stale"],["D-04","Framework-neutral JSON source; React first"],
+  ["D-05","No use of Claude subscriptions as an API; Claude Code connects over MCP"],["D-06","Local-first; cloud last and cheapest first"],
+  ["D-07","Identity, AI and Export as separate services; gRPC for sync, Kafka for async"],["D-08","Postgres JSONB as the store of record; Neo4j as a read model"],
+  ["D-09","Kubernetes locally first, AKS later"],["D-10","Terraform; OpenTelemetry from the start"],
+  ["D-11","Developer mode toggle"],["D-12","Two breakpoints in the MVP"],
+  ["D-13","No CI on PRs; GitHub Actions for releases only"],["D-14","Automated tests are optional, usually written by AI"]
+];
+/* ===== END DATA ===== */
+
+const byId = Object.fromEntries(EPICS.map(e => [e.id, e]));
+const featById = Object.fromEntries(FEATURES.map(f => [f.id, f]));
+const partOf = e => featById[e.feature].part;
+const neededBy = id => EPICS.filter(e => e.deps.includes(id)).map(e => e.id);
+const statusLabel = { planned: "planned", draft: "draft", ready: "ready", progress: "in progress", done: "done" };
+let currentPart = "studio", selected = null;
+
+const el = (tag, attrs = {}, html = "") => { const n = document.createElement(tag); for (const k in attrs) n.setAttribute(k, attrs[k]); n.innerHTML = html; return n; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function chip(e) {
+  const b = el("button", { class: "ep", type: "button", "data-id": e.id, "data-part": partOf(e), title: e.summary },
+    `<span class="id">${e.id}</span><span class="nm">${esc(e.name)}</span>`);
+  b.addEventListener("click", () => select(e.id, true));
+  return b;
+}
+
+function renderCounts() {
+  const written = EPICS.filter(e => e.status !== "planned").length;
+  document.getElementById("counts").innerHTML =
+    `<span><b>${PARTS.length}</b> parts</span><span><b>${FEATURES.length}</b> features</span><span><b>${EPICS.length}</b> epics</span><span><b>${written}</b> epic files written</span><span><b>${DECISIONS.length}</b> decisions</span>`;
+}
+function renderRoadmap() {
+  const root = document.getElementById("roadmap");
+  PHASES.forEach(([n, title, text, optional]) => {
+    const row = el("div", { class: "phase" + (optional ? " optional" : "") },
+      `<div><div class="num">Phase ${n}${optional ? " · optional" : ""}</div><h3>${esc(title)}</h3><p>${esc(text)}</p></div>`);
+    const eps = el("div", { class: "ep-row" });
+    EPICS.filter(e => e.phase === n).forEach(e => eps.appendChild(chip(e)));
+    row.appendChild(eps); root.appendChild(row);
+  });
+}
+function renderTabs() {
+  const root = document.getElementById("tabs"); root.innerHTML = "";
+  PARTS.forEach(p => {
+    const t = el("button", { class: "tab", role: "tab", type: "button", "aria-selected": String(p.id === currentPart) },
+      `<span class="dot" style="background:var(--${p.id})"></span>${esc(p.name)} <span class="mono" style="opacity:.6">${p.prefix}-nn</span>`);
+    t.addEventListener("click", () => { currentPart = p.id; renderTabs(); renderPart(); });
+    root.appendChild(t);
+  });
+}
+function renderPart() {
+  const p = PARTS.find(x => x.id === currentPart);
+  const root = document.getElementById("part-view"); root.innerHTML = "";
+  root.appendChild(el("div", { class: "part-head" }, `<span class="mono" style="color:var(--muted);font-size:.72rem">docs/plan/${p.doc}</span><p>${esc(p.about)}</p>`));
+  const grid = el("div", { class: "features" });
+  FEATURES.filter(f => f.part === p.id).forEach(f => {
+    const card = el("div", { class: "feature" }, `<h3>${esc(f.name)}</h3><span class="path">parts/${f.path}/</span><p>${esc(f.about)}</p>`);
+    const row = el("div", { class: "ep-row" });
+    EPICS.filter(e => e.feature === f.id).forEach(e => row.appendChild(chip(e)));
+    card.appendChild(row); grid.appendChild(card);
+  });
+  root.appendChild(grid);
+  markSelection();
+}
+function renderDetail() {
+  const d = document.getElementById("detail");
+  if (!selected) { d.innerHTML = `<div class="eyebrow">Epic</div><p class="empty">Select an epic to see its summary, dependencies and file. Its dependencies are highlighted across the map.</p>`; return; }
+  const e = byId[selected], f = featById[e.feature], p = PARTS.find(x => x.id === f.part);
+  const slug = e.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  d.innerHTML = `<div class="eyebrow">${esc(p.name)} · ${esc(f.name)}</div><h3>${e.id} ${esc(e.name)}</h3><p>${esc(e.summary)}</p>
+    <dl class="kv"><dt>Phase</dt><dd>${e.phase}</dd><dt>Status</dt><dd><span class="status ${e.status}">${statusLabel[e.status]}</span></dd>
+    <dt>Depends on</dt><dd class="ep-row" id="d-deps"></dd><dt>Needed by</dt><dd class="ep-row" id="d-by"></dd>
+    <dt>File</dt><dd class="mono" style="word-break:break-all">parts/${f.path}/epics/${e.id}-${slug}.md</dd></dl>`;
+  const fill = (id, list) => { const n = document.getElementById(id); if (!list.length) n.innerHTML = `<span class="empty">none</span>`; list.forEach(x => byId[x] && n.appendChild(chip(byId[x]))); };
+  fill("d-deps", e.deps); fill("d-by", neededBy(e.id));
+}
+function markSelection() {
+  const related = selected ? new Set([selected, ...byId[selected].deps, ...neededBy(selected)]) : null;
+  document.querySelectorAll(".roadmap .ep, #part-view .ep").forEach(b => {
+    b.classList.toggle("sel", b.dataset.id === selected);
+    b.classList.toggle("dim", !!related && !related.has(b.dataset.id));
+  });
+}
+function select(id, scroll) {
+  selected = selected === id && !scroll ? null : id;
+  const part = partOf(byId[id]);
+  if (part !== currentPart) { currentPart = part; renderTabs(); renderPart(); }
+  renderDetail(); markSelection();
+  if (scroll) {
+    const box = document.getElementById("detail").getBoundingClientRect();
+    if (box.top < 0 || box.top > innerHeight - 120) document.getElementById("explorer-section").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+}
+function renderDecisions() {
+  const root = document.getElementById("decisions");
+  DECISIONS.forEach(([id, text]) => root.appendChild(el("div", { class: "dec" }, `<b>${id}</b><span>${esc(text)}</span>`)));
+}
+
+renderCounts(); renderRoadmap(); renderTabs(); renderPart(); renderDecisions();
+const fromHash = location.hash.slice(1).toUpperCase();
+if (byId[fromHash]) select(fromHash, false); else { selected = "S-01"; renderDetail(); markSelection(); }
+</script>
