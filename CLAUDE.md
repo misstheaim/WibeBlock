@@ -3,7 +3,7 @@
 A **pet project of the owner, built for learning**. Two goals carry equal weight:
 
 1. **Product:** a tool with a polished UI for building web apps with AI. The user lays out a tree of blocks, the AI generates what goes inside each block, and **Compact** exports a standalone project (React first).
-2. **Learning:** the backend and platform exist mostly so the owner can learn new technologies (.NET, gRPC, Kafka, Neo4j, Kubernetes, OpenIddict, Terraform…). A technology can be in the project because it is worth learning, as long as it has a real job in the system.
+2. **Learning:** the backend and platform exist mostly so the owner can learn new technologies (.NET, gRPC, RabbitMQ, Kafka, Neo4j, Kubernetes, OpenIddict, Terraform…). A technology can be in the project because it is worth learning, as long as it has a real job in the system.
 
 ## How work is done here
 
@@ -48,4 +48,4 @@ Read [docs/development.md](docs/development.md) when you need the tech stack, re
 
 ## Current state
 
-The repo has a plan and a bare Vite + React scaffold in `wibeblock/` (it will move to `apps/studio`). Nothing else is built yet.
+The repo has a plan and a bare Vite + React scaffold in `wibeblock/` (it will become `packages/studio` with a thin local host in `apps/studio`, D-19). Nothing else is built yet.

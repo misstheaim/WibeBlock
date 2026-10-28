@@ -4,14 +4,14 @@
 
 ## Purpose
 
-See what the platform does end to end, measure what it can handle, and make it survive failures: OpenTelemetry tracing across HTTP/gRPC/SignalR/Kafka, load tests with the fake AI provider, and chaos experiments.
+See what the platform does end to end, measure what it can handle, and make it survive failures: OpenTelemetry tracing across HTTP/gRPC/SignalR/message bus, load tests with the fake AI provider, and chaos experiments.
 
 ## Design notes
 
 - Grafana stack in Docker (Tempo, Loki, Prometheus/Mimir) as the local backend; Azure Monitor as the cloud alternative. Dashboards: generation latency and token usage, queue lag, error rates, export durations.
 - SLOs: generation p95, availability of the gateway; alert rules as code.
 - Load: k6 scenarios (login → generate × N, export), NBomber for gRPC; fake provider latency profiles; repeatable runs from a local script (no CI, D-13); documented capacity feeding plan limits.
-- Resilience: Polly policies per dependency, bulkheads around the AI service, Chaos Mesh in kind (pod kill, network delay, Kafka partition), game-day checklist.
+- Resilience: Polly policies per dependency, bulkheads around the AI service, Chaos Mesh in kind (pod kill, network delay, broker outage), game-day checklist.
 
 ## Epics
 

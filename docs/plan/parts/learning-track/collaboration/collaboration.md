@@ -8,7 +8,7 @@ Real-time multi-user editing of a project: CRDT documents (Yjs) for pages synced
 
 ## Design notes
 
-- Yjs document per page mapping the Block tree; the Studio's command bus applies operations to the Yjs doc; persistence of Yjs updates alongside JSONB snapshots.
+- Yjs document per page mapping the Block tree; the Studio's Redux document actions (D-24) are applied to the Yjs doc; persistence of Yjs updates alongside JSONB snapshots.
 - SignalR as the transport (reuse P-06); awareness protocol for presence/selection.
 - Permissions: owner / editor / viewer per project; generation attribution per user for metering.
 
