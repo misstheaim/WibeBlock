@@ -9,6 +9,7 @@ Server-side generation with the platform's API key: the same pipeline as the Stu
 ## Design notes
 
 - Official `Anthropic` NuGet SDK; model selection per plan; retries/timeouts with Polly; **fake provider** mode (latency profiles, canned bodies) for tests, load tests (L-04) and chaos (L-05).
+- Runs the same **AI task definitions** as the Studio's AI core (S-07): prompts, context rules and output schemas from `packages/prompts`; results become proposals in the Studio exactly as in Local mode (D-22).
 - Prompt assembly reads the same `packages/prompts` data (published through the Prompt Library module) so local and platform generations are equivalent; parity tests compare both pipelines on golden inputs.
 - Validation/repair rules shared with `packages/core` via an exported JSON spec (allowed tags, attributes, class patterns).
 - Emits `tokens.used` and `generation.completed` events (outbox in Core API after the stream completes).

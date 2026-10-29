@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A columnar analytics store fed from Kafka for usage trends, prompt-library metrics and product funnels; complements the Design Graph (relationships) with aggregates over time.
+A columnar analytics store fed from Kafka (after the Kafka upgrade, L-12) for usage trends, prompt-library metrics and product funnels; complements the Design Graph (relationships) with aggregates over time.
 
 ## Design notes
 
@@ -15,4 +15,4 @@ A columnar analytics store fed from Kafka for usage trends, prompt-library metri
 
 | ID | Epic | Summary | Depends on | Phase |
 |---|---|---|---|---|
-| [L-07](epics/L-07-analytics-store.md) | **Analytics store** | ClickHouse fed from Kafka, materialised views, Grafana dashboards, retention; ADX alternative documented. | L-01 | 7 |
+| [L-07](epics/L-07-analytics-store.md) | **Analytics store** | ClickHouse fed from Kafka, materialised views, Grafana dashboards, retention; ADX alternative documented. | L-12 | 7 |

@@ -18,5 +18,5 @@ The skeleton every service stands on (solution layout, Aspire, conventions, obse
 
 | ID | Epic | Summary | Depends on | Phase |
 |---|---|---|---|---|
-| [P-01](epics/P-01-backend-foundation.md) | **Backend foundation** | Solution layout, Aspire AppHost, Core API skeleton with module boundaries, EF Core + Postgres, Redis, Azurite, OTel wiring, health checks, conventions, architecture tests. | — | 3 |
-| [P-13](epics/P-13-cloud-deployment.md) | **Cloud deployment (Azure, Terraform)** | Terraform modules per cost step, GitHub Actions release workflows (tag → build → registry → deploy), dev/prod environments, Key Vault secrets, cost controls, runbook. | P-01…P-08, L-08 | 6 |
+| [P-01](epics/P-01-backend-foundation.md) | **Backend foundation** | Solution layout, Aspire AppHost, Core API skeleton with module boundaries, EF Core + Postgres, Redis, Azurite, OTel wiring, health checks, conventions, architecture tests. | — | 2 |
+| [P-13](epics/P-13-cloud-deployment.md) | **Cloud deployment (Azure, Terraform)** | Terraform modules per cost step (including the Functions app from P-15), GitHub Actions release workflows (tag → build → registry → deploy), dev/prod environments, Key Vault secrets, cost controls, runbook. | P-01…P-08, L-08 | 6 |

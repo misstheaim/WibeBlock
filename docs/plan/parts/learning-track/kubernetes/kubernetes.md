@@ -9,9 +9,10 @@ Run the whole platform on Kubernetes, locally first (D-09): Helm charts for ever
 ## Design notes
 
 - kind or k3d cluster scripts; the same images as Aspire; Helm chart per service plus an umbrella chart; secrets via sealed-secrets locally and Key Vault CSI in AKS.
-- KEDA scaler on Kafka lag (batch regeneration) and HPA on gRPC load for AI workers; Argo CD syncing from the repo; network policies between namespaces.
+- KEDA scaler on queue length (RabbitMQ / Service Bus, batch regeneration) and HPA on gRPC load for AI workers; Argo CD syncing from the repo; network policies between namespaces.
 - Scale-to-zero schedules and stop/start scripts to keep AKS cheap.
 - Preview hosting: a build job turns an exported project into static files hosted under `<project>.preview.<domain>` with TLS via cert-manager.
+- Optional Go (D-17): the preview builder or a small Kubernetes operator (kubebuilder) that manages preview sites is the first candidate for the project's Go piece.
 
 ## Epics
 

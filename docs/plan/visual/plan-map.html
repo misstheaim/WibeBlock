@@ -2,30 +2,37 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
 <!--
   WibeBlock plan map. Source of truth is docs/plan/*.md; this page visualises it.
-  To update: edit the DATA block in the <script> at the bottom (parts, features, epics, decisions, status),
-  then republish the artifact to the same URL (link recorded in docs/plan/00-master.md).
+  To update: edit the DATA blocks in the script at the bottom (architecture boundaries/modules/links/flows, parts,
+  features, epics, status), then republish the artifact to the same URL (link recorded in docs/plan/00-master.md).
+  Architecture coordinates use a 1200 x 1115 grid; links are lists of points with right-angle segments.
 -->
 <style>
-/* Layout: one reading column of sections; the explorer is a two-pane tool (index | detail) that stacks on phones.
-   Motif: user-owned Frames are dashed outlines, AI-owned Bodies are solid fills. */
+/* Layout: one reading column of sections; the architecture map and the explorer are two-pane tools (canvas | detail).
+   Motif: user-owned Frames are dashed brown outlines, AI-owned Bodies are solid orange fills. Palette: beige ground, blue, orange-red, brown, a little lime. */
 :root {
-  --bg: #f6f7fb;
-  --surface: #ffffff;
-  --sunken: #eceef5;
-  --fg: #161a2b;
-  --muted: #5b6178;
-  --line: #d6d9e6;
-  --frame: #3157d6;
-  --body: #e08a1e;
-  --studio: #3157d6;
-  --mobile: #0e8c7f;
-  --platform: #7a46c4;
-  --learning: #b46d10;
-  --ok: #1f8a4c;
-  --warn: #b7791f;
+  --bg: #f4ede1;
+  --surface: #fffaf2;
+  --sunken: #ece3d4;
+  --fg: #2a1f17;
+  --muted: #6f5f50;
+  --line: #ddd0bc;
+  --blue: #2b66c9;
+  --red: #d64f27;
+  --orange: #e8892b;
+  --brown: #8b5a36;
+  --lime: #86b81e;
+  --lime-ink: #557a0d;
+  --on-color: #ffffff;
+  --frame: var(--brown);
+  --body: var(--orange);
+  --studio: var(--blue);
+  --mobile: var(--lime-ink);
+  --platform: var(--red);
+  --learning: var(--brown);
+  --ok: #4f8a12;
   --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
   --text: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -33,15 +40,15 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1220; --surface: #171b2d; --sunken: #1e2338; --fg: #e8eaf4; --muted: #9aa0bb; --line: #2c3250;
-    --frame: #7c9bff; --body: #f2a849; --studio: #7c9bff; --mobile: #3cc7b6; --platform: #b48cf0; --learning: #e6a54a;
-    --ok: #4fc483; --warn: #e6a54a; color-scheme: dark;
+    --bg: #1c1611; --surface: #261e18; --sunken: #30261f; --fg: #f2e9dc; --muted: #b5a591; --line: #463a2f;
+    --blue: #74a5ff; --red: #ff7b52; --orange: #f5a04a; --brown: #cf9a72; --lime: #b4e14b; --lime-ink: #b4e14b;
+    --on-color: #1c1611; --ok: #b4e14b; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1220; --surface: #171b2d; --sunken: #1e2338; --fg: #e8eaf4; --muted: #9aa0bb; --line: #2c3250;
-  --frame: #7c9bff; --body: #f2a849; --studio: #7c9bff; --mobile: #3cc7b6; --platform: #b48cf0; --learning: #e6a54a;
-  --ok: #4fc483; --warn: #e6a54a; color-scheme: dark;
+  --bg: #1c1611; --surface: #261e18; --sunken: #30261f; --fg: #f2e9dc; --muted: #b5a591; --line: #463a2f;
+  --blue: #74a5ff; --red: #ff7b52; --orange: #f5a04a; --brown: #cf9a72; --lime: #b4e14b; --lime-ink: #b4e14b;
+  --on-color: #1c1611; --ok: #b4e14b; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
@@ -49,7 +56,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 0 64px;
 }
-.wrap { max-width: 1180px; margin: 0 auto; }
+.wrap { max-width: 1320px; margin: 0 auto; }
 h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
 h2 { font-size: 1.55rem; font-weight: 800; }
 h3 { font-size: 1.05rem; font-weight: 700; }
@@ -57,15 +64,14 @@ p { margin: 0; }
 code, .mono { font-family: var(--mono); font-size: .86em; }
 .eyebrow { font-family: var(--mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 section { padding-block: 44px 0; display: grid; gap: 18px; }
-.lead { color: var(--muted); max-width: 68ch; }
-a { color: var(--frame); }
+.lead { color: var(--muted); max-width: 72ch; }
 button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--frame); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
 /* Header */
 header { padding-block: 40px 8px; display: grid; gap: 14px; }
 header h1 { font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 800; letter-spacing: -.02em; }
-header h1 span { color: var(--frame); }
+header h1 span { color: var(--red); }
 .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: .9rem; }
 .meta b { color: var(--fg); font-weight: 600; }
 
@@ -75,14 +81,14 @@ header h1 span { color: var(--frame); }
 .demo-frame { border: 2px dashed var(--frame); border-radius: 8px; padding: 10px; display: flex; gap: 10px; position: relative; }
 .demo-frame.col { flex-direction: column; }
 .demo-tag { position: absolute; top: -11px; left: 10px; background: var(--surface); padding: 0 6px; font-family: var(--mono); font-size: .7rem; color: var(--frame); }
-.demo-body { flex: 1; min-width: 0; border-radius: 6px; background: color-mix(in srgb, var(--body) 18%, var(--surface)); border: 1px solid color-mix(in srgb, var(--body) 55%, transparent); padding: 10px 12px; font-size: .82rem; }
-.demo-body i { display: block; font-style: normal; font-family: var(--mono); font-size: .7rem; color: var(--body); margin-bottom: 4px; }
+.demo-body { flex: 1; min-width: 0; border-radius: 6px; background: color-mix(in srgb, var(--body) 18%, var(--surface)); border: 1px solid color-mix(in srgb, var(--body) 60%, transparent); padding: 10px 12px; font-size: .82rem; }
+.demo-body i { display: block; font-style: normal; font-family: var(--mono); font-size: .7rem; color: var(--red); margin-bottom: 4px; }
 .legend { display: grid; gap: 12px; }
 .legend-row { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
 .sw { width: 28px; height: 20px; border-radius: 4px; margin-top: 2px; }
 .sw.frame { border: 2px dashed var(--frame); }
 .sw.body { background: color-mix(in srgb, var(--body) 25%, var(--surface)); border: 1px solid var(--body); }
-.sw.theme { background: linear-gradient(90deg, var(--studio) 0 33%, var(--mobile) 33% 66%, var(--learning) 66%); }
+.sw.theme { background: linear-gradient(90deg, var(--blue) 0 25%, var(--red) 25% 50%, var(--brown) 50% 75%, var(--lime) 75%); }
 
 /* Modes */
 .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
@@ -90,34 +96,113 @@ header h1 span { color: var(--frame); }
 .mode .when { font-family: var(--mono); font-size: .74rem; color: var(--muted); }
 .mode ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: .9rem; }
 
-/* Architecture */
-.arch-scroll { overflow-x: auto; }
-.arch { min-width: 860px; display: grid; gap: 12px; }
-.box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
-.box h3 { font-size: .95rem; }
-.box small { color: var(--muted); display: block; font-size: .8rem; line-height: 1.4; }
-.studio-bar { border: 2px solid var(--studio); display: grid; gap: 8px; }
-.adapters { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { font-family: var(--mono); font-size: .72rem; padding: 2px 8px; border-radius: 999px; background: var(--sunken); color: var(--muted); white-space: nowrap; }
-.arch-cols { display: grid; grid-template-columns: 300px 1fr; gap: 12px; }
-.link-label { font-family: var(--mono); font-size: .72rem; color: var(--muted); text-align: center; }
-.local { border-top: 3px solid var(--studio); display: grid; gap: 8px; align-content: start; }
-.local ul, .svc ul { margin: 0; padding-left: 16px; font-size: .82rem; color: var(--muted); }
-.platform { border-top: 3px solid var(--platform); display: grid; gap: 10px; }
-.svc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.svc { background: var(--sunken); border-radius: 8px; padding: 10px; display: grid; gap: 4px; align-content: start; }
-.svc.gw { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
-.svc h3 { font-size: .86rem; }
-.stores { display: flex; flex-wrap: wrap; gap: 6px; }
-.async { border-left: 3px solid var(--learning); padding: 8px 10px; background: var(--sunken); border-radius: 0 8px 8px 0; font-size: .82rem; color: var(--muted); }
-.async b { color: var(--fg); }
-.shared { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
-.runs { font-size: .84rem; color: var(--muted); }
-.flows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.flow { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; }
-.steps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .82rem; }
-.steps span { background: var(--sunken); border-radius: 6px; padding: 3px 8px; }
-.steps em { font-style: normal; color: var(--muted); font-family: var(--mono); font-size: .72rem; }
+/* Architecture map */
+.controls { display: grid; gap: 10px; }
+.ctl-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ctl-row > .eyebrow { width: 88px; flex: none; }
+.pill { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: .84rem; display: inline-flex; gap: 8px; align-items: center; }
+.pill[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.pill svg { flex: none; }
+.arch-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+.arch-scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+#arch-svg { display: block; width: 100%; min-width: 900px; height: auto; }
+#arch-svg text { font-family: var(--text); }
+.bd rect { stroke-width: 1.4; stroke-dasharray: 6 5; }
+.bd text { font-family: var(--mono) !important; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.bd-web rect { fill: color-mix(in srgb, var(--frame) 5%, transparent); stroke: var(--frame); stroke-width: 2; }
+.bd-web text { fill: var(--frame); }
+.bd-machine rect { fill: color-mix(in srgb, var(--blue) 5%, transparent); stroke: var(--blue); }
+.bd-machine text { fill: var(--blue); }
+.bd-phone rect { fill: color-mix(in srgb, var(--lime) 7%, transparent); stroke: var(--lime-ink); }
+.bd-phone text { fill: var(--lime-ink); }
+.bd-cluster rect { fill: color-mix(in srgb, var(--red) 5%, transparent); stroke: var(--red); stroke-width: 1.8; }
+.bd-cluster text { fill: var(--red); font-weight: 500; }
+.bd-ns rect { fill: color-mix(in srgb, var(--surface) 55%, transparent); stroke: var(--red); stroke-dasharray: 2 4; opacity: .8; }
+.bd-ns text { fill: var(--red); font-size: 10px; text-transform: none; letter-spacing: .02em; }
+.bd-ext rect { fill: color-mix(in srgb, var(--lime) 6%, transparent); stroke: var(--lime-ink); }
+.bd-ext text { fill: var(--lime-ink); }
+.bd-azure rect { fill: color-mix(in srgb, var(--red) 4%, transparent); stroke: var(--red); }
+.bd-azure text { fill: var(--red); }
+.bd-note { fill: var(--muted); font-family: var(--mono) !important; font-size: 10px; }
+.bd.off, .bd-note.off { opacity: .3; filter: grayscale(1); }
+.bd rect { cursor: pointer; }
+.bd.sel rect { stroke-width: 3.2; }
+.m { cursor: pointer; }
+.m .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.m.store .box { fill: var(--sunken); }
+.m.external .box { fill: var(--bg); stroke-dasharray: 5 4; stroke: var(--muted); }
+.m .band { stroke: none; }
+.m .nm { fill: var(--fg); font-family: var(--display) !important; font-weight: 700; font-size: 16px; }
+.m.big .nm { font-size: 19px; }
+.m .tc { fill: var(--muted); font-family: var(--mono) !important; font-size: 11.5px; }
+.m .ab { fill: var(--muted); font-size: 12px; }
+.m .ph { fill: var(--muted); font-family: var(--mono) !important; font-size: 10.5px; }
+.m .sub rect { fill: var(--sunken); stroke: var(--line); }
+.m .sub text { fill: var(--fg); font-size: 12px; }
+.m .sub { cursor: pointer; }
+.m .sub:hover rect { stroke: var(--muted); }
+.m .sub.sel rect { fill: var(--surface); stroke: var(--fg); stroke-width: 2; }
+.m .sub:focus { outline: none; }
+.m .sub:focus-visible rect { stroke: var(--blue); stroke-width: 2; }
+.m.sel .box { stroke: var(--fg); stroke-width: 2.4; }
+.m:hover .box { stroke: var(--muted); }
+.m:focus { outline: none; }
+.m:focus-visible .box { stroke: var(--blue); stroke-width: 2.4; }
+.m.dim { opacity: .38; }
+.m.gone { opacity: .3; filter: grayscale(1); pointer-events: none; }
+.m.upd .box { stroke: var(--muted); stroke-dasharray: 5 4; }
+.m .sub.off { opacity: .35; }
+.edge { fill: none; stroke-width: 1.6; opacity: .4; stroke-linejoin: round; }
+.edge.hot { stroke-width: 2.6; opacity: 1; }
+.edge.cold { opacity: .08; }
+.edge.gone { opacity: .1; stroke: var(--muted); }
+.edge.hover { stroke-width: 2.8; opacity: 1; }
+.hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
+.p-http { stroke: var(--blue); }
+.p-realtime { stroke: var(--blue); stroke-dasharray: 7 4; }
+.p-grpc { stroke: var(--red); }
+.p-events { stroke: var(--red); stroke-dasharray: 7 4; }
+.p-mcp { stroke: var(--lime); }
+.p-auth { stroke: var(--lime-ink); stroke-dasharray: 3 3; }
+.p-local { stroke: var(--brown); stroke-dasharray: 2 4; stroke-linecap: round; }
+.p-data { stroke: var(--brown); }
+.mk-http, .mk-realtime { fill: var(--blue); }
+.mk-grpc, .mk-events { fill: var(--red); }
+.mk-mcp { fill: var(--lime); }
+.mk-auth { fill: var(--lime-ink); }
+.mk-local, .mk-data { fill: var(--brown); }
+.lbl rect { fill: var(--surface); stroke: var(--line); }
+.lbl text { fill: var(--fg); font-family: var(--mono) !important; font-size: 11px; }
+.lbl { opacity: 0; pointer-events: none; transition: opacity .12s; }
+.lbl.show, .lbl.pin { opacity: 1; }
+.num circle { fill: var(--fg); }
+.num text { fill: var(--on-color); font-family: var(--mono) !important; font-size: 11px; font-weight: 500; }
+.kinds { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .8rem; color: var(--muted); padding: 10px 14px; border-top: 1px solid var(--line); min-width: 900px; }
+.kinds span { display: inline-flex; gap: 6px; align-items: center; }
+.kinds i { width: 22px; height: 12px; border-radius: 3px; border: 1px solid var(--line); display: inline-block; background: var(--surface); }
+.kinds i.store { background: var(--sunken); }
+.kinds i.ext { background: var(--bg); border: 1px dashed var(--muted); }
+.kinds i.bd { border: 1.5px dashed var(--red); background: color-mix(in srgb, var(--red) 6%, transparent); }
+.arch-detail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+.arch-detail h3 { font-size: 1.2rem; }
+.arch-detail .tech { font-family: var(--mono); font-size: .76rem; color: var(--muted); }
+.conns { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.conns li { display: grid; gap: 3px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-size: .86rem; }
+.conns li:last-child { border-bottom: 0; padding-bottom: 0; }
+.conn-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.conn-dir { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.link-btn { border: 0; background: none; padding: 0; cursor: pointer; font-weight: 600; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.proto { font-family: var(--mono); font-size: .68rem; padding: 1px 7px; border-radius: 999px; color: var(--on-color); white-space: nowrap; }
+.proto.http, .proto.realtime { background: var(--blue); }
+.proto.grpc, .proto.events { background: var(--red); }
+.proto.mcp { background: var(--lime); color: #1c1611; }
+.proto.auth { background: var(--lime-ink); }
+.proto.local, .proto.data { background: var(--brown); }
+.conn-label { font-family: var(--mono); font-size: .74rem; }
+.conn-desc { color: var(--muted); }
+.steps-list { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: .88rem; }
+.steps-list li::marker { font-family: var(--mono); color: var(--muted); }
+.hint { font-size: .82rem; color: var(--muted); }
 
 /* Roadmap */
 .roadmap { display: grid; gap: 8px; }
@@ -125,29 +210,25 @@ header h1 span { color: var(--frame); }
 .phase .num { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
 .phase h3 { font-size: .98rem; }
 .phase p { font-size: .84rem; color: var(--muted); }
-.phase.optional { border-style: dashed; }
+.phase.optional { border-style: dashed; background: transparent; }
 .ep-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .ep {
   display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface);
   border-radius: 7px; padding: 3px 8px 3px 6px; font-size: .8rem; cursor: pointer; text-align: left;
 }
 .ep:hover { border-color: currentColor; }
-.ep .id { font-family: var(--mono); font-size: .72rem; font-weight: 500; padding: 1px 5px; border-radius: 4px; color: #fff; }
+.ep .id { font-family: var(--mono); font-size: .72rem; font-weight: 500; padding: 1px 5px; border-radius: 4px; color: var(--on-color); }
 .ep .nm { color: var(--fg); }
-.ep[data-part="studio"] .id { background: var(--studio); } .ep[data-part="studio"] { color: var(--studio); }
-.ep[data-part="mobile"] .id { background: var(--mobile); } .ep[data-part="mobile"] { color: var(--mobile); }
-.ep[data-part="platform"] .id { background: var(--platform); } .ep[data-part="platform"] { color: var(--platform); }
-.ep[data-part="learning"] .id { background: var(--learning); } .ep[data-part="learning"] { color: var(--learning); }
-:root[data-theme="dark"] .ep .id { color: #0f1220; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ep .id { color: #0f1220; } }
+.ep[data-part="studio"] { color: var(--studio); } .ep[data-part="studio"] .id { background: var(--studio); }
+.ep[data-part="mobile"] { color: var(--mobile); } .ep[data-part="mobile"] .id { background: var(--lime); color: #1c1611; }
+.ep[data-part="platform"] { color: var(--platform); } .ep[data-part="platform"] .id { background: var(--platform); }
+.ep[data-part="learning"] { color: var(--learning); } .ep[data-part="learning"] .id { background: var(--learning); }
 .ep.sel { outline: 2px solid currentColor; outline-offset: 1px; }
 .ep.dim { opacity: .35; }
 
 /* Explorer */
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-.tab { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 14px; cursor: pointer; font-size: .88rem; display: inline-flex; gap: 8px; align-items: center; }
 .tab .dot { width: 9px; height: 9px; border-radius: 50%; }
-.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .explorer { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .part-head { display: grid; gap: 6px; margin-bottom: 12px; }
 .part-head p { color: var(--muted); font-size: .9rem; max-width: 70ch; }
@@ -162,32 +243,227 @@ header h1 span { color: var(--frame); }
 .kv dd { margin: 0; min-width: 0; }
 .status { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: var(--sunken); }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-.status.draft::before { background: var(--warn); }
+.status.draft::before { background: var(--orange); }
 .status.ready::before, .status.done::before { background: var(--ok); }
-.status.progress::before { background: var(--frame); }
+.status.progress::before { background: var(--blue); }
 .empty { color: var(--muted); font-size: .86rem; }
 
-/* Decisions */
-.decisions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 22px; }
-.dec { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding-block: 8px; border-bottom: 1px solid var(--line); font-size: .88rem; }
-.dec b { font-family: var(--mono); font-weight: 500; font-size: .78rem; color: var(--muted); padding-top: 2px; }
+/* Next */
 .next { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 14px 16px; color: var(--muted); font-size: .9rem; }
 
+@media (max-width: 1120px) {
+  .arch-layout { grid-template-columns: minmax(0, 1fr); }
+  .arch-detail { position: static; max-height: none; }
+}
 @media (max-width: 860px) {
-  .concept, .explorer, .flows, .decisions { grid-template-columns: minmax(0, 1fr); }
-  .modes { grid-template-columns: minmax(0, 1fr); }
-  .features { grid-template-columns: minmax(0, 1fr); }
+  .concept, .explorer, .modes, .features { grid-template-columns: minmax(0, 1fr); }
   .phase { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .detail { position: static; }
+  .ctl-row > .eyebrow { width: 100%; }
 }
-@media (prefers-reduced-motion: no-preference) { .ep, .tab { transition: border-color .15s, opacity .15s; } }
+@media (prefers-reduced-motion: no-preference) { .ep, .pill { transition: opacity .15s, border-color .15s; } .m, .edge, .bd, .bd-note { transition: opacity .15s, filter .15s; } }
+
+/* ===== Studio chapter ===== */
+/* Studio sketch: a deliberately light-only island (D-30): warm paper neutrals from this page, one pastel lime accent.
+   The user's sample app keeps its own theme. Every colour is set explicitly, so it reads the same on light and dark pages. */
+:root {
+  --st-bg: #f6f1e7; --st-panel: #fcf9f3; --st-line: #e8dfcf; --st-ink: #2a1f17; --st-muted: #8a7a69;
+  --st-accent: #cde9a0; --st-accent-ink: #3f6410; --st-accent-soft: #eef7de; --st-canvas: #efe9dd; --st-dot: #e0d6c3;
+  --st-ev: #df8a58; --st-bool: #6f98dc; --st-text: #a184d4; --st-warn: #c4952f;
+  --app-bg: #fbfcf7; --app-surface: #ffffff; --app-ink: #1c2a1e; --app-muted: #566658; --app-primary: #2f6b3a;
+  --app-primary-ink: #ffffff; --app-accent: #f0b429; --app-soft: #e4eedc; --app-line: #e2e6da;
+  --app-font: "Fraunces", Georgia, "Times New Roman", serif;
+}
+.sub-h { font-size: 1.15rem; margin-top: 10px; }
+.stages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 6px; align-content: start; }
+.stage.garden { border-style: dashed; background: transparent; }
+.stage .when { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.stage p { font-size: .84rem; color: var(--muted); }
+.stage .done { font-size: .82rem; color: var(--fg); border-top: 1px solid var(--line); padding-top: 8px; }
+.stage .done b { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; display: block; }
+
+/* Mock window */
+.mock-scroll { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); background: var(--st-bg); color-scheme: light; }
+.sm { min-width: 980px; color: var(--st-ink); background: var(--st-bg); font-family: var(--text); font-size: 12.5px; line-height: 1.4; position: relative; }
+.sm button, .sm select { font: inherit; color: inherit; }
+.sm-top { display: flex; align-items: center; gap: 18px; padding: 10px 16px; }
+.sm-crumb { display: inline-flex; align-items: center; gap: 8px; color: var(--st-muted); white-space: nowrap; }
+.sm-crumb b { color: var(--st-ink); font-weight: 600; }
+.sm-crumb::before { content: ""; width: 14px; height: 14px; border-radius: 4px; background: var(--st-accent); box-shadow: inset 0 0 0 1.5px var(--st-accent-ink); }
+.sm-tabs { display: flex; gap: 14px; position: relative; }
+.sm-tabs button { border: 0; background: none; padding: 4px 0; cursor: pointer; color: var(--st-muted); border-bottom: 2px solid transparent; }
+.sm-tabs button[aria-selected="true"] { color: var(--st-ink); border-bottom-color: var(--st-accent-ink); }
+.sm-tabs button:focus-visible { outline: 2px solid var(--st-accent-ink); outline-offset: 2px; }
+.sm-prompt { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; background: var(--st-panel); border: 1px solid var(--st-line); border-radius: 999px; padding: 5px 6px 5px 14px; position: relative; }
+.sm-spark { color: var(--st-accent-ink); }
+.sm-ph { color: var(--st-muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-scope { font-size: 11px; background: var(--st-accent-soft); color: var(--st-accent-ink); border-radius: 999px; padding: 2px 9px; }
+.sm-tools { display: flex; align-items: center; gap: 10px; position: relative; }
+.sm-vp { border: 1px solid var(--st-line); background: var(--st-panel); border-radius: 999px; padding: 3px 8px; cursor: pointer; color: var(--st-ink); }
+.sm-vp:focus-visible { outline: 2px solid var(--st-accent-ink); outline-offset: 2px; }
+.sm-zoom { font-family: var(--mono); font-size: 11px; color: var(--st-muted); min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.sm-pri { border: 0; background: var(--st-accent); color: var(--st-ink); border-radius: 999px; padding: 4px 14px; font-weight: 600; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st-accent-ink) 30%, transparent); }
+.sm-ghost { border: 1px solid var(--st-line); background: var(--st-panel); border-radius: 999px; padding: 3px 12px; cursor: pointer; color: var(--st-ink); }
+.sm-ghost[aria-pressed="true"] { background: var(--st-accent-soft); border-color: var(--st-accent); color: var(--st-accent-ink); }
+.sm-ghost:focus-visible { outline: 2px solid var(--st-accent-ink); outline-offset: 2px; }
+.sm-ws { display: grid; grid-template-columns: 196px minmax(0, 1fr) 208px; height: 500px; border-top: 1px solid var(--st-line); }
+.sm-ws.full { grid-template-columns: minmax(0, 1fr); }
+.sm-left, .sm-right { background: var(--st-bg); overflow: auto; display: flex; flex-direction: column; }
+.sm-head { display: flex; gap: 14px; padding: 12px 14px 8px; color: var(--st-muted); position: relative; }
+.sm-head button { border: 0; background: none; padding: 0; cursor: pointer; color: var(--st-muted); }
+.sm-head .on, .sm-head button[aria-selected="true"] { color: var(--st-ink); font-weight: 600; }
+.sm-tree { list-style: none; margin: 0; padding: 2px 6px 10px; }
+.sm-tree li { padding: 4px 8px 4px calc(8px + var(--d, 0) * 14px); display: flex; align-items: center; gap: 7px; white-space: nowrap; border-radius: 7px; color: var(--st-ink); }
+.sm-tree li i.sw { width: 10px; height: 10px; border-radius: 3px; flex: none; border: 1.5px solid var(--st-muted); }
+.sm-tree li.ct i.sw { border-style: dashed; background: none; }
+.sm-tree li.on { background: var(--st-accent-soft); color: var(--st-accent-ink); font-weight: 600; }
+.sm-tree em { font-style: normal; color: var(--st-muted); font-size: 10.5px; font-family: var(--mono); margin-left: auto; }
+.sm-tree li.dir { color: var(--st-muted); }
+.sm-canvas { background-color: var(--st-canvas); background-image: radial-gradient(var(--st-dot) 1px, transparent 1.3px); background-size: 14px 14px; overflow: auto; padding: 12px 20px 40px; position: relative; border-radius: 14px 14px 0 0; }
+.sm-cbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--st-muted); font-size: 11px; }
+.sm-cbar .grow { flex: 1; }
+.vp-outer { position: relative; width: 100%; }
+.vp-frame { position: absolute; top: 0; left: 0; transform-origin: top left; box-shadow: 0 1px 2px rgba(60, 40, 20, .08), 0 6px 24px rgba(60, 40, 20, .08); border-radius: 6px; overflow: hidden; }
+
+/* Starter layout (rendered inside the scaled frame) */
+.st-page { background: var(--app-bg); padding: 28px; display: flex; flex-direction: column; gap: 20px; font-family: var(--text); }
+.st-c { display: flex; gap: 20px; min-width: 0; }
+.st-c.row { flex-direction: row; flex-wrap: wrap; }
+.st-c.column { flex-direction: column; }
+.st-b { border-radius: 22px; border: 0; min-width: 150px; min-height: 90px; flex-basis: 0; position: relative; overflow: hidden; transition: background-color .3s, border-color .3s; }
+.st-b.gen { background: var(--app-surface) !important; padding: 34px 38px; display: grid; align-content: center; gap: 12px; color: var(--app-ink); }
+.st-b.gen h4 { margin: 0; font-family: var(--app-font); font-weight: 600; font-size: 46px; line-height: 1.04; }
+.st-b.gen p { margin: 0; color: var(--app-muted); font-size: 18px; max-width: 30em; }
+.st-b.gen .k { color: var(--app-primary); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; font-weight: 600; }
+.st-b.gen .app-btn { justify-self: start; margin-top: 6px; }
+.frames-off .st-b { border-color: transparent !important; }
+.frames-off .st-b:not(.gen) { background: transparent !important; }
+
+/* Studio overlay (fixed size at any zoom) */
+.ov { position: absolute; z-index: 2; }
+.ov-box { border: 3px solid transparent; box-sizing: border-box; }
+.ov-box.sel { box-shadow: 0 0 0 3px var(--st-panel), 0 0 0 5px var(--st-accent-ink); }
+.ov-pill { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .86); color: var(--st-muted); border-radius: 999px; padding: 5px 12px; white-space: nowrap; font-size: 11.5px; box-shadow: 0 1px 4px rgba(60, 40, 20, .1); max-width: calc(100% - 12px); overflow: hidden; }
+.ov-pill b { color: var(--st-accent-ink); font-weight: 600; }
+.ov-pill.dot { padding: 4px 7px; }
+.ov-btns { position: absolute; top: -13px; right: 14px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+.ov-box:hover .ov-btns, .ov-box.sel .ov-btns { opacity: 1; }
+.ov-btns span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--st-panel); border: 1px solid var(--st-line); color: var(--st-ink); font-size: 12px; box-shadow: 0 1px 3px rgba(60, 40, 20, .12); }
+.ov-btns span:first-child { background: var(--st-accent); border-color: var(--st-accent); color: var(--st-accent-ink); }
+.ov-prop { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; background: var(--st-panel); border: 1px solid var(--st-line); border-radius: 999px; padding: 3px 4px 3px 10px; white-space: nowrap; box-shadow: 0 2px 8px rgba(60, 40, 20, .14); }
+.ov-prop b { color: var(--st-accent-ink); font-weight: 600; }
+.ov-prop .sm-pri, .ov-prop .sm-ghost { padding: 1px 10px; }
+.frames-off .ov { display: none; }
+
+/* Inspector */
+.sm-insp { padding: 6px 14px 14px; display: grid; gap: 12px; align-content: start; }
+.sm-blk { font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+.sm-blk span { font-size: 11px; color: var(--st-muted); font-weight: 400; }
+.sm-row { display: grid; gap: 5px; }
+.sm-row label { color: var(--st-muted); font-size: 11px; }
+.sm-seg { display: inline-flex; background: var(--st-panel); border: 1px solid var(--st-line); border-radius: 999px; padding: 2px; width: max-content; }
+.sm-seg span { padding: 1px 9px; border-radius: 999px; color: var(--st-muted); }
+.sm-seg span.on { background: var(--st-accent-soft); color: var(--st-accent-ink); font-weight: 600; }
+.sm-num { border: 1px solid var(--st-line); background: var(--st-panel); border-radius: 8px; padding: 2px 9px; font-family: var(--mono); font-size: 11px; width: max-content; }
+.sm-box { border: 1px solid var(--st-line); background: var(--st-panel); border-radius: 12px; padding: 8px 10px; color: var(--st-ink); }
+.sm-divider { font-size: 11px; color: var(--st-muted); padding-top: 4px; }
+.co { position: absolute; top: -8px; right: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--red); color: #fff; font: 600 10.5px/18px var(--mono); text-align: center; z-index: 5; box-shadow: 0 0 0 2px var(--st-bg); }
+.co.in { position: static; display: inline-block; flex: none; }
+.callouts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 18px; font-size: .86rem; }
+.callouts li { display: grid; gap: 2px; align-items: start; }
+.callouts .co { position: static; box-shadow: none; }
+.callouts p { color: var(--muted); }
+
+/* Logic / theme / knowledge / preview panes */
+.sm-graph { background-color: var(--st-canvas); background-image: radial-gradient(var(--st-dot) 1px, transparent 1.3px); background-size: 14px 14px; overflow: auto; position: relative; border-radius: 14px 14px 0 0; }
+.sm-graph svg { display: block; width: 100%; min-width: 560px; height: 100%; }
+.gn rect.nb { fill: var(--st-panel); stroke: var(--st-line); }
+.gn rect.nh { stroke: none; }
+.gn text { fill: var(--st-ink); font-family: var(--text); font-size: 11.5px; }
+.gn text.t { font-weight: 600; fill: var(--st-ink); }
+.gn text.k { fill: var(--st-muted); font-family: var(--mono); font-size: 10px; }
+.gw { fill: none; stroke-width: 2.2; }
+.pin-ev { fill: var(--st-ev); } .pin-bool { fill: var(--st-bool); } .pin-text { fill: var(--st-text); }
+.w-ev { stroke: var(--st-ev); } .w-bool { stroke: var(--st-bool); } .w-text { stroke: var(--st-text); }
+.nh-block { fill: #e6ddcd; } .nh-state { fill: #d6e3f7; } .nh-act { fill: #f6dccb; }
+.sm-list { list-style: none; margin: 0; padding: 2px 6px; display: grid; gap: 2px; }
+.sm-list li { padding: 5px 8px; border-radius: 7px; display: flex; align-items: center; gap: 7px; }
+.sm-list li.on { background: var(--st-accent-soft); color: var(--st-accent-ink); font-weight: 600; }
+.sm-list small { margin-left: auto; color: var(--st-muted); font-size: 10.5px; font-weight: 400; }
+.sw-row { display: flex; gap: 3px; }
+.sw-row i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+.sm-sheet { padding: 18px; overflow: auto; display: grid; gap: 14px; align-content: start; background: var(--st-canvas); border-radius: 14px 14px 0 0; }
+.sheet-card { background: var(--app-bg); color: var(--app-ink); border-radius: 14px; padding: 20px; display: grid; gap: 12px; box-shadow: 0 6px 24px rgba(60, 40, 20, .08); }
+.sheet-card h4 { margin: 0; font-family: var(--app-font); font-size: 26px; font-weight: 600; line-height: 1.1; }
+.sheet-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.scale { display: grid; grid-template-columns: repeat(10, 1fr); border-radius: 8px; overflow: hidden; height: 22px; }
+.tok { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.tok i { width: 24px; height: 18px; border-radius: 6px; border: 1px solid var(--st-line); display: block; }
+.tok small { font-family: var(--mono); font-size: 10px; color: var(--st-accent-ink); }
+.sm-doc { padding: 24px 30px; overflow: auto; background: var(--st-panel); display: grid; gap: 10px; align-content: start; border-radius: 14px 14px 0 0; }
+.sm-doc h4 { margin: 0; font-family: var(--display); font-size: 18px; }
+.sm-doc p, .sm-doc li { color: var(--st-ink); max-width: 62ch; }
+.sm-doc ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.sm-doc code { font-size: 11px; color: var(--st-muted); }
+.budget { height: 8px; border-radius: 999px; background: var(--st-panel); border: 1px solid var(--st-line); overflow: hidden; }
+.budget i { display: block; height: 100%; width: 54%; background: var(--st-accent); }
+.sm-note { border: 1px solid color-mix(in srgb, var(--st-warn) 45%, transparent); background: color-mix(in srgb, var(--st-warn) 10%, transparent); border-radius: 10px; padding: 7px 9px; }
+.sm-runbar { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--st-muted); margin-bottom: 10px; }
+
+/* The user's sample app (preview pane) */
+.app { background: var(--app-bg); color: var(--app-ink); font-family: var(--text); font-size: 18px; line-height: 1.5; }
+.app-nav { display: flex; align-items: center; gap: 36px; padding: 22px 64px; border-bottom: 1px solid var(--app-line); }
+.app-logo { font-family: var(--app-font); font-weight: 600; font-size: 26px; color: var(--app-primary); }
+.app-links { display: flex; gap: 28px; color: var(--app-muted); margin-left: auto; }
+.app-btn { display: inline-block; background: var(--app-primary); color: var(--app-primary-ink); border-radius: 999px; padding: 12px 24px; font-weight: 600; }
+.app-btn.ghost { background: transparent; color: var(--app-primary); box-shadow: inset 0 0 0 2px var(--app-primary); }
+.app-menu { display: none; margin-left: auto; border: 2px solid var(--app-line); border-radius: 999px; padding: 6px 16px; font-weight: 600; }
+.app-hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items: center; max-width: 1200px; margin: 0 auto; padding: 80px 64px; }
+.app-kicker { color: var(--app-primary); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 14px; margin: 0 0 14px; }
+.app-hero h1 { font-family: var(--app-font); font-size: 68px; line-height: 1.02; font-weight: 600; margin: 0 0 20px; letter-spacing: -.01em; }
+.app-hero p { color: var(--app-muted); max-width: 30em; margin: 0; }
+.app-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.app-photo { height: 400px; border-radius: 28px; background: linear-gradient(160deg, var(--app-soft), color-mix(in srgb, var(--app-primary) 30%, var(--app-soft))); position: relative; overflow: hidden; }
+.app-photo i { position: absolute; bottom: -30px; width: 120px; height: 260px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: var(--app-primary); opacity: .85; transform-origin: bottom center; }
+.app-photo i:nth-child(1) { left: 34%; transform: rotate(-24deg); }
+.app-photo i:nth-child(2) { left: 46%; height: 310px; background: color-mix(in srgb, var(--app-primary) 75%, #000); }
+.app-photo i:nth-child(3) { left: 56%; transform: rotate(26deg); height: 230px; }
+.app-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; padding: 0 64px 80px; }
+.app-cards article { background: var(--app-surface); border: 1px solid var(--app-line); border-radius: 18px; padding: 26px; display: grid; gap: 8px; }
+.app-cards article::before { content: ""; width: 36px; height: 36px; border-radius: 10px; background: var(--app-accent); }
+.app-cards b { font-family: var(--app-font); font-size: 22px; font-weight: 600; }
+.app-cards p { color: var(--app-muted); font-size: 16px; margin: 0; }
+.app-foot { border-top: 1px solid var(--app-line); padding: 24px 64px; color: var(--app-muted); font-size: 15px; }
+.app.is-phone { font-size: 16px; }
+.app.is-phone .app-nav { padding: 16px 20px; gap: 12px; }
+.app.is-phone .app-links, .app.is-phone .app-nav .app-btn { display: none; }
+.app.is-phone .app-menu { display: inline-block; }
+.app.is-phone .app-hero { grid-template-columns: minmax(0, 1fr); padding: 36px 20px; gap: 28px; }
+.app.is-phone .app-hero h1 { font-size: 42px; }
+.app.is-phone .app-photo { height: 240px; }
+.app.is-phone .app-cards { grid-template-columns: minmax(0, 1fr); padding: 0 20px 40px; gap: 14px; }
+.app.is-phone .app-foot { padding: 20px; }
+
+/* Frontend structure graph */
+#fe-svg { display: block; width: 100%; min-width: 820px; height: auto; }
+#fe-svg text { font-family: var(--text); }
+.fe-zone rect { fill: color-mix(in srgb, var(--lime) 6%, transparent); stroke: var(--lime-ink); stroke-dasharray: 6 5; stroke-width: 1.4; }
+.fe-zone text { fill: var(--lime-ink); font-family: var(--mono) !important; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+
+@media (max-width: 860px) {
+  .stages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .callouts { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) { .stages { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .st-b, .ov-btns { transition: none; } }
 </style>
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Development plan · v1 · 2026-10-27</div>
+    <div class="eyebrow">Development plan · v1.1 · 2026-10-28</div>
     <h1>Wibe<span>Block</span> plan map</h1>
-    <p class="lead">You lay out the frames and the AI fills the bodies. Compact then exports a project you own. This map shows the four plan parts, their features, all epics with dependencies and phases, and how the system fits together. The plan is a direction, and it changes as development goes on.</p>
+    <p class="lead">You lay out the frames and the AI fills the bodies. Compact then exports a project you own. This map shows how the system is built, the order of work, and every epic in the plan with its dependencies. The plan is a direction, and it changes as development goes on.</p>
     <div class="meta" id="counts"></div>
   </header>
 
@@ -210,9 +486,9 @@ header h1 span { color: var(--frame); }
         </div>
       </div>
       <div class="legend">
-        <div class="legend-row"><span class="sw frame"></span><p><b>Frame (user)</b>: the block tree, flex/grid layout, sizing (fixed / fill / hug), and a mobile override for each block. The AI never changes it.</p></div>
-        <div class="legend-row"><span class="sw body"></span><p><b>Body (AI)</b>: HTML and Tailwind generated from the block prompt inside the frame. You can edit it, regenerate it, or eject it into child blocks. It goes stale when the global prompt or skills change.</p></div>
-        <div class="legend-row"><span class="sw theme"></span><p><b>Theme</b>: design tokens as CSS variables. Changing a token restyles every block live, with no regeneration. <b>Compact</b> turns the framework-neutral JSON into a React project (Vue, Angular and React Native later).</p></div>
+        <div class="legend-row"><span class="sw frame"></span><p><b>Frame (user)</b>: the block tree, flex/grid layout, sizing (fixed / fill / hug), and a mobile override for each block. The AI can only propose changes, which you accept or discard.</p></div>
+        <div class="legend-row"><span class="sw body"></span><p><b>Body (AI)</b>: HTML and Tailwind generated from the block prompt inside the frame. You can edit it, regenerate it, or eject it into child blocks. It goes stale when the style guide in the knowledge base or the skills change. Marked elements become ports that logic can bind to.</p></div>
+        <div class="legend-row"><span class="sw theme"></span><p><b>Theme</b>: design tokens as CSS variables. Changing a token restyles every block live, with no regeneration. <b>Compact</b> turns the universal JSON plus the React logic layer into a React project (Vue, Angular and React Native later).</p></div>
       </div>
     </div>
   </section>
@@ -221,59 +497,230 @@ header h1 span { color: var(--frame); }
     <div class="eyebrow">One Studio, three modes</div>
     <h2 id="h-modes">Modes</h2>
     <div class="modes">
-      <div class="mode"><span class="when">Phase 1 · no backend</span><h3>Local</h3><ul><li>Studio + Node Runner, started with <code>npm start</code></li><li>Project is a folder of JSON files</li><li>Your own API key (any provider), or Claude Code through the MCP server</li></ul></div>
-      <div class="mode"><span class="when">Phase 3 · on your machine</span><h3>Connected</h3><ul><li>Studio + platform services under Aspire and Docker</li><li>Accounts, projects in Postgres, server-side AI and export</li><li>Upload and download projects between Local and Connected</li></ul></div>
+      <div class="mode"><span class="when">Phase 1 · no backend</span><h3>Local</h3><ul><li>Studio + Node Runner, started with <code>npm start</code>; no login or accounts</li><li>Project is a folder of JSON files</li><li>Your own API key (any provider), or Claude Code through the MCP server</li></ul></div>
+      <div class="mode"><span class="when">Phase 3 · on your machine</span><h3>Connected</h3><ul><li>The platform app, with the Studio inside, + platform services under Aspire and Docker</li><li>Accounts, projects in Postgres, server-side AI and export</li><li>Import a Local project folder or zip; download projects as a zip</li></ul></div>
       <div class="mode"><span class="when">Phase 6 · optional</span><h3>Cloud</h3><ul><li>The same platform deployed to Azure with Terraform</li><li>Cheapest services first; the cluster stops when idle</li><li>Plans and billing (Stripe test mode)</li></ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-studio" id="studio-section">
+    <div class="eyebrow">Studio · planned 2026-10-28</div>
+    <h2 id="h-studio">The Studio</h2>
+    <p class="lead">The Studio is where users build their apps. It has two canvases: a <b>design canvas</b> that renders the page from the project data at any device width, and a <b>logic canvas</b> where behaviour is built as blueprint-style graphs bound to the blocks. A new page starts as a random arrangement of empty, pastel blocks, each waiting for a prompt. Every AI change arrives as a proposal to accept or discard. It ships in four stages, and the platform track starts right after the first one.</p>
+
+    <h3 class="sub-h">Stages</h3>
+    <div class="stages">
+      <div class="stage"><span class="when">Phase 1 · Studio only</span><h3>alpha</h3><p>Schema and JSON Schema export, adapters, Runner storage and AI proxy, design canvas with block frames and viewports, random starter layout, Structure panel, inspector, one AI task with proposals, undo.</p><p class="done"><b>Done when</b>A block's body is generated, accepted and undone, and the project is saved on disk as valid JSON the backend can validate.</p></div>
+      <div class="stage"><span class="when">Phase 2 · alongside Platform foundation</span><h3>MVP</h3><p>Shuffle, Files panel, theme studio, knowledge base and style guide, history with AI-turn revert, run preview, Compact; minimal logic canvas (optional).</p><p class="done"><b>Done when</b>A two-page app is designed, checked in the run preview and exported to a folder that runs with no WibeBlock dependency.</p></div>
+      <div class="stage"><span class="when">Phase 3 · alongside Platform connected</span><h3>v1</h3><p>AI themes, global prompt bar with layout proposals, logic v1 (data, lists, forms, context), prompt library, Developer panels, snapshots, assets, Claude Code, onboarding.</p><p class="done"><b>Done when</b>A page is arranged by the AI through a reviewed proposal and a data-driven app is built on the logic canvas.</p></div>
+      <div class="stage garden"><span class="when">Phase 7 · picked freely</span><h3>garden</h3><p>Photoshop-style layers and pro tools, Vue and Angular targets, framework porting, the AI's own knowledge base, VS Code, browser-only.</p><p class="done"><b>Done when</b>Each epic stands on its own.</p></div>
+    </div>
+
+    <h3 class="sub-h">Interface sketch</h3>
+    <p class="lead">A sketch of the agreed layout, not a final design. The starter layout is random: press Shuffle, or reload the page, to get a new one. Hover a block to see its border buttons, switch viewports to see zoom-to-fit, and switch workspaces at the top.</p>
+    <div class="mock-scroll">
+      <div class="sm" id="sm">
+        <div class="sm-top">
+          <span class="sm-crumb"><b>WibeBlock</b> <span>/</span> Demo project <span>/</span> <b>Home</b></span>
+          <div class="sm-tabs" role="tablist" aria-label="Workspaces" id="sm-tabs">
+            <button type="button" role="tab" aria-selected="true" data-ws="design">Design</button>
+            <button type="button" role="tab" aria-selected="false" data-ws="logic">Logic</button>
+            <button type="button" role="tab" aria-selected="false" data-ws="theme">Theme</button>
+            <button type="button" role="tab" aria-selected="false" data-ws="knowledge">Knowledge</button>
+            <button type="button" role="tab" aria-selected="false" data-ws="preview">Preview</button>
+            
+          </div>
+          <div class="sm-prompt"><span class="sm-spark">✦</span><span class="sm-ph">Ask for changes to the selection, the page or the project…</span><span class="sm-scope">Selection</span></div>
+          <div class="sm-tools">
+            <select class="sm-vp" id="sm-vp" aria-label="Viewport"></select>
+            <span class="sm-zoom" id="sm-zoom">48%</span>
+            <span class="sm-pri">Export</span>
+            
+          </div>
+        </div>
+
+        <div class="sm-ws" data-pane="design">
+          <div class="sm-left">
+            <div class="sm-head" role="tablist" aria-label="Left panel" id="sm-left-tabs"><button type="button" role="tab" aria-selected="true" data-lp="structure">Structure</button><button type="button" role="tab" aria-selected="false" data-lp="files">Files</button></div>
+            <ul class="sm-tree" id="sm-structure"></ul>
+            <ul class="sm-tree" id="sm-files" hidden>
+              <li class="dir" style="--d:0">Pages</li>
+              <li class="on" style="--d:1">Home <em>/</em></li>
+              <li class="dir" style="--d:1">plans</li>
+              <li style="--d:2">Monthly <em>/plans/monthly</em></li>
+              <li style="--d:2">Gift <em>/plans/gift</em></li>
+              <li style="--d:1">About <em>/about</em></li>
+              <li class="dir" style="--d:0">Components</li>
+              <li style="--d:1">Hero</li>
+              <li style="--d:1">Plan card</li>
+              <li class="dir" style="--d:0">Images <em>4</em></li>
+              <li class="dir" style="--d:0">Themes <em>2</em></li>
+              <li class="dir" style="--d:0">Knowledge <em>5</em></li>
+            </ul>
+          </div>
+          <div class="sm-canvas" id="sm-canvas">
+            <div class="sm-cbar"><span class="vp-label">1440 × 900 · Laptop</span><span>·</span><span class="bp-label">desktop breakpoint</span><span class="grow"></span>
+              <button type="button" class="sm-ghost" id="sm-frames" aria-pressed="true">Frames</button>
+              <button type="button" class="sm-ghost" id="sm-shuffle">Shuffle </button></div>
+            <div class="vp-outer" id="vp-design"></div>
+          </div>
+          <div class="sm-right">
+            <div class="sm-head"><span class="on">Hero</span></div>
+            <div class="sm-insp">
+              <div class="sm-row"><label>Width</label><span class="sm-seg"><span class="on">Fill</span><span>Fit</span><span>Fixed</span></span></div>
+              <div class="sm-row"><label>Height</label><span class="sm-seg"><span>Fill</span><span class="on">Fit</span><span>Fixed</span></span></div>
+              <div class="sm-row"><label>Spacing inside</label><span class="sm-num">32</span></div>
+              <div class="sm-row"><label>Prompt</label><div class="sm-box">Big serif headline about plants matched to your light, one line of subtext, one button.</div></div>
+              <div class="sm-row"><label>Behaviour</label><span style="color:var(--st-muted)">3 ports · open in Logic</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-ws" data-pane="logic" hidden>
+          <div class="sm-left">
+            <div class="sm-head"><span class="on">Structure</span><span>drag into graph</span></div>
+            <ul class="sm-tree">
+              <li class="ct" style="--d:0"><i class="sw"></i>Home</li>
+              <li class="ct" style="--d:1"><i class="sw"></i>Nav</li>
+              <li class="on" style="--d:2"><i class="sw"></i>Menu button</li>
+              <li style="--d:1"><i class="sw"></i>Mobile menu</li>
+              <li style="--d:1"><i class="sw"></i>Hero</li>
+            </ul>
+          </div>
+          <div class="sm-graph">
+            <svg viewBox="0 0 640 470" role="img" aria-label="Example logic graph: the menu button toggles a menuOpen state that controls the mobile menu's visibility; the hero button navigates to the plans page">
+              <path class="gw w-ev" d="M208,98 C250,98 250,96 286,96"/>
+              <path class="gw w-bool" d="M208,226 C250,226 250,124 286,124"/>
+              <path class="gw w-bool" d="M208,226 C330,226 330,250 440,250"/>
+              <path class="gw w-ev" d="M208,356 C300,356 300,390 440,390"/>
+              <g class="gn"><rect class="nb" x="28" y="56" width="180" height="62" rx="10"/><rect class="nh nh-block" x="28" y="56" width="180" height="24" rx="10"/><text class="t" x="40" y="72">Block · Menu button</text><text x="40" y="102">click</text><text class="k" x="150" y="102">event</text><circle class="pin-ev" cx="208" cy="98" r="5"/></g>
+              <g class="gn"><rect class="nb" x="28" y="186" width="180" height="62" rx="10"/><rect class="nh nh-state" x="28" y="186" width="180" height="24" rx="10"/><text class="t" x="40" y="202">State · menuOpen</text><text x="40" y="230">boolean = false</text><circle class="pin-bool" cx="208" cy="226" r="5"/></g>
+              <g class="gn"><rect class="nb" x="286" y="62" width="130" height="80" rx="10"/><rect class="nh nh-act" x="286" y="62" width="130" height="24" rx="10"/><text class="t" x="298" y="78">Toggle</text><circle class="pin-ev" cx="286" cy="96" r="5"/><text x="298" y="100">when</text><circle class="pin-bool" cx="286" cy="124" r="5"/><text x="298" y="128">state</text></g>
+              <g class="gn"><rect class="nb" x="440" y="212" width="176" height="62" rx="10"/><rect class="nh nh-block" x="440" y="212" width="176" height="24" rx="10"/><text class="t" x="452" y="228">Block · Mobile menu</text><circle class="pin-bool" cx="440" cy="250" r="5"/><text x="452" y="254">visible</text><text class="k" x="560" y="254">boolean</text></g>
+              <g class="gn"><rect class="nb" x="28" y="316" width="180" height="88" rx="10"/><rect class="nh nh-block" x="28" y="316" width="180" height="24" rx="10"/><text class="t" x="40" y="332">Block · Hero</text><text x="40" y="360">cta</text><text class="k" x="150" y="360">event</text><circle class="pin-ev" cx="208" cy="356" r="5"/><text x="40" y="388">title</text><text class="k" x="150" y="388">text</text><circle class="pin-text" cx="28" cy="384" r="5"/></g>
+              <g class="gn"><rect class="nb" x="440" y="362" width="176" height="56" rx="10"/><rect class="nh nh-act" x="440" y="362" width="176" height="24" rx="10"/><text class="t" x="452" y="378">Navigate</text><circle class="pin-ev" cx="440" cy="390" r="5"/><text x="452" y="406">to /plans</text></g>
+              <text class="k" x="28" y="452" style="fill:var(--st-muted);font-family:var(--mono);font-size:10px">React layer · Home · generated as useState + handlers</text>
+            </svg>
+          </div>
+          <div class="sm-right">
+            <div class="sm-head"><span class="on">Nodes</span><span>React</span></div>
+            <ul class="sm-list">
+              <li>State</li><li>Block ports</li><li>Event</li><li>Set state · Toggle</li><li>Navigate</li><li>Condition</li>
+              <li style="color:var(--st-muted)">Later: Fetch · List · Form · Context · Hook</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sm-ws" data-pane="theme" hidden>
+          <div class="sm-left">
+            <div class="sm-head"><span class="on">Themes</span><span>Presets</span></div>
+            <ul class="sm-list">
+              <li class="on"><span class="sw-row"><i style="background:#2f6b3a"></i><i style="background:#f0b429"></i></span>Default green</li>
+              <li><span class="sw-row"><i style="background:#22304a"></i><i style="background:#8fb3ff"></i></span>Night shift</li>
+              <li><span class="sw-row"><i style="background:#ece6da"></i><i style="background:#b0412b"></i></span>Paper</li>
+              <li><span class="sw-row"><i style="background:#0f7a78"></i><i style="background:#ff7a59"></i></span>Lagoon</li>
+            </ul>
+          </div>
+          <div class="sm-sheet">
+            <div class="sheet-card">
+              <h4>Plants that fit your light.</h4>
+              <p style="color:var(--app-muted);margin:0">Body text in the theme's base size, on the background token.</p>
+              <div class="sheet-row"><span class="app-btn">Primary</span><span class="app-btn ghost">Secondary</span><span style="background:var(--app-accent);border-radius:999px;padding:4px 12px;font-weight:600">Accent</span></div>
+            </div>
+            <div><div class="sm-runbar">Palette from one colour (OKLCH)</div>
+              <div class="scale"><i style="background:#eef5ea"></i><i style="background:#d6e8cf"></i><i style="background:#b3d4a7"></i><i style="background:#86b879"></i><i style="background:#5b9653"></i><i style="background:#3f7d42"></i><i style="background:#2f6b3a"></i><i style="background:#25552e"></i><i style="background:#1b3f22"></i><i style="background:#112816"></i></div></div>
+          </div>
+          <div class="sm-right">
+            <div class="sm-head"><span class="on">Colour</span><span>Type</span><span>Space</span></div>
+            <div class="sm-insp">
+              <div class="tok"><i style="background:#2f6b3a"></i><span>Main colour</span><small>AA 6.9</small></div>
+              <div class="tok"><i style="background:#f0b429"></i><span>Accent</span><small>AA 9.8</small></div>
+              <div class="tok"><i style="background:#fbfcf7"></i><span>Background</span><small></small></div>
+              <div class="tok"><i style="background:#1c2a1e"></i><span>Text</span><small>AAA 14.2</small></div>
+              <div class="sm-box" style="color:var(--st-muted)">✦ Describe a look to get a theme (v1)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-ws" data-pane="knowledge" hidden>
+          <div class="sm-left">
+            <div class="sm-head"><span class="on">Notes</span></div>
+            <ul class="sm-list">
+              <li class="on">Style guide<small>pinned</small></li>
+              <li>About the project</li>
+              <li>Audience</li>
+              <li>Pages &amp; features</li>
+              <li style="color:var(--st-muted)">Launch ideas<small>not sent</small></li>
+            </ul>
+          </div>
+          <div class="sm-doc">
+            <h4>Style guide</h4>
+            <p>Calm and botanical. Lots of white space, rounded shapes, one strong green. Headlines in a soft serif, body in a plain sans.</p>
+            <ul><li>Use the main colour for actions only.</li><li>Photos of real plants in real rooms; no stock illustrations.</li><li>Write like a friendly plant shop owner.</li></ul>
+            <p><code>Sent with every AI task · editing it marks generated bodies stale</code></p>
+          </div>
+          <div class="sm-right">
+            <div class="sm-head"><span class="on">AI context</span></div>
+            <div class="sm-insp">
+              <div class="sm-row"><label>Budget · 2.2k of 4k tokens</label><div class="budget"><i></i></div></div>
+              <div class="sm-note">4 blocks are stale after your edit. <b>Regenerate</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-ws full" data-pane="preview" hidden>
+          <div class="sm-canvas">
+            <div class="sm-runbar"><span>Running the generated app · localhost:5174</span><span class="grow" style="flex:1"></span><span class="sm-seg"><span class="on">Use</span><span>Select</span></span><span>Open in new tab ↗</span></div>
+            <div class="vp-outer" id="vp-preview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="callouts">
+      <li><div><b>Workspaces</b><p>Design, Logic, Theme, Knowledge and Preview; page, selection, viewport and zoom live in the URL.</p></div></li>
+      <li><div><b>Prompt bar</b><p>A command with a scope: the selection in the MVP, the page or the project in v1.</p></div></li>
+      <li><div><b>Viewport and export</b><p>Phone to 4K at the real width, zoomed to fit; Export runs Compact.</p></div></li>
+      <li><div><b>Structure and Files</b><p>The page's component hierarchy, and the project's folders: pages, components, images, themes, notes.</p></div></li>
+      <li><div><b>Starter blocks</b><p>Random sizes and arrangement in a pastel palette, always a real flex layout; each empty block holds only a prompt input.</p></div></li>
+      <li><div><b>Border buttons</b><p>Generate, add, duplicate, more: they sit on the block's border on hover and stay a fixed size at any zoom.</p></div></li>
+      <li><div><b>Generated block</b><p>Takes its new style inside and keeps its border; Accept or Discard the proposal. The inspector shows only with a selection.</p></div></li>
+      <li><div><b>Shuffle and frames</b><p>Shuffle makes a new starter layout; Frames hides borders and buttons to judge the clean result.</p></div></li>
+    </ul>
+
+    <h3 class="sub-h">Frontend structure</h3>
+    <p class="lead">The general shape of the frontend, not the final architecture. Hosts render the Studio package and pass it adapters; workspaces share three kinds of state; adapters are the only way out to a backend. Click a box to see its job, its libraries and its epics.</p>
+    <div class="arch-layout">
+      <div class="arch-scroll">
+        <svg id="fe-svg" viewBox="0 0 1000 664" role="img" aria-label="Frontend structure: hosts, the Studio package, workspaces, state stores, adapters, backends and shared packages"></svg>
+        <div class="kinds" style="min-width:820px"><span><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" class="edge hot p-local" style="opacity:1"/></svg>in the same page or process</span><span><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" class="edge hot p-http" style="opacity:1"/></svg>over the network</span><span>colour band: blue = Studio, red = platform, brown = state, lime = shared package</span></div>
+      </div>
+      <aside class="arch-detail" id="fe-detail" aria-live="polite"></aside>
     </div>
   </section>
 
   <section aria-labelledby="h-arch">
     <div class="eyebrow">System</div>
     <h2 id="h-arch">Architecture</h2>
-    <div class="arch-scroll">
-      <div class="arch">
-        <div class="box studio-bar">
-          <h3>Studio <small style="display:inline">React · TypeScript · Vite · shared in all modes</small></h3>
-          <div class="adapters"><span class="chip">layout editor</span><span class="chip">block prompts</span><span class="chip">theme</span><span class="chip">preview</span><span class="chip">mobile view</span><span class="chip">developer mode</span><span class="chip">compact</span></div>
-          <small>Adapters: storage · ai · auth · export · realtime. They point at the Runner (Local) or at the Gateway (Connected / Cloud).</small>
-        </div>
-        <div class="arch-cols">
-          <div class="link-label">HTTP + WebSocket ↓</div>
-          <div class="link-label">HTTPS + SignalR via Gateway ↓</div>
-        </div>
-        <div class="arch-cols">
-          <div class="box local">
-            <h3>Node Runner <small style="display:inline">Local mode</small></h3>
-            <ul><li>project folder: <code>wibeblock/*.json</code></li><li>Vite preview of <code>out/&lt;target&gt;/</code></li><li>AI via Vercel AI SDK (your key)</li><li>MCP server for Claude Code</li><li>codegen and Compact</li></ul>
-            <small>Also hosted by the VS Code extension, a browser-only fallback, and the Expo companion app for previews on a phone.</small>
-          </div>
-          <div class="box platform">
-            <h3>Platform <small style="display:inline">.NET 10 + Node · local first</small></h3>
-            <div class="svc-grid">
-              <div class="svc gw"><h3>Gateway</h3><small>YARP · JWT validation · rate limits · SignalR pass-through</small></div>
-              <div class="svc"><h3>Identity</h3><small>OpenIddict OIDC, GitHub and Google login, PKCE</small></div>
-              <div class="svc"><h3>Core API</h3><small>modular monolith: Projects, Realtime, Billing, Metering, Prompt Library, Notifications</small></div>
-              <div class="svc"><h3>AI Generation</h3><small>gRPC streaming · Anthropic SDK · fake provider</small></div>
-              <div class="svc"><h3>Export</h3><small>Node · codegen · zip or GitHub push</small></div>
-            </div>
-            <div class="stores"><span class="chip">PostgreSQL · JSONB</span><span class="chip">Redis</span><span class="chip">Blob · Azurite</span><span class="chip">Kafka</span><span class="chip">Neo4j read model</span><span class="chip">Key Vault</span></div>
-            <div class="async"><b>Async:</b> outbox → Kafka → Metering, Notifications, Design Graph (Neo4j), Analytics. <b>Sync:</b> gRPC, where a user is waiting.</div>
-          </div>
-        </div>
-        <div class="box shared"><h3 style="font-size:.86rem">Shared packages</h3><span class="chip">core · schema + codegen</span><span class="chip">prompts · skills as data</span><span class="chip">ai · providers + fake</span><span class="chip">ui · Studio design system</span></div>
-        <p class="runs">Everything runs locally under .NET Aspire and Docker, and in kind/k3d to learn Kubernetes. Azure comes last and is optional: Blob and static hosting, then Postgres, then AKS, then Kafka.</p>
-      </div>
+    <p class="lead">Click a module (Core API sub-modules too) to see what it does and every link it has, click inside a block such as Browser or Your computer to focus on it, and click empty space to see everything again. Hover a link to see its label. Arrows point from the caller to the module it calls. Switch the view to Local mode or Platform to grey out what that mode doesn't use, pick one or more phases to see what they build or change, filter by protocol, or trace a flow step by step. Daily development runs the platform under .NET Aspire; the Kubernetes cluster is the deployment shape, first in kind/k3d on your machine, later in AKS.</p>
+    <div class="controls">
+      <div class="ctl-row" id="ctl-view"><span class="eyebrow">View</span></div>
+      <div class="ctl-row" id="ctl-phase"><span class="eyebrow">Phase</span></div>
+      <div class="ctl-row" id="ctl-proto"><span class="eyebrow">Protocol</span></div>
+      <div class="ctl-row" id="ctl-flow"><span class="eyebrow">Trace</span></div>
     </div>
-    <div class="flows">
-      <div class="flow"><h3>Interactive generation</h3><div class="steps"><span>Studio</span><em>→</em><span>Gateway</span><em>→</em><span>Core API: quota check</span><em>gRPC stream →</em><span>AI Generation</span><em>→</em><span>Claude</span><em>tokens → SignalR →</em><span>Studio renders</span><em>→</em><span>outbox event</span></div></div>
-      <div class="flow"><h3>Export</h3><div class="steps"><span>Studio</span><em>→</em><span>Core API: export job</span><em>gRPC →</em><span>Export service: codegen</span><em>→</em><span>zip in Blob / GitHub push</span><em>status → SignalR →</em><span>download link</span></div></div>
+    <div class="arch-layout">
+      <div class="arch-scroll">
+        <svg id="arch-svg" viewBox="0 0 1200 1115" role="img" aria-label="Architecture diagram of WibeBlock modules and their links"></svg>
+        <div class="kinds"><span><i></i>WibeBlock module</span><span><i class="store"></i>data store</span><span><i class="ext"></i>external or user's tool</span><span><i class="bd"></i>where it runs</span><span>grey = not used in the selected view or phases</span><span>dashed outline = existing module the selected phases change</span><span>P1–P7 = phase it arrives in</span></div>
+      </div>
+      <aside class="arch-detail" id="arch-detail" aria-live="polite"></aside>
     </div>
   </section>
 
   <section aria-labelledby="h-road">
     <div class="eyebrow">Order of work</div>
     <h2 id="h-road">Roadmap</h2>
-    <p class="lead">Phases 3–6 are optional additions. Local mode stays fully usable without them. Click an epic to open it in the explorer.</p>
+    <p class="lead">Two tracks run side by side: from Phase 2, sessions alternate between Studio and platform work. Studio epics are listed in the phase where they start; an epic in Phase 1 has alpha stories there and MVP stories in Phase 2. Phases 4–6 are optional additions. Click an epic to open it in the explorer.</p>
     <div class="roadmap" id="roadmap"></div>
   </section>
 
@@ -287,38 +734,211 @@ header h1 span { color: var(--frame); }
     </div>
   </section>
 
-  <section aria-labelledby="h-dec">
-    <div class="eyebrow">docs/plan/decisions.md</div>
-    <h2 id="h-dec">Key decisions</h2>
-    <div class="decisions" id="decisions"></div>
-  </section>
-
   <section aria-labelledby="h-next">
     <h2 id="h-next">Next</h2>
-    <div class="next">No epic files are written yet: every epic above is still <span class="status">planned</span>, listed only in its feature doc. Each <code>/plan-part</code> session writes epics as <span class="status draft">draft</span>, then <span class="status ready">ready</span>, and this map is updated after it. Studio screens and UI decisions get added after the Studio planning session.</div>
+    <div class="next">The Studio part is planned: its 32 epic files are written and <span class="status ready">ready</span> (S-23 and S-30 stay <span class="status draft">draft</span> placeholders until they are designed). The best first story to ticket is <b>S-01 / US-1</b> (the project schema), followed by the rest of the alpha. Mobile, Platform and Learning-track epics are still <span class="status">planned</span>, listed only in their feature docs; the next <code>/plan-part</code> session should take the Platform foundation (P-01 to P-04), which starts right after the Studio alpha.</div>
   </section>
 </div>
 
 <script>
-/* ===== DATA (update this block when the plan changes) ===== */
+/* ===== DATA: architecture (update when modules or links change). Coordinates: 1200 x 1115. ===== */
+const BOUNDS = [
+  { kind: "web", x: 40, y: 10, w: 640, h: 122, label: "Browser", lx: 54, ly: 30, views: "both" },
+  { kind: "machine", x: 40, y: 160, w: 860, h: 285, label: "Your computer · Local mode", lx: 54, ly: 180, views: "local" },
+  { kind: "phone", x: 930, y: 240, w: 260, h: 130, label: "Phone", lx: 944, ly: 260, views: "both" },
+  { kind: "cluster", x: 10, y: 505, w: 890, h: 600, label: "Kubernetes cluster · kind / k3d locally → AKS later", lx: 24, ly: 524, views: "platform" },
+  { kind: "ns", x: 26, y: 533, w: 868, h: 80, label: "namespace: edge", lx: 884, ly: 578, anchor: "end", views: "platform" },
+  { kind: "ns", x: 26, y: 620, w: 868, h: 214, label: "namespace: services", lx: 100, ly: 820, views: "platform" },
+  { kind: "ns", x: 26, y: 882, w: 868, h: 214, label: "namespace: data", lx: 44, ly: 1086, views: "platform" },
+  { kind: "ext", x: 930, y: 530, w: 260, h: 460, label: "Third-party services", lx: 944, ly: 550, views: "both" },
+  { kind: "azure", x: 930, y: 1000, w: 260, h: 105, label: "Azure Functions", lx: 944, ly: 1020, views: "platform" }
+];
+// views: local | platform | both. Parts outside the selected view are greyed out.
+const NOTES = [
+  { x: 44, y: 994, text: "Cloud: managed Azure", views: "platform" },
+  { x: 44, y: 1008, text: "Postgres · Blob · Bus", views: "platform" }
+];
+// b: [x, y, w, h]. kind: ours | store | external. views: local | platform | both. big: larger title.
+// subs: clickable inner modules { id, name, phase, about, epics, links: ids of the parent's links this module uses }.
+const MODULES = [
+  { id: "platformapp", name: "Platform app", tech: "apps/platform · React Router v7", b: [60, 44, 250, 70], kind: "ours", color: "red", phase: 3, views: "platform", zone: "Browser",
+    about: "The platform's host for the Studio (D-19, D-26): React Router v7 in framework mode with server rendering. Its Node server is a backend-for-frontend: it runs the login with Identity, keeps the tokens and gives the browser a session cookie, so browser calls reach the Gateway through the same origin. Dashboard, account, plan and usage pages; on its editor route it renders the Studio package with platform adapters (P-16) and fills the slots. Aspire runs it locally, a container in the cluster in Cloud. Learning option: an Angular version hosting the Studio as a <wibe-studio> Web Component.", epics: ["P-08", "P-16", "P-14"] },
+  { id: "studio", name: "Studio", tech: "packages/studio · React · Vite", b: [340, 44, 320, 76], big: true, kind: "ours", color: "blue", phase: 1, views: "both", zone: "Browser",
+    extra: "design · logic · theme · knowledge · preview",
+    about: "The editor: design canvas with viewports, zoom, block frames and random starter layouts, Structure and Files panel, schema-driven inspector, logic canvas, theme studio, knowledge base, run preview, history, Compact. Every AI change is a proposal to accept or discard. A React package (packages/studio) with no login or account code: each host app renders it and passes its adapters (storage, ai, export, preview, realtime) and slots (D-19). See the Studio chapter below for the interface and the frontend structure.", epics: ["S-02", "S-03", "S-31", "S-18", "S-32", "S-19", "S-15", "S-04", "S-05", "S-21", "S-25", "S-06", "S-14"] },
+  { id: "static", name: "Static hosting", tech: "Azure Static Web Apps", b: [700, 24, 190, 62], kind: "external", color: "red", phase: 6, views: "platform", zone: "Azure · Cloud mode",
+    about: "Hosts the optional Astro landing page on the free tier. The platform app itself runs as a Node service (server rendering + BFF, D-26), under Aspire locally and in the cluster in Cloud.", epics: ["P-13", "P-14"] },
+  { id: "claude", name: "Claude Code", tech: "your CLI · your subscription", b: [430, 196, 240, 64], kind: "external", color: "lime", phase: 3, views: "local", zone: "Your computer",
+    about: "Runs inside the project folder on your own subscription. It connects to the Runner's MCP server and edits blocks through WibeBlock tools; the Studio shows the changes live. WibeBlock never holds your Claude credentials.", epics: ["S-10"] },
+  { id: "vscode", name: "VS Code extension", tech: "VS Code API · TS", b: [690, 196, 190, 64], kind: "ours", color: "blue", phase: 7, views: "local", zone: "Your computer",
+    about: "Hosts the Studio in a webview and takes over the Runner's job (files, preview, AI) from inside the editor, with the open workspace as the project.", epics: ["S-11"] },
+  { id: "vite", name: "Preview server", tech: "Vite dev server", b: [60, 346, 200, 70], kind: "ours", color: "blue", phase: 2, views: "local", zone: "Your computer",
+    about: "Serves the generated project from out/<target>/ with hot reload. The Studio's Preview workspace shows it in an iframe (the run preview, where logic runs); the design canvas renders the project data itself (D-20). The companion app shows it on a phone.", epics: ["S-06"] },
+  { id: "runner", name: "Node Runner", tech: "Node · TypeScript", b: [300, 342, 300, 78], big: true, kind: "ours", color: "blue", phase: 1, views: "local", zone: "Your computer",
+    extra: "files · codegen · AI proxy · MCP server",
+    about: "The Studio's local backend, deliberately the same shape as the platform. Alpha: stores projects and runs AI tasks with your key. MVP: watches the folder for edits made elsewhere, runs codegen, the preview server and Compact. v1: hosts the MCP server for Claude Code.", epics: ["S-09", "S-07", "S-10", "S-13"] },
+  { id: "folder", name: "Project folder", tech: "wibeblock/*.json · out/", b: [640, 346, 240, 70], kind: "store", color: "brown", phase: 1, views: "local", zone: "Your computer",
+    about: "Source of truth in Local mode: the universal layer (pages, blocks, themes, knowledge notes) plus targets/react/ with the logic graphs (D-21), history and the AI log. Also holds the generated project in out/<target>/ and the Claude Code config (.mcp.json, .claude/skills).", epics: ["S-01", "S-15", "S-21"] },
+  { id: "mobileapp", name: "Companion app", tech: "Expo · React Native", b: [960, 280, 200, 66], kind: "ours", color: "lime", phase: 7, views: "both", zone: "Phone",
+    about: "Scan a QR code in the Studio to open the live preview on a phone: over the local network in Local mode, through the platform tunnel in Connected and Cloud. Later it also receives notifications for platform jobs.", epics: ["M-02"] },
+  { id: "gateway", name: "Gateway", tech: "YARP · .NET 10 · JWT · rate limits · behind the BFF", b: [40, 550, 720, 50], kind: "ours", color: "red", phase: 2, views: "platform", zone: "Kubernetes · edge",
+    about: "The single entry point to the platform. Routes requests to services, validates JWTs, applies rate limits (counters in Redis), and proxies SignalR WebSockets and the login pages.", epics: ["P-02"] },
+  { id: "identity", name: "Identity", tech: "OpenIddict", b: [40, 635, 150, 70], kind: "ours", color: "red", phase: 2, views: "platform", zone: "Kubernetes · services",
+    about: "OpenID Connect provider: sign-up, login, GitHub and Google login, roles. Issues the JWTs that every other service validates.", epics: ["P-03"] },
+  { id: "core", name: "Core API", tech: ".NET 10 · modular monolith · outbox", b: [240, 635, 380, 190], big: true, kind: "ours", color: "red", phase: 2, views: "platform", zone: "Kubernetes · services",
+    subs: [
+      { id: "projects", name: "Projects", phase: 2, epics: ["P-04"], links: ["gateway-core", "core-postgres", "core-blob", "core-bus"],
+        about: "Projects as JSONB documents with schema validation, versions and assets, plus upload and download between Local and Connected mode. Publishes project events." },
+      { id: "realtime", name: "Realtime · SignalR", phase: 3, epics: ["P-06"], links: ["gateway-core", "core-aigen", "core-redis"],
+        about: "The SignalR hub the Studio stays connected to: generation tokens relayed from the AI Generation stream, and job status. Redis is the backplane, so several Core API instances can push to the same user." },
+      { id: "billing", name: "Billing", phase: 4, epics: ["P-09", "L-06"], links: ["core-stripe", "core-postgres", "core-bus"],
+        about: "Plans and entitlements with Stripe in test mode: checkout and portal sessions, idempotent webhook handling. Moves into its own service together with Metering in L-06." },
+      { id: "metering", name: "Metering", phase: 4, epics: ["P-10", "L-06"], links: ["core-bus", "core-postgres"],
+        about: "Counts tokens from usage events, enforces quotas before a generation starts, and feeds the usage dashboard. Moves into its own service together with Billing in L-06." },
+      { id: "promptlib", name: "Prompt Library", phase: 4, epics: ["P-11"], links: ["core-aigen", "core-postgres"],
+        about: "Serves versioned skills and predefined prompts, per-project pins and experiment flags. AI Generation builds its prompts from them." },
+      { id: "notifications", name: "Notifications", phase: 4, epics: ["P-12"], links: ["core-bus"],
+        about: "In-app notification centre and email (Mailpit locally), driven by events such as export ready, quota nearly used or billing changes. Later it pushes to the companion app." }
+    ],
+    about: "Product logic in modules with hard boundaries: Projects, Realtime (SignalR hub), Billing, Metering, Prompt Library, Notifications. Writes integration events to an outbox. Billing and Metering are extracted into their own service later (L-06). Click a module inside it to see its own job and links.", epics: ["P-04", "P-06", "P-09", "P-10", "P-11", "P-12", "L-06"] },
+  { id: "aigen", name: "AI Generation", tech: ".NET · Anthropic SDK", b: [650, 635, 230, 80], kind: "ours", color: "red", phase: 3, views: "platform", zone: "Kubernetes · services",
+    about: "Builds prompts from the prompt library, calls Claude, streams tokens back and reports usage. A fake provider simulates latency for tests, load tests and chaos experiments.", epics: ["P-05", "L-04"] },
+  { id: "export", name: "Export", tech: "Node · packages/core", b: [650, 740, 230, 80], kind: "ours", color: "red", phase: 3, views: "platform", zone: "Kubernetes · services",
+    about: "Runs the same codegen as the Runner, on the server, and delivers the result as a zip download or a new GitHub repository.", epics: ["P-07"] },
+  { id: "postgres", name: "PostgreSQL", tech: "EF Core · JSONB", b: [40, 900, 210, 70], kind: "store", color: "brown", phase: 2, views: "platform", zone: "Kubernetes · data",
+    about: "Store of record: users, projects as JSONB documents (same schema as the Local JSON), versions, billing, metering and outbox tables. Each module has its own schema.", epics: ["P-01", "P-04"] },
+  { id: "redis", name: "Redis", tech: "cache · backplane", b: [270, 900, 150, 70], kind: "store", color: "brown", phase: 2, views: "platform", zone: "Kubernetes · data",
+    about: "Cache, rate-limit counters, the SignalR backplane (so several Core API instances can push to the same user) and distributed locks.", epics: ["P-01", "P-06"] },
+  { id: "bus", name: "Message bus", tech: "RabbitMQ · Service Bus", b: [450, 900, 190, 70], kind: "store", color: "brown", phase: 5, views: "platform", zone: "Kubernetes · data",
+    about: "Asynchronous backbone (D-15): RabbitMQ locally and in the cluster, Azure Service Bus in Cloud, behind one abstraction. Generation, usage, project, billing and export events fan out to Metering, Notifications and the Design Graph; work queues carry background jobs. Before Phase 5 an in-process dispatcher does this job.", epics: ["L-01"] },
+  { id: "kafka", name: "Kafka", tech: "Redpanda / Strimzi", b: [150, 1015, 200, 64], kind: "store", color: "brown", phase: 7, views: "platform", zone: "Kubernetes · data",
+    about: "Later upgrade (L-12, D-15): event streams move to Kafka topics, so projections and analytics read a log they can replay; work queues stay on the message bus. Redpanda in Docker, Strimzi in kind and AKS, or Event Hubs' Kafka API in Cloud.", epics: ["L-12"] },
+  { id: "blob", name: "Blob storage", tech: "Azure Blob · Azurite", b: [670, 900, 210, 70], kind: "store", color: "brown", phase: 2, views: "platform", zone: "Kubernetes · data",
+    about: "Project assets (images, media) and export zips, handed out through expiring links.", epics: ["P-04", "P-07"] },
+  { id: "neo4j", name: "Design Graph", tech: "Neo4j", b: [450, 1015, 180, 64], kind: "store", color: "brown", phase: 5, views: "platform", zone: "Kubernetes · data",
+    about: "A read model projected from Kafka events: projects, pages, blocks, prompts, skill versions and generations as a graph. Answers questions like which skill versions get regenerated most, or which blocks are similar.", epics: ["L-02"] },
+  { id: "clickhouse", name: "Analytics", tech: "ClickHouse", b: [660, 1015, 180, 64], kind: "store", color: "brown", phase: 7, views: "platform", zone: "Kubernetes · data",
+    about: "Columnar store fed from Kafka for usage trends and prompt-library metrics over time.", epics: ["L-07"] },
+  { id: "models", name: "Model APIs", tech: "Anthropic · OpenAI · Ollama…", b: [960, 630, 200, 80], kind: "external", color: "lime", phase: 1, views: "both", zone: "Third-party",
+    about: "External LLM providers. Locally they are called with your own key through the Vercel AI SDK; on the platform the AI Generation service calls Claude with the platform's key.", epics: ["S-07", "P-05"] },
+  { id: "github", name: "GitHub", tech: "REST API · GitHub App", b: [960, 740, 200, 70], kind: "external", color: "lime", phase: 3, views: "platform", zone: "Third-party",
+    about: "Target for the 'push to a new repository' export. Also one of the external login providers in Identity.", epics: ["P-07", "P-03"] },
+  { id: "stripe", name: "Stripe", tech: "test mode", b: [960, 900, 200, 70], kind: "external", color: "lime", phase: 4, views: "platform", zone: "Third-party",
+    about: "Checkout, subscriptions and the customer portal. Sends signed webhooks to the webhook Function (P-15), which queues them for Billing; before P-15 they go straight to the Core API.", epics: ["P-09", "P-15"] },
+  { id: "functions", name: "Functions", tech: "Azure Functions · .NET", b: [960, 1032, 200, 64], kind: "ours", color: "red", phase: 5, views: "platform", zone: "Azure · outside the cluster",
+    about: "Small event-driven jobs that keep running while the cluster is stopped (D-18): Stripe webhook intake (HTTP trigger → Service Bus queue), export cleanup (timer trigger) and asset thumbnails (Blob trigger). They receive, clean up or transform, then hand off; product logic stays in the services. Locally they run with Core Tools and Azurite under Aspire.", epics: ["P-15"] }
+];
+// proto: http | realtime | grpc | events | mcp | auth | local | data
+const PROTOS = {
+  http: { name: "HTTP / REST", about: "Request and response over HTTPS, usually with JSON bodies. Used where a caller asks for something and waits briefly." },
+  realtime: { name: "WebSocket / SignalR", about: "A long-lived connection the server can push over: streamed tokens, job status, file changes. SignalR is .NET's library on top of WebSockets." },
+  grpc: { name: "gRPC", about: "Typed calls between services over HTTP/2, defined in Protocol Buffers contracts. Server streaming lets AI Generation send tokens as they arrive, and cancellation flows back to the caller." },
+  events: { name: "Events (bus / Kafka)", about: "Asynchronous messaging: a producer publishes an event and moves on; consumers handle it later at their own pace. The message bus (RabbitMQ, Azure Service Bus) delivers events and work queues; Kafka, added later, keeps event streams as a log that can be replayed. The outbox pattern makes publishing reliable." },
+  mcp: { name: "MCP", about: "Model Context Protocol: lets an AI agent such as Claude Code discover and call tools that an application exposes." },
+  auth: { name: "OIDC / JWT", about: "OpenID Connect login with Authorization Code + PKCE. Services validate the resulting JWTs with the identity provider's public signing keys (JWKS)." },
+  local: { name: "In-process · file system · postMessage", about: "No network involved: the Runner spawns processes and reads and writes files, the Studio talks to iframes and webviews with postMessage, and a host app renders the Studio package in the same page." },
+  data: { name: "Storage protocols", about: "Each store's own wire protocol: SQL over the Postgres protocol (EF Core / Npgsql), RESP for Redis, Bolt for Neo4j, and REST for Blob Storage." }
+};
+// p: route points, start on the caller's edge, end on the callee's edge, right-angle segments only.
+const LINKS = [
+  { id: "studio-runner", from: "studio", to: "runner", proto: "http", label: "REST", desc: "Project reads and writes, AI task runs and Compact requests, through the Studio's Runner adapters.", p: [[370, 120], [370, 342]] },
+  { id: "studio-runner-ws", from: "studio", to: "runner", proto: "realtime", label: "WebSocket", desc: "The Runner pushes streamed tokens and file changes made by Claude Code or an editor.", p: [[410, 120], [410, 342]] },
+  { id: "studio-vite", from: "studio", to: "vite", proto: "local", label: "iframe + postMessage", desc: "The run preview shows the generated app in an iframe; a small bridge script maps clicks in it to block IDs.", p: [[350, 120], [350, 300], [160, 300], [160, 346]] },
+  { id: "platform-studio", from: "platformapp", to: "studio", proto: "local", label: "renders <Studio>", desc: "Same page: on its editor route the platform app renders packages/studio and passes platform adapters (carrying the user's token) and slots such as the user menu.", p: [[310, 80], [340, 80]] },
+  { id: "runner-vite", from: "runner", to: "vite", proto: "local", label: "child process", desc: "The Runner starts and stops the Vite dev server for the open project.", p: [[300, 381], [260, 381]] },
+  { id: "runner-folder", from: "runner", to: "folder", proto: "local", label: "file system", desc: "Reads and writes wibeblock/*.json, regenerates out/<target>/, and watches for edits made elsewhere.", p: [[600, 381], [640, 381]] },
+  { id: "runner-models", from: "runner", to: "models", proto: "http", label: "HTTPS · SSE stream", desc: "Generation calls with your API key through the Vercel AI SDK; tokens arrive as server-sent events.", p: [[560, 420], [560, 470], [1140, 470], [1140, 630]] },
+  { id: "claude-runner", from: "claude", to: "runner", proto: "mcp", label: "MCP", desc: "Claude Code calls WibeBlock tools such as get_block_context, set_block_body and list_stale_blocks over MCP (streamable HTTP on localhost).", p: [[480, 260], [480, 342]] },
+  { id: "claude-folder", from: "claude", to: "folder", proto: "local", label: "config + skills", desc: "Claude Code picks up .mcp.json and the WibeBlock skills in .claude/ when started in the project.", p: [[655, 260], [655, 346]] },
+  { id: "vscode-studio", from: "vscode", to: "studio", proto: "local", label: "webview postMessage", desc: "The extension hosts the Studio in a webview and answers the requests the Runner would answer.", p: [[720, 196], [720, 148], [620, 148], [620, 120]] },
+  { id: "vscode-folder", from: "vscode", to: "folder", proto: "local", label: "workspace FS", desc: "The extension reads and writes the project through VS Code's file system API.", p: [[820, 260], [820, 346]] },
+  { id: "mobile-vite", from: "mobileapp", to: "vite", proto: "http", label: "HTTP over LAN", desc: "Local mode: a WebView of the live preview; paired by QR code with a short-lived token.", p: [[960, 322], [918, 322], [918, 432], [160, 432], [160, 416]] },
+  { id: "mobile-gateway", from: "mobileapp", to: "gateway", proto: "http", label: "HTTPS · platform tunnel", desc: "Connected and Cloud: the live preview opens through the platform tunnel, signed in with an Identity token. Later the app also receives notifications for platform jobs (P-12).", p: [[1000, 346], [1000, 490], [700, 490], [700, 550]] },
+  { id: "platform-gateway", from: "platformapp", to: "gateway", proto: "http", label: "REST (HTTPS)", desc: "Platform API calls from the platform app's own pages and from the platform adapters it gives the Studio, sent through the platform app's backend-for-frontend (same origin, session cookie; the token is attached server-side, D-26). Login redirects go through here too.", p: [[60, 96], [28, 96], [28, 565], [40, 565]] },
+  { id: "platform-gateway-ws", from: "platformapp", to: "gateway", proto: "realtime", label: "SignalR", desc: "Streamed generation tokens and job status for the Studio, through the platform app's realtime adapter; proxied to the Core API's hub.", p: [[60, 76], [18, 76], [18, 585], [40, 585]] },
+  { id: "gateway-core", from: "gateway", to: "core", proto: "http", label: "reverse proxy", desc: "Forwards REST and SignalR traffic after validating the JWT.", p: [[400, 600], [400, 635]] },
+  { id: "gateway-identity", from: "gateway", to: "identity", proto: "auth", label: "OIDC · JWKS", desc: "Routes the login pages (Authorization Code + PKCE) and fetches the public keys used to validate JWTs at the edge.", p: [[115, 600], [115, 635]] },
+  { id: "core-identity", from: "core", to: "identity", proto: "grpc", label: "gRPC", desc: "Admin lookups (users, roles). Normal requests only validate the JWT.", p: [[240, 670], [190, 670]] },
+  { id: "core-aigen", from: "core", to: "aigen", proto: "grpc", label: "gRPC stream", desc: "One server stream per generation: tokens flow back as they arrive, and cancelling in the Studio cancels the stream.", p: [[620, 675], [650, 675]] },
+  { id: "core-export", from: "core", to: "export", proto: "grpc", label: "gRPC", desc: "Starts export jobs and receives progress; a polyglot .NET → Node boundary.", p: [[620, 780], [650, 780]] },
+  { id: "aigen-models", from: "aigen", to: "models", proto: "http", label: "HTTPS · SSE", desc: "Calls Claude with the platform's key through the Anthropic SDK and streams the response.", p: [[880, 670], [960, 670]] },
+  { id: "export-github", from: "export", to: "github", proto: "http", label: "GitHub REST", desc: "Creates a repository and pushes the generated project.", p: [[880, 775], [960, 775]] },
+  { id: "identity-postgres", from: "identity", to: "postgres", proto: "data", label: "SQL", desc: "Users, external logins, OpenIddict applications and tokens.", p: [[90, 705], [90, 900]] },
+  { id: "core-postgres", from: "core", to: "postgres", proto: "data", label: "SQL · EF Core", desc: "Project documents (JSONB), versions, billing, metering, outbox.", p: [[250, 825], [250, 855], [170, 855], [170, 900]] },
+  { id: "core-redis", from: "core", to: "redis", proto: "data", label: "RESP", desc: "Cache, SignalR backplane, locks.", p: [[345, 825], [345, 900]] },
+  { id: "core-neo4j", from: "core", to: "neo4j", proto: "data", label: "Bolt · Cypher", desc: "Insights queries for the Studio's Insights panel.", p: [[435, 825], [435, 992], [470, 992], [470, 1015]] },
+  { id: "core-bus", from: "core", to: "bus", proto: "events", label: "publish + consume", desc: "The outbox publisher sends events; the Metering and Notifications modules consume them. Published outbox rows stay in Postgres as an event log for replay.", p: [[520, 825], [520, 900]] },
+  { id: "core-kafka", from: "core", to: "kafka", proto: "events", label: "event streams", desc: "After the Kafka upgrade (L-12) the outbox publisher also writes event streams to topics.", p: [[262, 825], [262, 1015]] },
+  { id: "core-blob", from: "core", to: "blob", proto: "data", label: "Blob REST", desc: "Project assets.", p: [[590, 825], [590, 868], [720, 868], [720, 900]] },
+  { id: "core-stripe", from: "core", to: "stripe", proto: "http", label: "REST + webhooks", desc: "Creates checkout and portal sessions. Stripe's signed webhooks come back through the webhook Function and a queue (P-15), or straight to the Core API before that; either way they are handled idempotently.", p: [[610, 825], [610, 845], [1060, 845], [1060, 900]] },
+  { id: "export-blob", from: "export", to: "blob", proto: "data", label: "Blob REST", desc: "Uploads the export zip; the Core API hands out an expiring link.", p: [[800, 820], [800, 900]] },
+  { id: "bus-neo4j", from: "bus", to: "neo4j", proto: "events", label: "consumer → Bolt", desc: "A projector consumes bus events and writes the graph with Cypher. A rebuild replays the event log kept in Postgres.", p: [[540, 970], [540, 1015]] },
+  { id: "kafka-neo4j", from: "kafka", to: "neo4j", proto: "events", label: "topics → Bolt", desc: "After L-12 the projector reads topics instead and can rebuild the graph by replaying them.", p: [[350, 1047], [450, 1047]] },
+  { id: "kafka-clickhouse", from: "kafka", to: "clickhouse", proto: "events", label: "Kafka engine", desc: "ClickHouse reads topics directly into materialised views.", p: [[300, 1079], [300, 1092], [750, 1092], [750, 1079]] },
+  { id: "stripe-functions", from: "stripe", to: "functions", proto: "http", label: "webhook", desc: "Stripe calls the webhook Function (HTTP trigger), which verifies the signature. It is reachable even while the cluster is stopped.", p: [[1060, 970], [1060, 1032]] },
+  { id: "functions-bus", from: "functions", to: "bus", proto: "events", label: "queue message", desc: "The webhook Function puts the Stripe event on a Service Bus queue; the Billing module consumes it when the cluster runs.", p: [[960, 1050], [905, 1050], [905, 995], [610, 995], [610, 970]] },
+  { id: "functions-blob", from: "functions", to: "blob", proto: "data", label: "Blob REST", desc: "A timer trigger deletes expired export zips; a Blob trigger resizes uploaded images and writes thumbnails.", p: [[960, 1080], [860, 1080], [860, 970]] }
+];
+const FLOWS = [
+  { id: "gen-local", name: "Generate a block (Local)", view: "local", steps: [
+    ["studio-runner", "The Studio runs the 'generate body' AI task: block prompt, style guide, knowledge notes and neighbours go to the Runner."],
+    ["runner-models", "The Runner assembles the prompt from the task's templates and skills and streams the provider's response."],
+    ["studio-runner-ws", "Tokens reach the Studio, which validates the body and shows it on the canvas as a proposal."],
+    ["runner-folder", "The user accepts: one history entry, and the body is saved into the page JSON; codegen updates out/<target>/."],
+    ["runner-vite", "Vite hot-reloads the changed page."],
+    ["studio-vite", "The run preview shows the new body."] ] },
+  { id: "claude-edit", name: "Claude Code edits a block", view: "local", steps: [
+    ["claude-folder", "Claude Code starts in the project and reads .mcp.json and the WibeBlock skills."],
+    ["claude-runner", "It calls get_block_context, then set_block_body through MCP."],
+    ["runner-folder", "The Runner validates and saves the body, recording the source as claude-code."],
+    ["studio-runner-ws", "The Studio is told about the change and updates the selected block."],
+    ["runner-vite", "The preview reloads."] ] },
+  { id: "gen-platform", name: "Generate a block (Platform)", view: "platform", steps: [
+    ["platform-gateway", "The Studio asks for a generation through its platform adapter, which calls the Gateway."],
+    ["gateway-core", "The Gateway validates the JWT and forwards the request to the Core API."],
+    ["core-postgres", "The Core API checks the plan's quota and records the generation."],
+    ["core-aigen", "It opens a gRPC server stream to AI Generation."],
+    ["aigen-models", "AI Generation calls Claude and streams the response back."],
+    ["platform-gateway-ws", "The Core API forwards the tokens to the Studio over SignalR."],
+    ["core-bus", "When the stream ends, generation.completed and tokens.used go out through the outbox to the message bus."] ] },
+  { id: "export", name: "Export a project", view: "platform", steps: [
+    ["platform-gateway", "The Studio asks for an export (zip or GitHub) through its platform adapter."],
+    ["gateway-core", "The request reaches the Core API, which creates an export job."],
+    ["core-export", "The Core API calls the Export service over gRPC."],
+    ["export-blob", "Export runs codegen and uploads the zip…"],
+    ["export-github", "…or creates a repository and pushes the code."],
+    ["platform-gateway-ws", "Job status and the download link reach the Studio over SignalR."] ] },
+  { id: "signin", name: "Sign in", view: "platform", steps: [
+    ["platform-gateway", "The platform app's server (the BFF) sends the browser to the login page, which the Gateway routes to Identity."],
+    ["gateway-identity", "Identity runs the Authorization Code + PKCE flow with the BFF as a confidential client (or GitHub/Google login)."],
+    ["identity-postgres", "It checks the user and issues tokens, which stay on the BFF; the browser gets a session cookie (D-26)."],
+    ["gateway-core", "From then on the BFF attaches the token and the Gateway validates the JWT on every request before forwarding it."] ] },
+  { id: "stripe-webhook", name: "Stripe webhook", view: "platform", steps: [
+    ["stripe-functions", "Stripe calls the webhook Function, which verifies the signature. This works even while the cluster is stopped."],
+    ["functions-bus", "The Function puts the event on a Service Bus queue."],
+    ["core-bus", "When the cluster runs, the Billing module consumes the queue and applies the change idempotently."] ] }
+];
+
+/* ===== DATA: plan (update when parts, features, epics or decisions change) ===== */
 const PARTS = [
   { id: "studio", name: "Studio", prefix: "S", doc: "parts/studio/studio.md",
-    about: "Editor, AI generation, codegen and the local runners: everything you need to build an app on one machine without a backend." },
+    about: "Design and logic canvases, AI with proposals, themes, knowledge base, codegen and the local Runner. Delivered in stages: alpha → MVP → v1 → garden. See the Studio chapter above." },
   { id: "mobile", name: "Mobile", prefix: "M", doc: "parts/mobile/mobile.md",
-    about: "Mobile is a first-class view: check and adjust the mobile layout, preview on a real phone, and later generate a native app." },
+    about: "Mobile layout workflow, preview on a real phone, and a native target. Planned separately, in Phase 7; the Studio already renders any device width." },
   { id: "platform", name: "Platform", prefix: "P", doc: "parts/platform/platform.md",
     about: "Backend services behind Connected and Cloud modes. They run on your machine first; Azure deployment is one late, optional epic." },
   { id: "learning", name: "Learning track", prefix: "L", doc: "parts/learning-track/learning-track.md",
     about: "Technologies added mainly to learn them. Each has a real job in the platform, and everything runs locally first." }
 ];
 const FEATURES = [
-  { id: "editor", part: "studio", name: "Editor", path: "studio/editor", about: "App shell, projects and pages, the layout editor (tree, canvas, inspector), history." },
-  { id: "generation", part: "studio", name: "Generation", path: "studio/generation", about: "Block prompts, streamed body generation with validation, staleness, providers, prompt library." },
-  { id: "design", part: "studio", name: "Design", path: "studio/design", about: "Theme tokens, light/dark, global prompt, assets and icons." },
-  { id: "preview", part: "studio", name: "Preview", path: "studio/preview", about: "Live preview of the real generated code; Developer-mode code panels." },
-  { id: "codegen", part: "studio", name: "Codegen", path: "studio/codegen", about: "Framework-neutral project format, codegen engine and targets, Compact." },
+  { id: "codegen", part: "studio", name: "Codegen", path: "studio/codegen", about: "Universal layer + framework layers with ports, Zod schema and JSON Schema export, codegen targets, Compact." },
+  { id: "editor", part: "studio", name: "Editor", path: "studio/editor", about: "Shell and routes, design canvas with block frames, random starter layouts, Structure and Files panel, schema-driven inspector, history, snapshots." },
+  { id: "ai", part: "studio", name: "AI", path: "studio/ai", about: "AI core with tasks and proposals, block generation, knowledge base, global prompt bar, prompt library." },
+  { id: "design", part: "studio", name: "Design", path: "studio/design", about: "Theme studio with presets and palette tool, AI themes, assets." },
+  { id: "logic", part: "studio", name: "Logic", path: "studio/logic", about: "Blueprint-style logic graphs per framework, bound to block ports; porting between frameworks." },
+  { id: "preview", part: "studio", name: "Preview", path: "studio/preview", about: "Run preview of the real generated app; Developer panels." },
   { id: "runner", part: "studio", name: "Runner & hosts", path: "studio/runner-and-hosts", about: "Node Runner, Claude Code over MCP, VS Code extension, browser-only mode." },
-  { id: "ux", part: "studio", name: "Studio UX", path: "studio/studio-ux", about: "The Studio's own design system, onboarding and polish." },
+  { id: "ux", part: "studio", name: "Studio UX", path: "studio/studio-ux", about: "Design system (packages/ui, Storybook), onboarding and polish, pro tools." },
   { id: "mobile-layout", part: "mobile", name: "Mobile layout", path: "mobile/mobile-layout", about: "Mobile view, computed defaults, per-block overrides, diagnostics." },
   { id: "companion", part: "mobile", name: "Companion app", path: "mobile/companion-app", about: "Expo app: scan a QR code, see the live preview on your phone." },
   { id: "native", part: "mobile", name: "Native target", path: "mobile/native-target", about: "React Native / Expo codegen target." },
@@ -328,83 +948,361 @@ const FEATURES = [
   { id: "core-api", part: "platform", name: "Core API", path: "platform/core-api", about: "Modular monolith: Projects, Realtime, Billing, Metering, Prompt Library, Notifications." },
   { id: "ai-service", part: "platform", name: "AI service", path: "platform/ai-service", about: "gRPC-streaming generation with the platform's key." },
   { id: "export", part: "platform", name: "Export service", path: "platform/export-service", about: "Node gRPC service: codegen, zip or GitHub push." },
-  { id: "connected", part: "platform", name: "Connected mode", path: "platform/connected-mode", about: "Studio adapters for the platform; website and account pages." },
-  { id: "events", part: "learning", name: "Events", path: "learning-track/events", about: "Kafka backbone, outbox, idempotent consumers; Billing extraction." },
+  { id: "connected", part: "platform", name: "Platform app", path: "platform/platform-app", about: "React Router v7 host for the Studio with server rendering and a BFF: login, dashboard, account pages, the Studio's platform adapters; optional Astro landing page." },
+  { id: "serverless", part: "platform", name: "Serverless jobs", path: "platform/serverless-jobs", about: "Azure Functions: Stripe webhook intake, export cleanup, asset thumbnails." },
+  { id: "events", part: "learning", name: "Events", path: "learning-track/events", about: "Message bus (RabbitMQ / Service Bus), outbox, idempotent consumers; Billing extraction; Kafka upgrade later." },
   { id: "design-graph", part: "learning", name: "Design Graph", path: "learning-track/design-graph", about: "Neo4j read model for insights on prompts, skills and blocks." },
   { id: "observability", part: "learning", name: "Observability", path: "learning-track/observability", about: "OpenTelemetry + Grafana, load tests, resilience and chaos." },
   { id: "kubernetes", part: "learning", name: "Kubernetes", path: "learning-track/kubernetes", about: "Helm, KEDA, Argo CD locally in kind; preview hosting." },
-  { id: "analytics", part: "learning", name: "Analytics", path: "learning-track/analytics", about: "ClickHouse fed from Kafka." },
+  { id: "analytics", part: "learning", name: "Analytics", path: "learning-track/analytics", about: "ClickHouse fed from Kafka (after the Kafka upgrade)." },
   { id: "collaboration", part: "learning", name: "Collaboration", path: "learning-track/collaboration", about: "Yjs + SignalR multi-user editing." },
   { id: "multi-cloud", part: "learning", name: "Multi-cloud", path: "learning-track/multi-cloud", about: "Move one service to AWS as an exercise." }
 ];
 // status: planned | draft | ready | progress | done
 const EPICS = [
-  ["S-01","Project schema & codegen engine","codegen",1,[],"JSON schema, validation, migrations, body sanitiser, react-vite target, deterministic output."],
-  ["S-02","Studio shell & project lifecycle","editor",1,["S-01","S-09"],"App shell, projects and pages, settings, Developer mode toggle, shortcuts, command palette."],
-  ["S-03","Layout editor","editor",1,["S-02"],"Tree, canvas, inspector; flex/grid, sizing, drag to reorder and reparent, absolute opt-in."],
-  ["S-04","Block body generation","generation",1,["S-03","S-07"],"Prompt, streaming, validation and repair, refine, edit, eject, surface bodies, staleness."],
-  ["S-05","Theme & global prompt","design",1,["S-02"],"Token editor, light/dark, presets, CSS variables, global prompt and its propagation rules."],
-  ["S-06","Live preview & Developer panels","preview",1,["S-01","S-09"],"Iframe preview, viewports, select-in-preview, Monaco code panel, class chips, file tree."],
-  ["S-07","AI provider layer","generation",1,["S-01"],"Vercel AI SDK, provider config, key storage, streaming, usage and cost, fake provider."],
-  ["S-08","Prompt & skills library","generation",2,["S-04"],"Skills as versioned data, prompt gallery, per-project pins, evaluation harness."],
-  ["S-09","Node Runner","runner",1,["S-01"],"Local server: files, watcher, Vite lifecycle, AI proxy, Compact, one npm start."],
-  ["S-10","Claude Code connection","runner",2,["S-04","S-09"],"MCP server and tools, .mcp.json + skills in each project, live sync with the Studio."],
-  ["S-11","VS Code extension","runner",2,["S-09"],"Studio in a webview, the extension host acts as the Runner."],
-  ["S-12","Browser-only mode","runner",7,["S-01","S-06"],"File System Access API, in-browser codegen, Sandpack preview."],
-  ["S-13","Compact & export UX","codegen",1,["S-01","S-09"],"Compact dialog, options, progress, reproducible clean output."],
-  ["S-14","Studio design system & polish","ux",2,["S-02"],"Visual language, primitives, onboarding, templates, motion, accessibility."],
-  ["S-15","History, undo/redo & snapshots","editor",2,["S-03"],"Command-based undo/redo, named snapshots, diff and restore."],
-  ["S-16","Assets & media","design",2,["S-04"],"Image import and optimisation, placeholders, icon library, asset panel."],
-  ["S-17","Additional codegen targets","codegen",7,["S-01","S-13"],"Vue and Angular targets, a hardened target plugin API."],
-  ["M-01","Mobile layout workflow","mobile-layout",1,["S-03","S-06"],"Mobile view, computed defaults, overrides with reset, diagnostics, AI-proposed adaptations."],
+  ["S-01","Project schema & codegen engine","codegen",1,[],"Universal + React layer schema in Zod with ports, validation, migrations, JSON Schema export, frame → CSS, body sanitiser, react-vite target.","ready","alpha, MVP"],
+  ["S-14","Studio design system","ux",1,[],"packages/ui on Tailwind v4: own components, Radix for hard behaviour, CVA, pro inputs, Motion, Storybook.","ready","alpha, MVP"],
+  ["S-09","Node Runner","runner",1,["S-01"],"Project storage with validation, AI task execution, localhost security, npm start; then watcher, codegen output, Vite, Compact.","ready","alpha, MVP"],
+  ["S-02","Studio shell & project lifecycle","editor",1,["S-01","S-14","S-09"],"Monorepo, packages/studio + apps/studio, adapter contract, Redux/Zustand/Query, TanStack Router, projects with target choice, pages, settings, palette.","ready","alpha, MVP"],
+  ["S-03","Design canvas","editor",1,["S-01","S-02"],"Iframe renderer of the project data, viewports phone to 4K, zoom to fit, block frames with border buttons, show/hide frames, error isolation, parity with preview.","ready","alpha, MVP"],
+  ["S-18","Structure panel & layout editing","editor",1,["S-03"],"Structure panel (component hierarchy), add/wrap/duplicate/delete, drag-and-drop in tree and canvas, keyboard, multi-select, overlay containers.","ready","alpha, MVP"],
+  ["S-31","Starter canvas","editor",1,["S-01","S-03","S-18"],"New pages open with a random, seeded, valid layout of empty pastel blocks with centred prompt inputs; shuffle layout or colours.","ready","alpha, MVP"],
+  ["S-19","Schema-driven inspector","editor",1,["S-18"],"Inspector generated from the block schema (React Hook Form + Zod), plain language vs Developer mode, docked or floating.","ready","alpha, MVP"],
+  ["S-15","History & AI-turn revert","editor",1,["S-02"],"Action log with Immer patches, grouped entries, undo/redo, revert one AI turn, persisted history, depth setting.","ready","alpha, MVP"],
+  ["S-07","AI core","ai",1,["S-01","S-09"],"AI task registry, providers via Vercel AI SDK, fake provider, context assembly, proposals, streaming, AI log with cost.","ready","alpha, MVP"],
+  ["S-04","Block generation & proposals","ai",1,["S-07","S-19"],"Block prompt, streaming, validation and repair, accept/discard proposals, refine, text edits, surface bodies, ports, staleness.","ready","alpha, MVP, v1"],
+  ["S-05","Theme studio","design",1,["S-02","S-03"],"Presets, several themes per project, token editor in light/dark, OKLCH palette tool with contrast checks, sample sheet.","ready","alpha, MVP"],
+  ["S-32","Project explorer","editor",2,["S-02","S-18"],"Files view of the left panel: pages as route folders, components, images, themes, notes; search; generated files in Developer mode.","ready","MVP"],
+  ["S-21","Knowledge base","ai",2,["S-02","S-07"],"Notes about the app as AI context, style guide replacing the global prompt, context budget, staleness rule.","ready","MVP"],
+  ["S-06","Run preview","preview",2,["S-01","S-09","S-03"],"The real generated app in the Preview workspace, viewports, select-in-preview, error overlay.","ready","MVP"],
+  ["S-13","Compact & export","codegen",2,["S-01","S-09"],"Compact dialog, pre-checks, progress, install and build check, README, reproducible output.","ready","MVP"],
+  ["S-25","Logic canvas foundation","logic",2,["S-01","S-03","S-19"],"React Flow logic workspace, ports and bindings, minimal React node set, validation, graph → hooks. Optional for the MVP.","ready","MVP (optional)"],
+  ["S-20","Snapshots & diff","editor",3,["S-15"],"Named snapshots, visual and JSON diff, restore, automatic snapshots before large proposals.","ready","v1"],
+  ["S-22","Global prompt bar","ai",3,["S-04","S-08","S-15"],"Page and project scope, layout proposals with visual diff, per-change accept, build a page from a description.","ready","v1"],
+  ["S-08","Prompt & skills library","ai",3,["S-07"],"Versioned skills and task prompts, pinning, prompt gallery, evaluation harness, generated Claude Code skills.","ready","v1"],
+  ["S-24","AI themes","design",3,["S-05","S-07"],"Theme from a prompt with streamed structured output, side-by-side review, contrast fixes, variations.","ready","v1"],
+  ["S-16","Assets & media","design",3,["S-04"],"Image import and optimisation, asset panel, placeholders and icons for the AI, assets in codegen.","ready","v1"],
+  ["S-26","Logic v1","logic",3,["S-25","S-07"],"Fetch, lists, forms, context, effects, custom hooks as sub-graphs, AI-proposed graphs.","ready","v1"],
+  ["S-28","Developer panels","preview",3,["S-06"],"Monaco code panel, editable body HTML, class chips, file tree, raw JSON, AI usage.","ready","v1"],
+  ["S-10","Claude Code connection","runner",3,["S-04","S-09","S-08"],"MCP server and tools, .mcp.json + skills in each project, live sync with the Studio.","ready","v1"],
+  ["S-29","Onboarding & polish","ux",3,["S-14","S-04"],"First-run tour, starter templates, empty states, accessibility pass, first Playwright flow.","ready","v1"],
+  ["S-17","Additional codegen targets","codegen",7,["S-01","S-13","S-26"],"Vue and Angular targets with their own logic node sets; conformance suite.","ready","garden"],
+  ["S-27","Framework porting","logic",7,["S-26","S-17"],"Add a framework layer by AI porting or a manual porting tool; completeness checks on ports.","ready","garden"],
+  ["S-23","AI knowledge base","ai",7,["S-21","S-08"],"A hidden knowledge base where the AI keeps its own notes. To be designed with the AI work.","draft","garden"],
+  ["S-11","VS Code extension","runner",7,["S-09"],"Studio in a webview, the extension host acts as the Runner.","ready","garden"],
+  ["S-12","Browser-only mode","runner",7,["S-01","S-06"],"File System Access API, in-browser codegen, Sandpack preview.","ready","garden"],
+  ["S-30","Pro tools","ux",7,["S-18","S-19"],"Photoshop-style layers and Figma-like tools: lock, groups, align, guides, measurements, reusable components. To be designed.","draft","garden"],
+  ["M-01","Mobile layout workflow","mobile-layout",7,["S-03","S-18","S-19","S-06"],"Mobile view, computed defaults, overrides with reset, diagnostics, AI-proposed adaptations."],
   ["M-02","Companion app","companion",7,["S-06","S-09"],"QR pairing, live preview on a device, LAN security, notifications later."],
   ["M-03","React Native / Expo target","native",7,["S-17","M-01"],"HTML to native mapping with NativeWind, conformance validator, Expo Router."],
-  ["P-01","Backend foundation","foundation",3,[],"Solution, Aspire, module boundaries, EF Core + Postgres, Redis, Azurite, OpenTelemetry."],
-  ["P-02","Gateway (YARP)","gateway",3,["P-01"],"Routing, JWT, rate limits, CORS, SignalR proxying, local TLS."],
-  ["P-03","Identity service","identity",3,["P-01"],"OpenIddict, sign-up and login, GitHub and Google, roles, Studio PKCE flow."],
-  ["P-04","Projects module","core-api",3,["P-01","P-03"],"JSONB projects with schema validation, versions, assets, upload and download."],
+  ["P-01","Backend foundation","foundation",2,[],"Solution, Aspire, module boundaries, EF Core + Postgres, Redis, Azurite, OpenTelemetry."],
+  ["P-02","Gateway (YARP)","gateway",2,["P-01"],"Routing, JWT, rate limits, SignalR proxying, local TLS; sits behind the platform app's BFF."],
+  ["P-03","Identity service","identity",2,["P-01"],"OpenIddict, sign-up and login, GitHub and Google, roles, server-side PKCE flow for the BFF."],
+  ["P-04","Projects module","core-api",2,["P-01","P-03"],"JSONB projects with schema validation, versions, assets, upload and download."],
   ["P-05","AI Generation service","ai-service",3,["P-01"],"gRPC streaming, Anthropic SDK, retries, fake provider, parity with local generation."],
   ["P-06","Real-time delivery","core-api",3,["P-02","P-04"],"SignalR hub, Redis backplane, streamed tokens and job status."],
   ["P-07","Export service","export",3,["P-01","P-04"],"Node gRPC, zip to Blob, GitHub push, job events."],
-  ["P-08","Studio connected mode","connected",3,["P-03","P-04","P-05","P-06","P-07"],"Platform adapters, login, dashboard, Local and Connected upload/download."],
+  ["P-08","Platform app","connected",3,["P-03","P-04"],"React Router v7 app with server rendering: BFF login, project dashboard, editor route rendering the Studio, import/export of Local projects."],
+  ["P-16","Studio platform adapters","connected",3,["P-05","P-06","P-07","P-08"],"Storage, ai, export, preview and realtime adapters: generated OpenAPI client, SignalR, conflict screen, Sandpack preview."],
   ["P-09","Billing module","core-api",4,["P-04"],"Plans, Stripe test mode, idempotent webhooks, entitlements."],
   ["P-10","Usage & metering","core-api",4,["P-05","P-09"],"Token counting, quotas, enforcement, usage dashboard."],
   ["P-11","Prompt Library module","core-api",4,["P-05"],"Serve versioned skills, per-project pins, experiment flags."],
   ["P-12","Notifications","core-api",4,["P-06"],"In-app notification centre, email (Mailpit locally), event-driven notices."],
   ["P-13","Cloud deployment (Azure, Terraform)","foundation",6,["P-08","L-08"],"Terraform deploys cheapest services first; release workflows; cost controls."],
-  ["P-14","Website & account management","connected",4,["P-03","P-09"],"Landing page, docs, pricing, account and data export."],
-  ["L-01","Event backbone (Kafka)","events",5,["P-01","P-04"],"Topics, contracts, outbox publisher, idempotent consumers, dead-letter topics, replay."],
+  ["P-14","Account pages & landing page","connected",4,["P-03","P-09"],"Account, BYO keys, plan and usage, data export in the platform app; optional Astro landing page."],
+  ["P-15","Serverless jobs (Azure Functions)","serverless",5,["P-04","P-09","L-01"],"Stripe webhook intake to a queue, export cleanup timer, asset thumbnails; Core Tools + Azurite locally, Terraform in P-13."],
+  ["L-01","Message bus (RabbitMQ / Service Bus)","events",5,["P-01","P-04"],"RabbitMQ locally, Azure Service Bus in Cloud, contracts, outbox publisher, idempotent consumers, dead-letter queues, event-log replay."],
   ["L-02","Design Graph read model (Neo4j)","design-graph",5,["L-01","P-11"],"Kafka projection, Cypher insights, Studio Insights panel."],
   ["L-03","Observability","observability",5,["P-01","L-01"],"Traces across every transport, Grafana stack, dashboards, SLOs."],
   ["L-04","Load & performance testing","observability",5,["P-05","L-03"],"k6 + NBomber with the fake provider, capacity report."],
   ["L-05","Resilience & chaos","observability",5,["L-03","L-08"],"Polly, bulkheads, Chaos Mesh experiments, game days."],
   ["L-06","Service extraction: Billing & Metering","events",5,["P-09","P-10","L-01"],"Separate service and database, gRPC quota checks, saga with compensation."],
-  ["L-07","Analytics store","analytics",7,["L-01"],"ClickHouse from Kafka, materialised views, dashboards."],
+  ["L-07","Analytics store","analytics",7,["L-12"],"ClickHouse from Kafka, materialised views, dashboards."],
   ["L-08","Kubernetes maturity","kubernetes",5,["P-07"],"Helm, kind, KEDA + HPA, Argo CD, network policies, scale to zero."],
   ["L-09","Real-time collaboration","collaboration",7,["P-06","P-08"],"Yjs documents, presence and cursors, permissions."],
-  ["L-10","Preview hosting","kubernetes",7,["P-07","L-08"],"Build exported projects and host each under its own subdomain."],
-  ["L-11","AWS migration exercise","multi-cloud",7,["P-13"],"Move one service to EKS, compare costs."]
-].map(([id, name, feature, phase, deps, summary]) => ({ id, name, feature, phase, deps, summary, status: "planned" }));
+  ["L-10","Preview hosting","kubernetes",7,["P-07","L-08"],"Build exported projects and host each under its own subdomain; optional Go builder or operator (D-17)."],
+  ["L-11","AWS migration exercise","multi-cloud",7,["P-13"],"Move one service to EKS, compare costs."],
+  ["L-12","Kafka upgrade","events",7,["L-01","L-02"],"Kafka for event streams: topics, partition keys, projections and analytics read from Kafka, replay; work queues stay on the bus."]
+].map(([id, name, feature, phase, deps, summary, status = "planned", stages = ""]) => ({ id, name, feature, phase, deps, summary, status, stages }));
 const PHASES = [
-  [1, "Studio MVP (local)", "The core loop: layout → prompt → body → preview → mobile check → Compact. No backend."],
-  [2, "Studio polish", "Claude Code connection, prompt library, history, assets, VS Code, design system."],
-  [3, "Platform, locally", "Backend services under Aspire, Connected mode, local Kubernetes.", true],
-  [4, "Product features", "Accounts, billing in Stripe test mode, metering, notifications, website.", true],
-  [5, "Learning track", "Kafka, Design Graph, observability, load, chaos, extraction, Kubernetes depth.", true],
+  [1, "Studio alpha", "The smallest Studio the backend can be built against: schema + JSON Schema export, adapters, Runner, canvas with block frames, random starter layout, Structure panel, inspector, one AI task with proposals, undo."],
+  [2, "Studio MVP ∥ Platform foundation", "Studio: theme studio, knowledge base, history, run preview, Compact, minimal logic. Platform: .NET solution, Aspire, Gateway, Identity, Projects."],
+  [3, "Studio v1 ∥ Platform connected", "Studio: AI themes, prompt bar, logic v1, prompt library, Developer panels, Claude Code. Platform: AI service, realtime, export, platform app and adapters."],
+  [4, "Product features", "Account pages, billing in Stripe test mode, metering, notifications, optional landing page.", true],
+  [5, "Learning track", "Message bus, Design Graph, observability, load, chaos, extraction, Kubernetes depth, serverless jobs.", true],
   [6, "Cloud deployment", "Terraform to Azure, cheapest first, stopped when idle.", true],
-  [7, "Later", "More targets, companion app, collaboration, preview hosting, analytics, AWS."]
-];
-const DECISIONS = [
-  ["D-01","Flex/grid block tree, no free coordinates"],["D-02","Frame (user) / Body (AI); bodies are HTML + Tailwind"],
-  ["D-03","Tailwind v4 + CSS-variable tokens; the global prompt marks bodies stale"],["D-04","Framework-neutral JSON source; React first"],
-  ["D-05","No use of Claude subscriptions as an API; Claude Code connects over MCP"],["D-06","Local-first; cloud last and cheapest first"],
-  ["D-07","Identity, AI and Export as separate services; gRPC for sync, Kafka for async"],["D-08","Postgres JSONB as the store of record; Neo4j as a read model"],
-  ["D-09","Kubernetes locally first, AKS later"],["D-10","Terraform; OpenTelemetry from the start"],
-  ["D-11","Developer mode toggle"],["D-12","Two breakpoints in the MVP"],
-  ["D-13","No CI on PRs; GitHub Actions for releases only"],["D-14","Automated tests are optional, usually written by AI"]
+  [7, "Later / garden", "Studio garden (targets, porting, pro tools…), the Mobile part, Kafka upgrade, collaboration, preview hosting, analytics, AWS."]
 ];
 /* ===== END DATA ===== */
 
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const el = (tag, attrs = {}, html = "") => { const n = document.createElement(tag); for (const k in attrs) n.setAttribute(k, attrs[k]); n.innerHTML = html; return n; };
+
+/* ---------- Architecture map ---------- */
+const MOD = Object.fromEntries(MODULES.map(m => [m.id, m]));
+const LINK = Object.fromEntries(LINKS.map(l => [l.id, l]));
+const SUB = Object.fromEntries(MODULES.flatMap(m => (m.subs || []).map(s => [s.id, { ...s, parent: m.id }])));
+// mode: none (everything) | module | sub | bound (a block such as Browser) | proto | flow. phases: selected phase filter.
+const arch = { view: "all", mode: "none", id: null, phases: new Set() };
+const inView = x => arch.view === "all" || x.views === "both" || x.views === arch.view;
+const phaseOn = p => !arch.phases.size || arch.phases.has(p);
+const linkPhase = l => Math.max(MOD[l.from].phase, MOD[l.to].phase);
+const linkInView = l => inView(MOD[l.from]) && inView(MOD[l.to]) && phaseOn(linkPhase(l));
+// A module is built in a phase (its own or a sub-module's phase) or updated in it (it gets a new link then).
+const builtIn = m => phaseOn(m.phase) || (m.subs || []).some(s => phaseOn(s.phase));
+const updatedIn = m => LINKS.some(l => (l.from === m.id || l.to === m.id) && linkInView(l));
+const active = m => inView(m) && (builtIn(m) || updatedIn(m));
+const inside = (b, m) => { const cx = m.b[0] + m.b[2] / 2, cy = m.b[1] + m.b[3] / 2; return cx > b.x && cx < b.x + b.w && cy > b.y && cy < b.y + b.h; };
+const lineSample = p => `<svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" class="edge hot p-${p}" style="opacity:1"/></svg>`;
+
+function keepValid() {
+  const bad =
+    (arch.mode === "module" && !active(MOD[arch.id])) ||
+    (arch.mode === "sub" && (!active(MOD[SUB[arch.id].parent]) || !phaseOn(SUB[arch.id].phase))) ||
+    (arch.mode === "bound" && !inView(BOUNDS[arch.id])) ||
+    (arch.mode === "flow" && arch.view !== "all" && FLOWS.find(x => x.id === arch.id).view !== arch.view);
+  if (bad) { arch.mode = "none"; arch.id = null; }
+}
+function renderControls() {
+  const v = document.getElementById("ctl-view"), ph = document.getElementById("ctl-phase"), p = document.getElementById("ctl-proto"), f = document.getElementById("ctl-flow");
+  [v, ph, p, f].forEach(n => n.querySelectorAll("button").forEach(b => b.remove()));
+  [["all", "Everything"], ["local", "Local mode"], ["platform", "Platform"]].forEach(([id, name]) => {
+    const b = el("button", { class: "pill", type: "button", "aria-pressed": String(arch.view === id) }, name);
+    b.onclick = () => { arch.view = id; keepValid(); renderArch(); };
+    v.appendChild(b);
+  });
+  PHASES.forEach(([n, title]) => {
+    const b = el("button", { class: "pill", type: "button", "aria-pressed": String(arch.phases.has(n)), title: "Select several phases to combine them" }, `<span class="mono">P${n}</span> ${esc(title)}`);
+    b.onclick = () => { arch.phases.has(n) ? arch.phases.delete(n) : arch.phases.add(n); keepValid(); renderArch(); };
+    ph.appendChild(b);
+  });
+  Object.entries(PROTOS).forEach(([id, pr]) => {
+    const b = el("button", { class: "pill", type: "button", "aria-pressed": String(arch.mode === "proto" && arch.id === id) }, lineSample(id) + esc(pr.name));
+    b.onclick = () => setArch("proto", id); p.appendChild(b);
+  });
+  FLOWS.forEach(fl => {
+    const b = el("button", { class: "pill", type: "button", "aria-pressed": String(arch.mode === "flow" && arch.id === fl.id) }, esc(fl.name));
+    b.onclick = () => {
+      if (arch.view !== "all" && arch.view !== fl.view) arch.view = fl.view;
+      if (!(arch.mode === "flow" && arch.id === fl.id)) arch.phases = new Set(fl.steps.map(([lid]) => linkPhase(LINK[lid])));
+      setArch("flow", fl.id);
+    };
+    f.appendChild(b);
+  });
+}
+function setArch(mode, id) {
+  if (arch.mode === mode && arch.id === id && (mode === "proto" || mode === "flow")) { arch.mode = "none"; arch.id = null; }
+  else { arch.mode = mode; arch.id = id; }
+  keepValid();
+  renderArch();
+}
+function hotState() {
+  const hot = new Map(), nodes = new Set();
+  const vis = LINKS.filter(linkInView);
+  if (arch.mode === "module") vis.forEach(l => { if (l.from === arch.id || l.to === arch.id) hot.set(l.id, null); });
+  if (arch.mode === "sub") vis.forEach(l => { if (SUB[arch.id].links.includes(l.id)) hot.set(l.id, null); });
+  if (arch.mode === "proto") vis.forEach(l => { if (l.proto === arch.id) hot.set(l.id, null); });
+  if (arch.mode === "flow") FLOWS.find(f => f.id === arch.id).steps.forEach(([lid], i) => { if (linkInView(LINK[lid]) && !hot.has(lid)) hot.set(lid, i + 1); });
+  if (arch.mode === "bound") {
+    const b = BOUNDS[arch.id];
+    MODULES.forEach(m => { if (active(m) && inside(b, m)) nodes.add(m.id); });
+    vis.forEach(l => { if (nodes.has(l.from) && nodes.has(l.to)) hot.set(l.id, null); });
+  }
+  hot.forEach((_, lid) => { nodes.add(LINK[lid].from); nodes.add(LINK[lid].to); });
+  if (arch.mode === "module") nodes.add(arch.id);
+  if (arch.mode === "sub") nodes.add(SUB[arch.id].parent);
+  return { hot, nodes };
+}
+function roundedPath(pts, r = 9) {
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const [px, py] = pts[i - 1], [x, y] = pts[i], [nx, ny] = pts[i + 1];
+    const l1 = Math.hypot(x - px, y - py), l2 = Math.hypot(nx - x, ny - y), rr = Math.min(r, l1 / 2, l2 / 2);
+    const ax = x - (x - px) / l1 * rr, ay = y - (y - py) / l1 * rr, bx = x + (nx - x) / l2 * rr, by = y + (ny - y) / l2 * rr;
+    d += ` L${ax},${ay} Q${x},${y} ${bx},${by}`;
+  }
+  const [lx, ly] = pts[pts.length - 1];
+  return d + ` L${lx},${ly}`;
+}
+function labelPos(pts) {
+  let best = 0, bi = 0;
+  for (let i = 0; i < pts.length - 1; i++) { const len = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); if (len > best) { best = len; bi = i; } }
+  return [(pts[bi][0] + pts[bi + 1][0]) / 2, (pts[bi][1] + pts[bi + 1][1]) / 2];
+}
+function moduleSvg(m, cls) {
+  const [x, y, w, h] = m.b;
+  let s = `<g class="m ${m.kind}${m.big ? " big" : ""} ${cls}" data-mod="${m.id}" tabindex="${cls.includes("gone") ? -1 : 0}" role="button" aria-label="${esc(m.name)}">`;
+  s += `<rect class="box" x="${x}" y="${y}" width="${w}" height="${h}" rx="9"/>`;
+  s += `<rect class="band" x="${x + 1}" y="${y + 1}" width="${w - 2}" height="5" rx="2" style="fill:var(--${m.color})"/>`;
+  const ty = y + (m.big ? 30 : 27);
+  s += `<text class="nm" x="${x + 12}" y="${ty}">${esc(m.name)}</text>`;
+  s += `<text class="ph" x="${x + w - 10}" y="${y + 20}" text-anchor="end">P${m.phase}</text>`;
+  s += `<text class="tc" x="${x + 12}" y="${ty + 18}">${esc(m.tech)}</text>`;
+  if (m.extra) s += `<text class="ab" x="${x + 12}" y="${ty + 36}">${esc(m.extra)}</text>`;
+  if (m.subs) {
+    const cw = (w - 36) / 2;
+    m.subs.forEach((t, i) => {
+      const sx = x + 12 + (i % 2) * (cw + 12), sy = y + 60 + Math.floor(i / 2) * 42;
+      const sc = (arch.mode === "sub" && arch.id === t.id ? " sel" : "") + (phaseOn(t.phase) ? "" : " off");
+      s += `<g class="sub${sc}" data-sub="${t.id}" tabindex="${cls.includes("gone") ? -1 : 0}" role="button" aria-label="${esc(m.name)}: ${esc(t.name)}"><rect x="${sx}" y="${sy}" width="${cw}" height="34" rx="6"/><text x="${sx + 10}" y="${sy + 21.5}">${esc(t.name)}</text></g>`;
+    });
+  }
+  return s + "</g>";
+}
+function renderSvg() {
+  const { hot, nodes } = hotState(), focus = arch.mode !== "none";
+  let s = "<defs>";
+  Object.keys(PROTOS).forEach(p => { s += `<marker id="m-${p}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,1 L10,5 L0,9 z" class="mk-${p}" transform="scale(1)"/></marker>`; });
+  s += "</defs>";
+  BOUNDS.forEach((b, i) => {
+    const cls = (inView(b) ? "" : " off") + (arch.mode === "bound" && arch.id === i ? " sel" : "");
+    s += `<g class="bd bd-${b.kind}${cls}"><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="14"/><text x="${b.lx}" y="${b.ly}"${b.anchor ? ` text-anchor="${b.anchor}"` : ""}>${esc(b.label)}</text></g>`;
+  });
+  NOTES.forEach(n => { s += `<text class="bd-note${inView(n) ? "" : " off"}" x="${n.x}" y="${n.y}">${esc(n.text)}</text>`; });
+  LINKS.forEach(l => {
+    const state = !linkInView(l) ? "gone" : focus ? (hot.has(l.id) ? "hot" : "cold") : "";
+    s += `<path id="e-${l.id}" class="edge p-${l.proto} ${state}" d="${roundedPath(l.p)}"${state === "gone" ? "" : ` marker-end="url(#m-${l.proto})"`}/>`;
+  });
+  LINKS.filter(linkInView).forEach(l => { s += `<path class="hit" data-link="${l.id}" d="${roundedPath(l.p)}"/>`; });
+  MODULES.forEach(m => {
+    const on = active(m);
+    const cls = [!on ? "gone" : "", on && arch.phases.size && !builtIn(m) ? "upd" : "", arch.mode === "module" && m.id === arch.id ? "sel" : "", focus && on && !nodes.has(m.id) ? "dim" : ""].join(" ");
+    s += moduleSvg(m, cls);
+  });
+  // Link labels show on hover (or tap); in a trace the traced links keep theirs visible, with the step number.
+  LINKS.filter(linkInView).forEach(l => {
+    const n = hot.get(l.id), [mx, my] = labelPos(l.p), nw = n ? 20 : 0, w = l.label.length * 6.7 + 16 + nw;
+    const x0 = Math.min(Math.max(mx - w / 2, 4), 1196 - w);
+    s += `<g class="lbl${n ? " pin" : ""}" id="lbl-${l.id}"><rect x="${x0}" y="${my - 11}" width="${w}" height="22" rx="11"/>` +
+      (n ? `<g class="num"><circle cx="${x0 + 11}" cy="${my}" r="8.5"/><text x="${x0 + 11}" y="${my + 3.8}" text-anchor="middle">${n}</text></g>` : "") +
+      `<text x="${x0 + nw + 8}" y="${my + 3.8}">${esc(l.label)}</text></g>`;
+  });
+  const svg = document.getElementById("arch-svg");
+  svg.innerHTML = s;
+  svg.querySelectorAll("[data-mod]").forEach(g => {
+    const go = () => setArch("module", g.dataset.mod);
+    g.addEventListener("click", go);
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+  svg.querySelectorAll("[data-sub]").forEach(g => {
+    const go = e => { e.stopPropagation(); setArch("sub", g.dataset.sub); };
+    g.addEventListener("click", go);
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e); } });
+  });
+  svg.querySelectorAll(".hit").forEach(h => {
+    const lbl = document.getElementById("lbl-" + h.dataset.link), edge = document.getElementById("e-" + h.dataset.link);
+    h.addEventListener("mouseenter", () => { lbl.classList.add("show"); edge.classList.add("hover"); });
+    h.addEventListener("mouseleave", () => { lbl.classList.remove("show"); edge.classList.remove("hover"); });
+    h.addEventListener("click", e => { e.stopPropagation(); lbl.classList.toggle("show"); });
+  });
+}
+// Empty space shows everything; a click inside a block (Browser, Your computer, the cluster…) focuses on the innermost one.
+document.getElementById("arch-svg").addEventListener("click", e => {
+  if (e.target.closest("[data-mod], [data-sub], .hit")) return;
+  const svg = e.currentTarget, pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const { x, y } = pt.matrixTransform(svg.getScreenCTM().inverse());
+  let best = -1;
+  BOUNDS.forEach((b, i) => {
+    if (inView(b) && x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h && (best < 0 || b.w * b.h < BOUNDS[best].w * BOUNDS[best].h)) best = i;
+  });
+  best < 0 ? setArch("none", null) : setArch("bound", best);
+});
+function connItem(l, viewpoint) {
+  const out = l.from === viewpoint, other = MOD[out ? l.to : l.from];
+  const li = el("li", {}, `<div class="conn-head"><span class="proto ${l.proto}">${esc(PROTOS[l.proto].name)}</span><span class="conn-dir">${out ? "calls →" : "← called by"}</span></div>
+    <span class="conn-label">${esc(l.label)}</span><span class="conn-desc">${esc(l.desc)}</span>`);
+  const btn = el("button", { class: "link-btn", type: "button" }, esc(other.name));
+  btn.onclick = () => setArch("module", other.id);
+  li.querySelector(".conn-head").appendChild(btn);
+  return li;
+}
+function linkList(d, title, ls) {
+  d.appendChild(el("div", { class: "eyebrow" }, `${title} (${ls.length})`));
+  const ul = el("ul", { class: "conns" });
+  ls.forEach(l => ul.appendChild(el("li", {}, `<span><b>${esc(MOD[l.from].name)}</b> → <b>${esc(MOD[l.to].name)}</b> <span class="proto ${l.proto}">${esc(PROTOS[l.proto].name)}</span></span><span class="conn-label">${esc(l.label)}</span><span class="conn-desc">${esc(l.desc)}</span>`)));
+  d.appendChild(ul);
+}
+function moduleButtons(d, title, mods) {
+  d.appendChild(el("div", { class: "eyebrow" }, `${title} (${mods.length})`));
+  const row = el("div", { class: "ep-row" });
+  mods.forEach(m => { const b = el("button", { class: "pill", type: "button" }, esc(m.name)); b.onclick = () => setArch("module", m.id); row.appendChild(b); });
+  d.appendChild(row);
+}
+function linksAndEpics(d, hot, viewpoint, epics) {
+  const ls = LINKS.filter(l => hot.has(l.id));
+  d.appendChild(el("div", { class: "eyebrow" }, `Links (${ls.length})`));
+  if (!ls.length) d.appendChild(el("p", { class: "hint" }, "No links with the current view and phases. Switch to Everything or clear the phases to see them all."));
+  const ul = el("ul", { class: "conns" });
+  ls.sort((a, b) => (a.from === viewpoint ? 0 : 1) - (b.from === viewpoint ? 0 : 1)).forEach(l => ul.appendChild(connItem(l, viewpoint)));
+  d.appendChild(ul);
+  if (epics.length) {
+    d.appendChild(el("div", { class: "eyebrow" }, "Epics"));
+    const row = el("div", { class: "ep-row" }); epics.forEach(id => byId[id] && row.appendChild(chip(byId[id]))); d.appendChild(row);
+  }
+}
+function renderArchDetail() {
+  const d = document.getElementById("arch-detail"); d.innerHTML = "";
+  const { hot, nodes } = hotState();
+  if (arch.mode === "none") {
+    d.appendChild(el("div", { class: "eyebrow" }, "Overview"));
+    if (arch.phases.size) {
+      const ps = [...arch.phases].sort(), on = MODULES.filter(active);
+      d.appendChild(el("h3", {}, `Phase ${ps.map(n => "P" + n).join(" + ")}`));
+      d.appendChild(el("p", {}, esc(PHASES.filter(([n]) => arch.phases.has(n)).map(([n, t, text]) => `P${n} ${t}: ${text}`).join(" "))));
+      moduleButtons(d, "Built", on.filter(builtIn));
+      const upd = on.filter(m => !builtIn(m));
+      if (upd.length) { moduleButtons(d, "Updated (dashed outline)", upd); d.appendChild(el("p", { class: "hint" }, "Existing modules that get new links in these phases.")); }
+      d.appendChild(el("div", { class: "eyebrow" }, "Epics"));
+      const row = el("div", { class: "ep-row" }); EPICS.filter(e => arch.phases.has(e.phase)).forEach(e => row.appendChild(chip(e))); d.appendChild(row);
+    } else {
+      d.appendChild(el("h3", {}, "Whole system"));
+      d.appendChild(el("p", { class: "hint" }, "Click a module or a Core API sub-module to see its links. Click inside a block (Browser, Your computer, the cluster, a namespace…) to focus on it, and click empty space to come back here. Hover a link to see its label. Pick one or more phases to see what they build."));
+      d.appendChild(el("p", {}, `${MODULES.filter(active).length} modules and ${LINKS.filter(linkInView).length} links in this view.`));
+    }
+  } else if (arch.mode === "bound") {
+    const b = BOUNDS[arch.id];
+    d.appendChild(el("div", { class: "eyebrow" }, "Block"));
+    d.appendChild(el("h3", {}, esc(b.label)));
+    moduleButtons(d, "Modules", MODULES.filter(m => nodes.has(m.id)));
+    linkList(d, "Links inside", LINKS.filter(l => hot.has(l.id)));
+    d.appendChild(el("p", { class: "hint" }, "Click empty space to see everything again."));
+  } else if (arch.mode === "module") {
+    const m = MOD[arch.id];
+    const kind = { ours: "WibeBlock module", store: "data store", external: "external or your own tool" }[m.kind];
+    d.appendChild(el("div", { class: "eyebrow" }, `${esc(m.zone)} · ${kind} · phase ${m.phase}`));
+    d.appendChild(el("h3", {}, esc(m.name)));
+    d.appendChild(el("span", { class: "tech" }, esc(m.tech)));
+    d.appendChild(el("p", {}, esc(m.about)));
+    linksAndEpics(d, hot, m.id, m.epics);
+  } else if (arch.mode === "sub") {
+    const s = SUB[arch.id], m = MOD[s.parent];
+    d.appendChild(el("div", { class: "eyebrow" }, `${esc(m.zone)} · ${esc(m.name)} module · phase ${s.phase}`));
+    d.appendChild(el("h3", {}, esc(s.name)));
+    d.appendChild(el("p", {}, esc(s.about)));
+    const back = el("button", { class: "link-btn", type: "button" }, `Part of ${esc(m.name)}`);
+    back.onclick = () => setArch("module", m.id);
+    d.appendChild(el("p", { class: "hint" })).appendChild(back);
+    linksAndEpics(d, hot, m.id, s.epics);
+  } else if (arch.mode === "proto") {
+    const p = PROTOS[arch.id];
+    d.appendChild(el("div", { class: "eyebrow" }, "Protocol"));
+    d.appendChild(el("h3", {}, lineSample(arch.id) + " " + esc(p.name)));
+    d.appendChild(el("p", {}, esc(p.about)));
+    linkList(d, "Used by", LINKS.filter(l => hot.has(l.id)));
+  } else {
+    const f = FLOWS.find(x => x.id === arch.id);
+    d.appendChild(el("div", { class: "eyebrow" }, "Flow"));
+    d.appendChild(el("h3", {}, esc(f.name)));
+    const ol = el("ol", { class: "steps-list" });
+    f.steps.forEach(([lid, text]) => { const l = LINK[lid]; ol.appendChild(el("li", {}, `${esc(text)}<br><span class="proto ${l.proto}">${esc(PROTOS[l.proto].name)}</span> <span class="conn-label">${esc(MOD[l.from].name)} → ${esc(MOD[l.to].name)}</span>`)); });
+    d.appendChild(ol);
+    d.appendChild(el("p", { class: "hint" }, "Numbers on the map match the steps. A link used twice shows the number of its first step."));
+  }
+}
+function renderArch() { renderControls(); renderSvg(); renderArchDetail(); }
+
+/* ---------- Plan: roadmap, explorer, decisions ---------- */
 const byId = Object.fromEntries(EPICS.map(e => [e.id, e]));
 const featById = Object.fromEntries(FEATURES.map(f => [f.id, f]));
 const partOf = e => featById[e.feature].part;
@@ -412,19 +1310,16 @@ const neededBy = id => EPICS.filter(e => e.deps.includes(id)).map(e => e.id);
 const statusLabel = { planned: "planned", draft: "draft", ready: "ready", progress: "in progress", done: "done" };
 let currentPart = "studio", selected = null;
 
-const el = (tag, attrs = {}, html = "") => { const n = document.createElement(tag); for (const k in attrs) n.setAttribute(k, attrs[k]); n.innerHTML = html; return n; };
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function chip(e) {
   const b = el("button", { class: "ep", type: "button", "data-id": e.id, "data-part": partOf(e), title: e.summary },
     `<span class="id">${e.id}</span><span class="nm">${esc(e.name)}</span>`);
   b.addEventListener("click", () => select(e.id, true));
   return b;
 }
-
 function renderCounts() {
   const written = EPICS.filter(e => e.status !== "planned").length;
   document.getElementById("counts").innerHTML =
-    `<span><b>${PARTS.length}</b> parts</span><span><b>${FEATURES.length}</b> features</span><span><b>${EPICS.length}</b> epics</span><span><b>${written}</b> epic files written</span><span><b>${DECISIONS.length}</b> decisions</span>`;
+    `<span><b>${MODULES.length}</b> modules</span><span><b>${PARTS.length}</b> parts</span><span><b>${FEATURES.length}</b> features</span><span><b>${EPICS.length}</b> epics</span><span><b>${written}</b> epic files written</span>`;
 }
 function renderRoadmap() {
   const root = document.getElementById("roadmap");
@@ -439,8 +1334,8 @@ function renderRoadmap() {
 function renderTabs() {
   const root = document.getElementById("tabs"); root.innerHTML = "";
   PARTS.forEach(p => {
-    const t = el("button", { class: "tab", role: "tab", type: "button", "aria-selected": String(p.id === currentPart) },
-      `<span class="dot" style="background:var(--${p.id})"></span>${esc(p.name)} <span class="mono" style="opacity:.6">${p.prefix}-nn</span>`);
+    const t = el("button", { class: "pill tab", role: "tab", type: "button", "aria-selected": String(p.id === currentPart), "aria-pressed": String(p.id === currentPart) },
+      `<span class="dot" style="background:var(--${p.id === "mobile" ? "lime" : p.id})"></span>${esc(p.name)} <span class="mono" style="opacity:.6">${p.prefix}-nn</span>`);
     t.addEventListener("click", () => { currentPart = p.id; renderTabs(); renderPart(); });
     root.appendChild(t);
   });
@@ -461,12 +1356,14 @@ function renderPart() {
 }
 function renderDetail() {
   const d = document.getElementById("detail");
-  if (!selected) { d.innerHTML = `<div class="eyebrow">Epic</div><p class="empty">Select an epic to see its summary, dependencies and file. Its dependencies are highlighted across the map.</p>`; return; }
+  if (!selected) { d.innerHTML = `<div class="eyebrow">Epic</div><p class="empty">Select an epic to see its summary, dependencies and file.</p>`; return; }
   const e = byId[selected], f = featById[e.feature], p = PARTS.find(x => x.id === f.part);
   const slug = e.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const mods = MODULES.filter(m => m.epics.includes(e.id)).map(m => m.name);
   d.innerHTML = `<div class="eyebrow">${esc(p.name)} · ${esc(f.name)}</div><h3>${e.id} ${esc(e.name)}</h3><p>${esc(e.summary)}</p>
-    <dl class="kv"><dt>Phase</dt><dd>${e.phase}</dd><dt>Status</dt><dd><span class="status ${e.status}">${statusLabel[e.status]}</span></dd>
+    <dl class="kv"><dt>Phase</dt><dd>${e.phase}</dd>${e.stages ? `<dt>Stages</dt><dd>${esc(e.stages)}</dd>` : ""}<dt>Status</dt><dd><span class="status ${e.status}">${statusLabel[e.status]}</span></dd>
     <dt>Depends on</dt><dd class="ep-row" id="d-deps"></dd><dt>Needed by</dt><dd class="ep-row" id="d-by"></dd>
+    ${mods.length ? `<dt>Modules</dt><dd>${esc(mods.join(", "))}</dd>` : ""}
     <dt>File</dt><dd class="mono" style="word-break:break-all">parts/${f.path}/epics/${e.id}-${slug}.md</dd></dl>`;
   const fill = (id, list) => { const n = document.getElementById(id); if (!list.length) n.innerHTML = `<span class="empty">none</span>`; list.forEach(x => byId[x] && n.appendChild(chip(byId[x]))); };
   fill("d-deps", e.deps); fill("d-by", neededBy(e.id));
@@ -479,7 +1376,7 @@ function markSelection() {
   });
 }
 function select(id, scroll) {
-  selected = selected === id && !scroll ? null : id;
+  selected = id;
   const part = partOf(byId[id]);
   if (part !== currentPart) { currentPart = part; renderTabs(); renderPart(); }
   renderDetail(); markSelection();
@@ -488,12 +1385,261 @@ function select(id, scroll) {
     if (box.top < 0 || box.top > innerHeight - 120) document.getElementById("explorer-section").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 }
-function renderDecisions() {
-  const root = document.getElementById("decisions");
-  DECISIONS.forEach(([id, text]) => root.appendChild(el("div", { class: "dec" }, `<b>${id}</b><span>${esc(text)}</span>`)));
-}
-
-renderCounts(); renderRoadmap(); renderTabs(); renderPart(); renderDecisions();
+renderCounts(); renderRoadmap(); renderTabs(); renderPart();
 const fromHash = location.hash.slice(1).toUpperCase();
 if (byId[fromHash]) select(fromHash, false); else { selected = "S-01"; renderDetail(); markSelection(); }
+renderArch();
+
+/* ---------- Studio chapter: interface sketch ---------- */
+(function studioMock() {
+  const sm = document.getElementById("sm");
+  if (!sm) return;
+  const VPS = [["Phone", 390, 844], ["Tablet", 834, 1112], ["Laptop", 1440, 900], ["Full HD", 1920, 1080], ["2K", 2560, 1440], ["4K", 3840, 2160]];
+  const MOBILE_BP = 768;
+  const APP = `<div class="app">
+    <nav class="app-nav"><span class="app-logo">Demo app</span><span class="app-links"><span>Plants</span><span>Care guides</span><span>Plans</span></span><span class="app-btn">Start a plan</span><span class="app-menu">Menu</span></nav>
+    <header class="app-hero"><div><p class="app-kicker">Plant subscriptions</p><h1>Plants that fit your light.</h1><p>Tell us about your windows. Each season we send three plants that will thrive there, with care cards written for your room.</p><div class="app-ctas"><span class="app-btn">Find my plants</span><span class="app-btn ghost">How it works</span></div></div><div class="app-photo" aria-hidden="true"><i></i><i></i><i></i></div></header>
+    <section class="app-cards"><article><b>Matched to your light</b><p>North-facing flat or sunny balcony: every pick starts from your windows.</p></article><article><b>Water reminders</b><p>A gentle nudge when it's time, tuned to each plant and the season.</p></article><article><b>Delivered in season</b><p>Plants travel when the weather suits them, packed without plastic.</p></article></section>
+    <footer class="app-foot">© Demo app · Care guides · Contact</footer></div>`;
+
+  // Seeded generator (D-28): a valid flex tree with random sections, splits and size ratios. Same seed, same layout.
+  const mulberry = seed => () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  function generate(seed) {
+    const r = mulberry(seed), int = (a, b) => a + Math.floor(r() * (b - a + 1));
+    let n = 0;
+    const leaf = extra => ({ leaf: true, n: ++n, grow: int(1, 3), ...extra });
+    const sections = [];
+    for (let i = 0, count = int(2, 4); i < count && n < 9; i++) {
+      if (r() < 0.3) { sections.push(leaf({ h: int(110, 260) })); continue; }
+      const kids = [];
+      for (let j = 0, k = int(2, 3); j < k && n < 10; j++) kids.push(r() < 0.25 ? { dir: "column", grow: int(1, 2), kids: [leaf({}), leaf({})] } : leaf({}));
+      sections.push({ dir: "row", h: int(220, 440), kids });
+    }
+    // Palette: one curated pastel set per shuffle, in random order; borders are a dark tone of each fill.
+    const PALETTES = [
+      ["#ffc8dd", "#bde0fe", "#caffbf", "#fdffb6", "#ffd6a5", "#e4c1f9"],
+      ["#a0e7e5", "#b4f8c8", "#fbe7c6", "#ffaebc", "#c3b1e1", "#ffd8be"],
+      ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#9bf6ff", "#a0c4ff", "#bdb2ff"],
+      ["#f1c0e8", "#cfbaf0", "#a3c4f3", "#90dbf4", "#98f5e1", "#b9fbc0"],
+      ["#ffe5ec", "#ffc2d1", "#cdb4db", "#bde0fe", "#a2d2ff", "#d8f3dc"]
+    ];
+    const pal = PALETTES[int(0, PALETTES.length - 1)].map(c => [r(), c]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const colour = i => { const bg = pal[i % pal.length]; return { bg, line: `color-mix(in oklab, ${bg} 42%, #2a2238)` }; };
+    return { sections, colour, leaves: n };
+  }
+  const letters = "ABCDEFGHIJKL";
+  function renderPage(tree) {
+    let idx = 0;
+    const node = (x, inRow) => {
+      if (x.leaf) {
+        const c = tree.colour(idx++);
+        const style = `flex-grow:${x.grow};background:${c.bg};border-color:${c.line};${x.h ? `min-height:${x.h}px;` : ""}${inRow ? "" : "flex-basis:auto;"}`;
+        return `<div class="st-b" data-leaf="${x.n}" style="${style}"></div>`;
+      }
+      return `<div class="st-c ${x.dir}" style="flex-grow:${x.grow || 1};flex-basis:0;${x.h ? `min-height:${x.h}px;` : ""}">${x.kids.map(k => node(k, x.dir === "row")).join("")}</div>`;
+    };
+    return `<div class="st-page">${tree.sections.map(s => node(s, false)).join("")}</div>`;
+  }
+  function renderStructure(tree, genN) {
+    const rows = [`<li class="ct" style="--d:0"><i class="sw"></i>Home <em>page</em></li>`];
+    let sec = 0;
+    const walk = (x, d) => {
+      if (x.leaf) { const name = x.n === genN ? "Hero" : "Block " + letters[x.n - 1]; rows.push(`<li${x.n === genN ? ' class="on"' : ""} style="--d:${d}"><i class="sw" style="background:${tree.colour(x.n - 1).bg}"></i>${name}${x.n === genN ? "" : " <em>empty</em>"}</li>`); return; }
+      rows.push(`<li class="ct" style="--d:${d}"><i class="sw"></i>${d === 1 ? "Section " + (++sec) : "Group"} <em>${x.dir === "row" ? "row" : "column"}</em></li>`);
+      x.kids.forEach(k => walk(k, d + 1));
+    };
+    tree.sections.forEach(s => walk(s, 1));
+    document.getElementById("sm-structure").innerHTML = rows.join("");
+  }
+
+  const sel = document.getElementById("sm-vp");
+  VPS.forEach(([n, w], i) => { const o = document.createElement("option"); o.value = String(i); o.textContent = `${n} · ${w}`; sel.appendChild(o); });
+  sel.value = "2";
+  const design = document.getElementById("vp-design"), preview = document.getElementById("vp-preview");
+  preview.innerHTML = `<div class="vp-frame">${APP}</div>`;
+  let tree, genN = 0;
+
+  function shuffle() {
+    tree = generate(Math.floor(Math.random() * 1e9));
+    design.innerHTML = `<div class="vp-frame">${renderPage(tree)}</div>`;
+    // The largest block shows a generated body: new style inside, border kept (D-29).
+    design.querySelector(".vp-frame").style.width = VPS[2][1] + "px";
+    let best = null, area = 0;
+    design.querySelectorAll(".st-b").forEach(b => { const a = b.offsetWidth * b.offsetHeight; if (a > area) { area = a; best = b; } });
+    genN = Number(best.dataset.leaf);
+    best.classList.add("gen");
+    best.innerHTML = `<span class="k">Plant subscriptions</span><h4>Plants that fit your light.</h4><p>Three plants a season, chosen for your windows.</p><span class="app-btn">Find my plants</span>`;
+    renderStructure(tree, genN);
+    layout();
+  }
+  function overlay(s) {
+    design.querySelectorAll(".ov").forEach(n => n.remove());
+    const ob = design.getBoundingClientRect();
+    let first = true;
+    design.querySelectorAll(".st-b").forEach(b => {
+      const r = b.getBoundingClientRect(), isGen = b.classList.contains("gen");
+      const box = document.createElement("div");
+      box.className = "ov ov-box" + (isGen ? " sel" : "");
+      Object.assign(box.style, { left: r.left - ob.left + "px", top: r.top - ob.top + "px", width: r.width + "px", height: r.height + "px",
+        borderColor: tree.colour(Number(b.dataset.leaf) - 1).line, borderRadius: Math.max(8, 22 * s) + "px" });
+      const small = r.width < 130 || r.height < 46;
+      let html = `<span class="ov-btns"><span title="Generate">✦</span><span title="Add inside">+</span><span title="Duplicate">⧉</span><span title="More">⋯</span>${isGen ? '' : ""}</span>`;
+      if (isGen) html += `<span class="ov-prop"><b>✦ Proposal</b><span class="sm-ghost">Discard</span><span class="sm-pri">Accept</span></span>`;
+      else html += `<span class="ov-pill${small ? " dot" : ""}"><b>✦</b>${small ? "" : "Describe this block…"}${first ? '' : ""}</span>`;
+      if (!isGen) first = false;
+      box.innerHTML = html;
+      design.appendChild(box);
+    });
+  }
+  function layout() {
+    const [name, w, h] = VPS[Number(sel.value)], phone = w < MOBILE_BP;
+    let shown = 1;
+    [design, preview].forEach(o => {
+      if (o.closest("[hidden]")) return;
+      const f = o.firstElementChild;
+      f.style.width = w + "px";
+      const app = f.querySelector(".app"); if (app) app.classList.toggle("is-phone", phone);
+      const avail = o.clientWidth, s = Math.min(1, avail / w);
+      f.style.transform = `scale(${s})`;
+      f.style.left = Math.max(0, (avail - w * s) / 2) + "px";
+      o.style.height = Math.ceil(f.offsetHeight * s) + "px";
+      shown = s;
+      if (o === design) overlay(s);
+    });
+    document.getElementById("sm-zoom").textContent = Math.round(shown * 100) + "%";
+    sm.querySelectorAll(".vp-label").forEach(n => { n.textContent = `${w} × ${h} · ${name}`; });
+    sm.querySelectorAll(".bp-label").forEach(n => { n.textContent = phone ? "mobile breakpoint" : "desktop breakpoint"; });
+  }
+
+  sel.addEventListener("change", layout);
+  document.getElementById("sm-shuffle").addEventListener("click", shuffle);
+  document.getElementById("sm-frames").addEventListener("click", e => {
+    const on = e.currentTarget.getAttribute("aria-pressed") !== "true";
+    e.currentTarget.setAttribute("aria-pressed", String(on));
+    document.getElementById("sm-canvas").classList.toggle("frames-off", !on);
+  });
+  document.getElementById("sm-left-tabs").addEventListener("click", e => {
+    const b = e.target.closest("button[data-lp]"); if (!b) return;
+    document.querySelectorAll("#sm-left-tabs button").forEach(t => t.setAttribute("aria-selected", String(t === b)));
+    document.getElementById("sm-structure").hidden = b.dataset.lp !== "structure";
+    document.getElementById("sm-files").hidden = b.dataset.lp !== "files";
+  });
+  document.getElementById("sm-tabs").addEventListener("click", e => {
+    const b = e.target.closest("button[data-ws]"); if (!b) return;
+    sm.querySelectorAll("#sm-tabs button").forEach(t => t.setAttribute("aria-selected", String(t === b)));
+    sm.querySelectorAll("[data-pane]").forEach(p => { p.hidden = p.dataset.pane !== b.dataset.ws; });
+    layout();
+  });
+  if (window.ResizeObserver) new ResizeObserver(() => layout()).observe(sm);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+  shuffle();
+})();
+
+/* ---------- Studio chapter: frontend structure ---------- */
+// b: [x, y, w, h]; color: band colour token. Coordinates: 1000 x 664.
+const FE_NODES = [
+  { id: "host-local", name: "Local host", tech: "apps/studio · Vite", color: "blue", b: [40, 20, 220, 56], stage: "alpha",
+    about: "What npm start runs: renders the Studio package and passes Runner adapters. No login, no accounts.", epics: ["S-02", "S-09"] },
+  { id: "host-platform", name: "Platform app", tech: "apps/platform · RR7 SSR + BFF", color: "red", b: [280, 20, 220, 56], stage: "Phase 3",
+    about: "React Router v7 in framework mode with server rendering: login through a backend-for-frontend, dashboard and account pages. Its editor route renders the Studio with platform adapters and fills the slots (D-26).", epics: ["P-08", "P-16", "P-14"] },
+  { id: "host-vscode", name: "VS Code webview", tech: "apps/vscode-ext", color: "blue", b: [520, 20, 220, 56], stage: "garden",
+    about: "The extension shows the Studio in a webview; the extension host answers what the Runner would answer.", epics: ["S-11"] },
+  { id: "root", name: "<Studio> package", tech: "packages/studio · adapters + slots context · TanStack Router", color: "blue", b: [40, 116, 700, 56], stage: "alpha",
+    about: "The editor as one React component. Takes adapters and slots from its host through context, owns its routes (workspaces) and URL state (page, selection, viewport, zoom), and knows nothing about login (D-19). Suspense and error boundaries live at this level.", epics: ["S-02"] },
+  { id: "ws-design", name: "Design", tech: "canvas · Structure · Files · inspector", color: "blue", b: [40, 212, 128, 96], stage: "alpha",
+    about: "The design canvas renders the page from project data in an iframe through a portal, at any viewport with zoom (D-20, D-27); block frames with border buttons are drawn above it (D-29). New pages start from a random starter layout (D-28). The left panel shows Structure and Files with dnd-kit and TanStack Virtual (D-30); the inspector is generated from the block schema with React Hook Form + Zod. Proposals are reviewed here.", epics: ["S-03", "S-31", "S-18", "S-32", "S-19", "S-04"] },
+  { id: "ws-logic", name: "Logic", tech: "React Flow graphs", color: "blue", b: [183, 212, 128, 96], stage: "MVP (optional)",
+    about: "Blueprint-style graphs per page and per framework, bound to block ports (D-21). React Flow with custom nodes; generated into hooks and handlers.", epics: ["S-25", "S-26", "S-27"] },
+  { id: "ws-theme", name: "Theme", tech: "token editor · palette", color: "blue", b: [326, 212, 128, 96], stage: "alpha → v1",
+    about: "Theme studio: presets, several themes per project, palette tool with contrast checks; AI themes in v1 stream structured output (useObject).", epics: ["S-05", "S-24"] },
+  { id: "ws-knowledge", name: "Knowledge", tech: "notes · style guide", color: "blue", b: [469, 212, 128, 96], stage: "MVP",
+    about: "Notes about the app sent as AI context, with the style guide pinned (D-23). Search with useDeferredValue.", epics: ["S-21"] },
+  { id: "ws-preview", name: "Preview", tech: "run preview iframe", color: "blue", b: [612, 212, 128, 96], stage: "MVP",
+    about: "The real generated app from the Runner's Vite server (or Sandpack on the platform). Bridge events arrive through useSyncExternalStore. Developer panels (Monaco) in v1.", epics: ["S-06", "S-28"] },
+  { id: "st-redux", name: "Document store", tech: "Redux Toolkit · Immer patches", color: "brown", b: [40, 356, 163, 72], stage: "alpha",
+    about: "The project document as entity maps (pages, blocks, nodes, edges, bindings), history with patches and grouped transactions, and AI proposals. Listener middleware autosaves through the storage adapter and marks bodies stale (D-24).", epics: ["S-02", "S-15", "S-04"] },
+  { id: "st-zustand", name: "UI store", tech: "Zustand", color: "brown", b: [219, 356, 163, 72], stage: "alpha",
+    about: "Fast-changing state that must never enter history: hover, drag in progress, zoom and pan, panel sizes.", epics: ["S-03", "S-14"] },
+  { id: "st-query", name: "Server cache", tech: "TanStack Query", color: "brown", b: [398, 356, 163, 72], stage: "alpha",
+    about: "Data owned by a backend: project list, AI settings, preview status, generated files. The same hooks work against the Runner and, through the platform adapters, against the platform API.", epics: ["S-02", "P-16"] },
+  { id: "st-url", name: "URL state", tech: "router search params", color: "brown", b: [577, 356, 163, 72], stage: "alpha",
+    about: "Workspace, page, selected block, viewport and zoom: shareable and restored on reload.", epics: ["S-02", "S-03"] },
+  { id: "adapters", name: "Adapters", tech: "storage · ai · export · preview · realtime", color: "blue", b: [40, 476, 700, 58], stage: "alpha",
+    about: "The contract every host fills in (D-19). The Studio never calls a backend directly; it calls these interfaces, so Local and platform behave the same.", epics: ["S-02", "P-16"] },
+  { id: "be-runner", name: "Node Runner", tech: "apps/runner · HTTP + WebSocket", color: "blue", b: [40, 572, 340, 52], stage: "alpha",
+    about: "Local backend: project files on disk, AI tasks with the user's key, codegen and the Vite preview, Compact, MCP for Claude Code.", epics: ["S-09", "S-10", "S-13"] },
+  { id: "be-platform", name: "Platform", tech: "BFF → Gateway → services", color: "red", b: [400, 572, 340, 52], stage: "Phase 2–3",
+    about: "Projects as JSONB, AI Generation over gRPC streamed by SignalR, Export service. Browser calls go through the platform app's BFF (D-26).", epics: ["P-04", "P-05", "P-06", "P-07", "P-16"] },
+  { id: "pkg-ui", name: "packages/ui", tech: "Tailwind v4 · Radix · CVA · Storybook", color: "lime", b: [780, 226, 180, 90], stage: "alpha",
+    about: "The Studio's own components, built the shadcn way: written by hand where simple, on Radix where behaviour is hard. Motion for animation (D-24).", epics: ["S-14"] },
+  { id: "pkg-core", name: "packages/core", tech: "Zod schema · frame → CSS · codegen", color: "lime", b: [780, 330, 180, 110], stage: "alpha",
+    about: "Schema and validation (with a JSON Schema export for .NET), migrations, the frame → CSS mapping shared by canvas and codegen, the body sanitiser, codegen targets. Heavy work runs in a web worker via Comlink.", epics: ["S-01", "S-13"] },
+  { id: "pkg-ai", name: "packages/ai + prompts", tech: "AI tasks · Vercel AI SDK", color: "lime", b: [780, 572, 180, 52], stage: "alpha",
+    about: "AI task definitions, providers and context assembly, run by the Runner. The prompts are data the platform's .NET AI service reads too, so both pipelines match.", epics: ["S-07", "S-08", "P-05"] }
+];
+// kind: local (same page or process) | http (network). arrow: false for rail segments.
+const FE_EDGES = [
+  { from: "host-local", to: "root", kind: "local", label: "renders, Runner adapters", p: [[150, 76], [150, 116]] },
+  { from: "host-platform", to: "root", kind: "local", label: "renders, platform adapters", p: [[390, 76], [390, 116]] },
+  { from: "host-vscode", to: "root", kind: "local", label: "renders in a webview", p: [[630, 76], [630, 116]] },
+  ...[104, 247, 390, 533, 676].map((x, i) => ({ from: "root", to: ["ws-design", "ws-logic", "ws-theme", "ws-knowledge", "ws-preview"][i], kind: "local", label: "route", p: [[x, 172], [x, 212]] })),
+  ...[104, 247, 390, 533, 676].map(x => ({ rail: true, kind: "local", p: [[x, 308], [x, 332]] })),
+  { rail: true, kind: "local", p: [[104, 332], [676, 332]] },
+  ...[121, 300, 479, 658].map((x, i) => ({ from: "workspaces", to: ["st-redux", "st-zustand", "st-query", "st-url"][i], kind: "local", label: "read and update", p: [[x, 332], [x, 356]] })),
+  { from: "st-redux", to: "adapters", kind: "local", label: "autosave, load", p: [[121, 428], [121, 476]] },
+  { from: "st-query", to: "adapters", kind: "local", label: "queries, mutations", p: [[479, 428], [479, 476]] },
+  { from: "adapters", to: "be-runner", kind: "http", label: "HTTP + WebSocket", p: [[210, 534], [210, 572]] },
+  { from: "adapters", to: "be-platform", kind: "http", label: "BFF: REST + SignalR", p: [[570, 534], [570, 572]] },
+  { from: "root", to: "pkg-ui", kind: "local", label: "imports components", p: [[740, 144], [870, 144], [870, 226]] },
+  { from: "be-runner", to: "pkg-ai", kind: "local", label: "runs AI tasks", p: [[210, 624], [210, 648], [870, 648], [870, 624]] },
+  { from: "be-platform", to: "pkg-ai", kind: "local", label: "reads the same prompts", p: [[740, 598], [780, 598]] }
+];
+const FE = Object.fromEntries(FE_NODES.map(n => [n.id, n]));
+let feSel = "root";
+function renderFe() {
+  let s = `<defs>${["local", "http"].map(k => `<marker id="fm-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,1 L10,5 L0,9 z" class="mk-${k}"/></marker>`).join("")}</defs>`;
+  s += `<g class="fe-zone"><rect x="768" y="196" width="204" height="258" rx="14"/><text x="782" y="215">Shared packages</text></g>`;
+  const hot = new Set(FE_EDGES.filter(e => e.from === feSel || e.to === feSel || (e.from === "workspaces" && feSel.startsWith("ws-"))).map(e => FE_EDGES.indexOf(e)));
+  FE_EDGES.forEach((e, i) => {
+    const cls = e.rail ? (feSel.startsWith("ws-") ? "hot" : "") : hot.has(i) ? "hot" : "";
+    s += `<path class="edge p-${e.kind} ${cls}" d="${roundedPath(e.p)}"${e.rail ? "" : ` marker-end="url(#fm-${e.kind})"`}/>`;
+  });
+  FE_NODES.forEach(n => {
+    const [x, y, w, h] = n.b, on = n.id === feSel;
+    s += `<g class="m ours${on ? " sel" : ""}" data-fe="${n.id}" tabindex="0" role="button" aria-label="${esc(n.name)}">`;
+    s += `<rect class="box" x="${x}" y="${y}" width="${w}" height="${h}" rx="9"/><rect class="band" x="${x + 1}" y="${y + 1}" width="${w - 2}" height="5" rx="2" style="fill:var(--${n.color === "lime" ? "lime-ink" : n.color})"/>`;
+    s += `<text class="nm" x="${x + 12}" y="${y + 27}" style="font-size:${w < 140 ? 14.5 : 16}px">${esc(n.name)}</text>`;
+    const words = n.tech.split(" · "), lines = [];
+    words.forEach(wd => { const last = lines[lines.length - 1]; if (last && (last + " · " + wd).length * 6.6 < w - 20) lines[lines.length - 1] = last + " · " + wd; else lines.push(wd); });
+    lines.slice(0, Math.max(1, Math.floor((h - 34) / 15))).forEach((ln, i) => { s += `<text class="tc" x="${x + 12}" y="${y + 45 + i * 15}" style="font-size:10.5px">${esc(ln)}</text>`; });
+    s += "</g>";
+  });
+  const svg = document.getElementById("fe-svg");
+  svg.innerHTML = s;
+  svg.querySelectorAll("[data-fe]").forEach(g => {
+    const go = () => { feSel = g.dataset.fe; renderFe(); };
+    g.addEventListener("click", go);
+    g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(); } });
+  });
+  const n = FE[feSel], d = document.getElementById("fe-detail");
+  d.innerHTML = `<div class="eyebrow">Frontend · ${esc(n.stage)}</div><h3>${esc(n.name)}</h3><span class="tech">${esc(n.tech)}</span><p>${esc(n.about)}</p>`;
+  const links = FE_EDGES.filter(e => !e.rail && (e.from === feSel || e.to === feSel || (e.from === "workspaces" && feSel.startsWith("ws-"))));
+  if (links.length) {
+    d.appendChild(el("div", { class: "eyebrow" }, `Links (${links.length})`));
+    const ul = el("ul", { class: "conns" });
+    links.forEach(e => {
+      const out = e.from === feSel || e.from === "workspaces", other = out ? e.to : e.from;
+      const li = el("li", {}, `<div class="conn-head"><span class="proto ${e.kind}">${e.kind === "http" ? "network" : "in the page"}</span><span class="conn-dir">${out ? "uses →" : "← used by"}</span></div><span class="conn-label">${esc(e.label)}</span>`);
+      const btn = el("button", { class: "link-btn", type: "button" }, esc(FE[other] ? FE[other].name : "all workspaces"));
+      btn.onclick = () => { if (FE[other]) { feSel = other; renderFe(); } };
+      li.querySelector(".conn-head").appendChild(btn); ul.appendChild(li);
+    });
+    d.appendChild(ul);
+  }
+  if (n.epics.length) {
+    d.appendChild(el("div", { class: "eyebrow" }, "Epics"));
+    const row = el("div", { class: "ep-row" }); n.epics.forEach(id => byId[id] && row.appendChild(chip(byId[id]))); d.appendChild(row);
+  }
+}
+renderFe();
 </script>

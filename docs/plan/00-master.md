@@ -1,6 +1,6 @@
 # WibeBlock — Master Plan
 
-> **Status:** v1, 2026-10-27. Supersedes `IDEA.md` wherever they differ. Decisions are recorded in [decisions.md](decisions.md).
+> **Status:** v1.1, 2026-10-28 (Studio part planned in detail: stages, two canvases, logic, knowledge base). Supersedes `IDEA.md` wherever they differ. Decisions are recorded in [decisions.md](decisions.md).
 > **Visual map:** https://claude.ai/artifact/CjKkK1RtSsxGyfrNjbRUUM (source: [visual/plan-map.html](visual/plan-map.html); update its DATA block and republish to the same URL when the plan changes).
 
 ## How this plan is organised
@@ -16,7 +16,7 @@ parts/<part>/<feature>/epics/<ID>-<name>.md   an EPIC: one deliverable feature, 
 
 | Part | Prefix | Folder |
 |---|---|---|
-| **Studio** — editor, AI generation, codegen, local runners | `S-nn` | [parts/studio/studio.md](parts/studio/studio.md) |
+| **Studio** — editor, design and logic canvases, AI, codegen, local runner | `S-nn` | [parts/studio/studio.md](parts/studio/studio.md) |
 | **Mobile** — mobile layout workflow, companion app, native target | `M-nn` | [parts/mobile/mobile.md](parts/mobile/mobile.md) |
 | **Platform** — backend services (local first, cloud later) | `P-nn` | [parts/platform/platform.md](parts/platform/platform.md) |
 | **Learning track** — platform engineering technologies | `L-nn` | [parts/learning-track/learning-track.md](parts/learning-track/learning-track.md) |
@@ -26,49 +26,58 @@ parts/<part>/<feature>/epics/<ID>-<name>.md   an EPIC: one deliverable feature, 
 
 ## 1. Vision
 
-WibeBlock lets developers and non-developers build web applications with AI **without handing everything to the AI**. The user owns the structure: pages and a tree of **blocks** laid out with flex/grid tools. The AI owns the inside of each block: from a **block prompt**, it generates the block's **body** (markup + Tailwind styling) within the user's frame. A **global theme** (design tokens) and a **global prompt** keep the app consistent. **Compact** turns the project into a standalone, idiomatic codebase in a target framework (React first; Vue, Angular, React Native later) that the user fully owns.
+WibeBlock lets developers and non-developers build web applications with AI **without handing everything to the AI**. The user owns the structure: pages and a tree of **blocks** laid out with flex/grid tools. The AI owns the inside of each block: from a **block prompt**, it generates the block's **body** (markup + Tailwind styling) within the user's frame, and every AI change arrives as a **proposal** the user accepts or discards. **Themes** (design tokens) and a **knowledge base** about the app keep it consistent. Behaviour is built on a second canvas, the **logic canvas**, as blueprint-style graphs per framework bound to the blocks. **Compact** turns the project into a standalone, idiomatic codebase in a target framework (React first; Vue, Angular, React Native later) that the user fully owns.
 
 Two purposes, equally important:
 
 1. **Product:** a polished, beautiful tool that is pleasant for both audiences.
-2. **Learning:** the backend is a vehicle to learn modern platform technologies (.NET, gRPC, Kafka, Neo4j, Kubernetes, observability…). Each technology must have a real job in the system, but it does not need to be the "optimal" choice for the product's load.
+2. **Learning:** the backend is a vehicle to learn modern platform technologies (.NET, gRPC, RabbitMQ / Azure Service Bus, Kafka, Neo4j, Kubernetes, observability, testing, a little Go…). Each technology must have a real job in the system, but it does not need to be the "optimal" choice for the product's load.
 
 ## 2. Product principles
 
 | # | Principle | Consequence |
 |---|---|---|
-| P1 | **User owns the Frame, AI owns the Body** | Layout tree, sizing, breakpoints are never modified by AI. AI only generates inside a block. User can edit generated text directly or "eject" a body into child blocks. |
+| P1 | **User owns the Frame, AI owns the Body** | AI generates inside a block. It may *propose* layout changes, but nothing changes without the user accepting it (D-22). User can edit generated text directly or "eject" a body into child blocks. |
 | P2 | **Real layout, not coordinates** | Blocks are flex/grid containers in a tree. Drag-and-drop reorders/reparents; it never sets x/y. Absolute positioning is an explicit opt-in per container for overlays. |
-| P3 | **Framework-neutral source** | The project is JSON documents (pages, blocks, theme, prompts). Bodies are stored as HTML + Tailwind fragments. Codegen **targets** (React first) turn the source into a project. |
+| P3 | **Universal source + framework layers** | The project is JSON documents: a universal layer (pages, blocks, themes, knowledge) shared by all targets, plus one layer per framework holding its logic, linked through ports (D-21). Bodies are HTML + Tailwind fragments. Codegen **targets** (React first) turn the source into a project. |
 | P4 | **The user owns the output** | Compact produces a readable, idiomatic project with no runtime dependency on WibeBlock. |
 | P5 | **Two audiences, one UI** | Default UI is for everyone. A **Developer mode** toggle reveals code panel, Tailwind classes, file tree, Compact options, provider settings. |
-| P6 | **Local-first, platform optional** | MVP runs entirely locally with no backend. Backend services can be started locally at any time (Connected mode) and deployed to the cloud later. The Studio talks to all of this through adapters. |
+| P6 | **Local-first, platform optional** | MVP runs entirely locally with no backend. Backend services can be started locally at any time (Connected mode) and deployed to the cloud later. The Studio talks to all of this through adapters supplied by the host app it runs in (D-19). |
 | P7 | **Every technology has a real job** | Learning-track tech is added only where it does something the system uses. Product first; infrastructure after the core loop works. |
 | P8 | **Prompt library is data** | Skills and predefined prompts are versioned markdown/JSON consumed by the TypeScript runner, the .NET services and Claude Code skills. |
-| P9 | **Mobile is a first-class view** | Every page has a desktop base and a mobile adaptation the user can inspect and adjust; the data model carries breakpoint overrides from day one. |
+| P9 | **Mobile is a first-class view** | The data model carries breakpoint overrides from day one and the canvas renders any device width; the mobile adaptation workflow arrives with the Mobile part (Phase 7, D-25). |
 
 ## 3. Core concepts
 
 | Concept | Definition |
 |---|---|
-| **Project** | The app being built: settings, pages, theme, global prompt, selected skills, assets. Stored as a folder of JSON files (local) or as JSONB documents (platform). |
+| **Project** | The app being built: settings, chosen targets, pages, themes, knowledge base, framework layers, history, assets. Stored as a folder of JSON files (local) or as JSONB documents (platform). |
 | **Page** | One route of the generated app, with a single root block. |
 | **Block** | A node in the page tree. Has a **Frame** and optionally a **Body**. Kinds: *container* (children laid out by flex/grid) and *leaf* (AI body). A container may also have a *surface* body (background, border, padding) generated by AI. |
 | **Frame** | User-owned: layout type (flex/grid), direction, gap, alignment, wrap, padding, sizing (fixed / fill / hug), position mode (flow / absolute opt-in), per-breakpoint overrides. |
-| **Body** | AI-owned: block prompt + generated HTML/Tailwind fragment (+ metadata: model, skill versions, timestamp, hash of inputs). Can be *stale* when its inputs changed. |
-| **Theme** | Design tokens (colour, typography, spacing, radius, shadow, light/dark modes) emitted as CSS variables that Tailwind reads. Changing a token restyles everything without regeneration. |
-| **Global prompt** | Project-wide instructions to the AI. Changing it marks bodies stale; the user regenerates selectively. |
+| **Body** | AI-owned: block prompt + generated HTML/Tailwind fragment (+ metadata: model, skill versions, timestamp, hash of inputs). Can be *stale* when its inputs changed. Marks elements as ports. |
+| **Port** | A connection point on a block that logic can drive (text, list, value, visible) or listen to (click, submit, change). Built-in per block or marked in the body (D-21). |
+| **Framework layer** | Per-target part of the project: a **logic graph** per page (nodes, edges) and **bindings** from graph pins to ports. React first; Vue/Angular later, ported by AI or by hand. |
+| **Proposal** | The result of an AI task: a set of changes shown on the canvas; accepted (one history entry) or discarded (D-22). |
+| **Theme** | Design tokens (colour, typography, spacing, radius, shadow, light/dark modes) emitted as CSS variables that Tailwind reads. Several per project from presets, one active. Changing a token restyles everything without regeneration. |
+| **Knowledge base** | User notes about the app sent as context to every AI task; its **style guide** entry replaces the old global prompt and marks bodies stale when edited (D-23). |
+| **Prompt bar** | A command input at the top of the Studio; runs an AI task on the selection, page or project and returns a proposal. |
+| **Design canvas / run preview** | The canvas renders the project data for editing at any viewport (phone to 4K, with zoom); the run preview runs the generated app (D-20, D-27). |
+| **Starter canvas** | A new page opens with a random, valid block layout in a pastel palette; each empty block shows a prompt input in its centre (D-28). |
+| **Block frame** | Editor chrome around each block: rounded border with management buttons on it; stays after generation, never exported (D-29). |
+| **Stage** | Studio delivery step: alpha → MVP → v1 → garden (D-25). |
 | **Skills / predefined prompts** | Versioned library teaching the AI how WibeBlock bodies must be written (constraints, token usage, accessibility, patterns). |
-| **Generation** | One AI run for one block (or batch): inputs, provider, streamed output, result. Recorded in the project. |
+| **AI task** | A versioned unit of AI work (generate body, theme from prompt, arrange page, generate logic, port framework) with prompts, context, output schema and model settings; same definitions locally and on the platform. Each run is logged. |
 | **Target** | A codegen plugin producing a framework project (react-vite first). |
 | **Compact** | Full codegen for the chosen target into a chosen folder (local) or a zip / GitHub push (platform), plus README and optional install/build check. |
-| **Mode** | How the Studio runs: **Local** (Studio + Node Runner, files on disk, BYO key or Claude Code), **Connected** (Studio + platform services running on the developer's machine), **Cloud** (hosted platform). |
+| **Mode** | How the Studio runs: **Local** (Studio + Node Runner, files on disk, BYO key or Claude Code), **Connected** (the platform app with the Studio inside + platform services running on the developer's machine), **Cloud** (hosted platform). The mode is chosen by the host app (D-19). |
+| **Host** | An app that renders the Studio package and gives it adapters: the local Studio (`apps/studio`), the VS Code extension, the platform app (`apps/platform`). Only the platform app has login and accounts. |
 
 ## 4. System overview
 
 ```
                       ┌─────────────────────── Studio (React, shared in all modes) ───────────────────────┐
-                      │ Layout editor · Block prompts · Theme · Preview · Mobile view · Dev mode · Compact │
+                      │ Design canvas · Structure/Files · Logic · Theme · Knowledge · Preview · Compact     │
                       └───────────────┬──────────────────────────────┬────────────────────────────────────┘
                               adapters: storage / ai / auth / export / realtime
               ┌───────────────────────┴──────────┐             ┌─────┴───────────────────────────────────────────┐
@@ -79,20 +88,23 @@ Two purposes, equally important:
               │ · MCP server for Claude Code     │             │ │   Library, Billing, Metering, Notifications;    │
               │ · codegen + Compact              │             │ │   SignalR hub)                                  │
               └──────────────────────────────────┘             │ ├ AI Generation (gRPC streaming, Anthropic SDK)  │
-   Also: VS Code extension, browser-only fallback,             │ ├ Export (Node, codegen, zip / GitHub)           │
-         mobile companion app (Expo)                           │ └ Kafka → Metering, Notifications, Design Graph  │
-                                                               │       (Neo4j read model), Analytics              │
+   Also local: VS Code extension, browser-only fallback        │ ├ Export (Node, codegen, zip / GitHub)           │
+                                                               │ └ Message bus → Metering, Notifications, Design  │
+   All modes: mobile companion app (Expo)                      │     Graph (Neo4j); Kafka later → Analytics       │
    Shared packages: core (schema+codegen) · prompts · ai · ui  │ Postgres (JSONB) · Redis · Blob · Key Vault      │
                                                                └─────────────────────────────────────────────────┘
    Runs locally under .NET Aspire + Docker (+ kind/k3d for Kubernetes). Deployed later to Azure with Terraform, cheapest services first.
 ```
 
-Interactive generation is a **gRPC server-stream** (user is waiting for tokens). Everything asynchronous (metering, notifications, projections, batch regeneration) flows through **Kafka** with the outbox pattern.
+Interactive generation is a **gRPC server-stream** (user is waiting for tokens). Everything asynchronous (metering, notifications, projections, batch regeneration) flows through a **message bus** (RabbitMQ locally, Azure Service Bus in Cloud) with the outbox pattern; **Kafka** comes later as an upgrade for event streams (D-15).
 
 ## 5. Repository layout (target)
 
 ```
-apps/studio          React + TS + Vite — the editor (current wibeblock/ scaffold moves here)
+packages/studio      the editor as a React package: adapters + slots, no login (D-19)
+apps/studio          Local host: the Studio + Runner adapters, started by `npm start` (current wibeblock/ scaffold moves here)
+apps/platform        Platform host (React Router v7, server rendering + BFF, D-26): login, dashboard, account pages, editor route
+apps/website         optional Astro landing page
 apps/runner          Node + TS — local server: files, preview, AI, MCP server, Compact
 apps/vscode-ext      VS Code extension hosting the Studio in a webview
 apps/claude-plugin   Claude Code plugin: skills + MCP config pointing at the runner
@@ -110,17 +122,19 @@ pnpm workspaces (+ Turborepo if builds get slow). Frontend may move to its own r
 
 ## 6. Roadmap
 
-| Phase | Goal | Epics |
-|---|---|---|
-| **1. Studio MVP (local)** | The core loop works: layout → prompt → body → preview → mobile check → Compact to React. No backend. | S-01, S-02, S-03, S-04, S-05, S-06, S-07, S-09, S-13, M-01 (minimal) |
-| **2. Studio polish** | Developer mode depth, Claude Code connection, prompt library v1, history, assets, VS Code extension, Studio UI polish. | S-08, S-10, S-11, S-14, S-15, S-16 |
-| **3. Platform, locally** | Backend services run on the dev machine under Aspire; Studio Connected mode; local Kubernetes. | P-01 … P-08 |
-| **4. Product features** | Accounts, plans, billing (Stripe test mode), metering, notifications, website. All still local. | P-09, P-10, P-11, P-12, P-14 |
-| **5. Learning track** | Kafka + outbox, Design Graph (Neo4j), observability, load tests, chaos, service extraction, k8s maturity. | L-01 … L-06, L-08 |
-| **6. Cloud deployment** | Terraform to Azure, cheapest first: static hosting + Blob → Postgres → AKS → Kafka. Stop/scale-to-zero by default. | P-13 |
-| **7. Later** | Vue/Angular targets, companion app, React Native target, collaboration, preview hosting, analytics store, browser-only mode, AWS exercise. | S-12, S-17, M-02, M-03, L-07, L-09, L-10, L-11 |
+| Phase | Studio track | Platform track | Epics |
+|---|---|---|---|
+| **1. Studio alpha** | The smallest Studio the backend can be built against: schema + JSON Schema export, adapters, Runner storage and AI proxy, canvas with viewports and block frames, random starter layouts, Structure panel, inspector, one AI task with proposals, undo. | — | `[alpha]` stories of S-01, S-14, S-02, S-09, S-03, S-18, S-31, S-19, S-15, S-07, S-04, S-05 |
+| **2. Studio MVP ∥ Platform foundation** | The full local loop up to Compact: theme studio, knowledge base, history panel, run preview, Compact; minimal logic canvas (optional). | .NET solution, Aspire, Gateway, Identity, Projects module. | `[MVP]` stories of the alpha epics + S-32, S-21, S-06, S-13, S-25 · P-01, P-02, P-03, P-04 |
+| **3. Studio v1 ∥ Platform connected** | AI themes, global prompt bar, logic v1, prompt library, Developer panels, snapshots, assets, Claude Code, onboarding. | AI Generation service, realtime, Export service, platform app hosting the Studio, platform adapters. | S-20, S-22, S-08, S-24, S-16, S-26, S-28, S-10, S-29 · P-05, P-06, P-07, P-08, P-16 |
+| **4. Product features** | — | Account pages, plans, billing (Stripe test mode), metering, notifications, optional Astro landing page. All still local. | P-09, P-10, P-11, P-12, P-14 |
+| **5. Learning track** | — | Message bus + outbox, Design Graph, observability, load tests, chaos, service extraction, k8s maturity, serverless jobs. | L-01 … L-06, L-08, P-15 |
+| **6. Cloud deployment** | — | Terraform to Azure, cheapest first; stop/scale-to-zero by default. | P-13 |
+| **7. Later / garden** | Garden: other targets, framework porting, AI knowledge base, VS Code, browser-only, pro tools. | Mobile part, Kafka upgrade, collaboration, preview hosting, analytics store, AWS exercise. | S-17, S-27, S-23, S-11, S-12, S-30, M-01, M-02, M-03, L-07, L-09, L-10, L-11, L-12 |
 
-Phases 3–6 are optional overlays: Local mode stays fully usable without them.
+Tracks run in parallel: from Phase 2 on, sessions alternate between Studio and platform work (D-25). The platform track starts right after the Studio alpha, because the alpha provides what it needs (schema export, adapter contract, a client that saves projects).
+
+The platform track is an optional overlay: Local mode stays fully usable without it.
 
 ## 7. Key decisions (summary)
 
@@ -132,18 +146,39 @@ See [decisions.md](decisions.md).
 - D-04 Framework-neutral JSON source; codegen targets; React (Vite) first.
 - D-05 No Claude-subscription API use (Anthropic ToS). Claude Code connects as a client through WibeBlock's MCP server; BYO API key via Vercel AI SDK.
 - D-06 Local-first; platform optional; cloud last, cheapest first.
-- D-07 Separate Identity (OpenIddict), AI Generation and Export services; the rest a modular monolith; gRPC for sync streaming, Kafka for async.
-- D-08 Postgres (JSONB) is the store of record; Neo4j is a Kafka-fed read model (Design Graph).
+- D-07 Separate Identity (OpenIddict), AI Generation and Export services; the rest a modular monolith; gRPC for sync streaming (async part superseded by D-15).
+- D-08 Postgres (JSONB) is the store of record; Neo4j is a read model (Design Graph).
 - D-09 Kubernetes learned locally (kind/k3d) first; AKS later, no Container Apps step.
 - D-10 Terraform for IaC; OpenTelemetry from the first service.
 - D-13 No CI on pull requests; GitHub Actions only for releases and deployment.
-- D-14 Automated tests are optional, usually written by an AI agent after implementation.
+- D-14 Automated tests are optional, usually written by an AI agent after implementation (refined by D-16).
+- D-15 Message bus first (RabbitMQ locally, Azure Service Bus in Cloud); Kafka later as an upgrade for event streams.
+- D-16 Tests stay optional; the owner writes the first tests with each toolkit (Vitest, React Testing Library, xUnit + Testcontainers, Playwright) by hand, then delegates.
+- D-17 Go as a small, optional language; first candidate is preview hosting (L-10).
+- D-18 Azure Functions for small event-driven jobs (Stripe webhook intake, export cleanup, asset thumbnails) that must run while the cluster is stopped.
+- D-19 The Studio is a package rendered by host apps (local, VS Code, platform); login and accounts live only in the React platform app; optional Astro landing page. Angular host via a Web Component is a learning option.
 - D-11 Developer mode toggle. D-12 Two breakpoints in the MVP; mobile adaptation is its own workflow (Mobile part).
+- D-20 Design canvas renders the project; run preview runs the generated app; parity through a shared frame → CSS mapping.
+- D-21 Universal layer + per-framework layers linked by ports; logic as blueprint graphs per framework; flat ID maps.
+- D-22 AI changes are proposals (accept / discard); the AI may propose layout changes.
+- D-23 Knowledge base with a style guide replaces the global prompt; the prompt bar is a command.
+- D-24 Studio stack: Redux Toolkit (document), Zustand (transient UI), TanStack Query + Router, RHF + Zod, React Flow; own components on Tailwind (shadcn approach) with Storybook.
+- D-25 Stages alpha → MVP → v1 → garden; Studio and platform tracks in parallel; Mobile in Phase 7.
+- D-26 Platform app on React Router v7 framework mode with server rendering and a BFF.
+- D-27 Canvas viewports (phone → 4K) with zoom-to-fit, separate from breakpoints.
+- D-28 Starter canvas: random, seeded, valid flex/grid layouts with pastel scaffold colours.
+- D-29 Block frames with border buttons are editor chrome that stays after generation and is never exported.
+- D-30 Left panel = Structure + Files; Photoshop-style layers later; minimal light Studio with a pastel lime accent.
 
 ## 8. Open questions
 
-- Body interactivity: how far do declarative behaviours go (links, toggles, simple state) before Compact must emit real component code? Decide in S-01/S-04.
 - Exact theme token set and naming (align with Tailwind v4 `@theme` conventions). Decide in S-05.
 - Prompt library evaluation: how do we measure a skill version is better? Decide in S-08.
-- Studio UI decisions: see [parts/studio/studio.md §3](parts/studio/studio.md) (being recorded).
+- Studio UI decisions: recorded in [parts/studio/studio.md §4](parts/studio/studio.md).
+- Sizes and spacing units in the schema (token steps vs px). Decide in S-01.
+- Knowledge base editor: plain markdown vs a rich editor (Lexical / TipTap). Decide in S-21.
+- Generated-app libraries for data and forms (plain React vs TanStack Query / a form library). Decide in S-26.
+- Two routers in the platform app (React Router host, TanStack Router inside the Studio). Validate with a spike in S-02.
 - Plans and prices: only after real token costs are known (P-09).
+- AI engineering techniques beyond plain generation: RAG with embeddings (e.g. pgvector for similar blocks and prompts), LLM evals and GenAI telemetry, Microsoft.Extensions.AI as the .NET provider abstraction, agents that drive WibeBlock's MCP tools. Decide per topic when planning S-07, S-08, P-05 and P-11.
+- Later idea, not planned: **deploy from the app**. After checking the preview, the user deploys the site, either to their own hosting (Vercel, Netlify, Static Web Apps; via GitHub push or provider API) or to WibeBlock hosting by promoting a preview build (extending L-10 with promote and rollback). If taken up: a "deploy" adapter per host (D-19), user sites on a separate domain (not under the app's domain), sandboxed build jobs, abuse controls, metering by plan. A Go operator (D-17) could manage hosted sites.

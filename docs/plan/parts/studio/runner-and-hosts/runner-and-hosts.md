@@ -4,21 +4,23 @@
 
 ## Purpose
 
-Everything that gives the browser-based Studio access to the file system, a preview server and AI in Local mode, plus the alternative hosts: Claude Code (via MCP), VS Code, and a browser-only fallback.
+Everything that gives the browser-based Studio access to the file system, AI and a preview server in Local mode, plus the alternative hosts: Claude Code (via MCP), VS Code, and a browser-only fallback.
 
 ## Design notes
 
-- **Node Runner** (`apps/runner`): local HTTP + WebSocket server bound to localhost with a session token; project folder operations; file watcher so edits from Claude Code or an editor appear live; Vite dev server lifecycle per project; AI proxy (`packages/ai`); Compact; one `npm start` launches Studio + Runner.
-- **Claude Code connection** (D-05): the Runner exposes an **MCP server**; each project gets `.mcp.json` and `.claude/skills/` generated from `packages/prompts`, so `claude` run inside the project connects automatically. Tools: `get_project_summary`, `get_page`, `get_block`, `get_block_context`, `set_block_prompt`, `set_block_body`, `list_stale_blocks`, `regenerate`, `get_theme`, `set_theme_tokens`, `add_page`, `add_block`, `move_block`. WibeBlock never holds the user's Claude credentials; changes are recorded in the project like any other edit (generation log notes `source: claude-code`).
-- Concurrency: Runner serialises writes per project; the Studio shows a toast when an external edit changes the selected block.
-- **VS Code extension**: Studio in a webview; the extension host implements the Runner's API surface; opens the workspace folder as the project.
-- **Browser-only**: File System Access API + in-browser codegen + Sandpack preview + BYO key from the browser; Chromium only; a fallback, not a primary host.
+- **Node Runner** (`apps/runner`): a local HTTP + WebSocket server bound to localhost with a session token. In the **alpha** it stores projects (list, create, open, save with schema validation) and runs AI tasks with the user's key (keys never reach the browser). In the **MVP** it adds a file watcher (external edits appear live), codegen to `out/`, the Vite dev server for the run preview, and Compact. One `npm start` launches the Studio host and the Runner.
+- The Runner is deliberately the same shape as the platform (stores projects, runs AI tasks, exports), so the adapter contract is tested against a real server before the .NET services exist (D-25).
+- **Claude Code connection** (D-05): the Runner exposes an **MCP server**; each project gets `.mcp.json` and `.claude/skills/` generated from `packages/prompts`, so `claude` run inside the project connects automatically. Tools to read the project, set prompts and bodies, list stale blocks, edit theme tokens, add pages and blocks, and (with S-25) read and edit logic graphs. Changes from Claude Code are recorded like any other edit (AI log `source: claude-code`).
+- Concurrency: the Runner serialises writes per project; the Studio shows a notice when an external edit changes the selected block.
+- **Hosts** (D-19): `apps/studio` (Runner adapters), the VS Code extension, and `apps/platform` (platform adapters, D-26) each render `packages/studio`. Only the platform app has login.
+- **VS Code extension**: the Studio in a webview; the extension host implements the Runner's API; the workspace folder is the project.
+- **Browser-only**: File System Access API storage, in-browser codegen, Sandpack preview, key entered in the browser; Chromium only; a fallback, not a primary host.
 
 ## Epics
 
-| ID | Epic | Summary | Depends on | Phase |
-|---|---|---|---|---|
-| [S-09](epics/S-09-node-runner.md) | **Node Runner** | Local server: project folder ops, watcher, Vite lifecycle, AI proxy, Compact execution, `npm start`, localhost security. | S-01 | 1 |
-| [S-10](epics/S-10-claude-code-connection.md) | **Claude Code connection** (`apps/claude-plugin`) | MCP server in the Runner, tool set, `.mcp.json` + `.claude/` scaffolding, WibeBlock skills for Claude Code, live reflection in Studio, concurrent-edit handling. | S-04, S-09 | 2 |
-| [S-11](epics/S-11-vscode-extension.md) | **VS Code extension** | Studio in a webview, extension-host implementation of the Runner API, workspace as project, commands, status bar. | S-09 | 2 |
-| [S-12](epics/S-12-browser-only-mode.md) | **Browser-only mode** | File System Access API storage, in-browser codegen, Sandpack/esbuild-wasm preview, BYO key in browser. | S-01, S-06 | 7 |
+| ID | Epic | Summary | Depends on | Phase | Stages |
+|---|---|---|---|---|---|
+| [S-09](epics/S-09-node-runner.md) | **Node Runner** | Project storage with validation, AI task execution, localhost security, `npm start`; then watcher, codegen output, Vite lifecycle, Compact execution, WebSocket events. | S-01 | 1–2 | alpha, MVP |
+| [S-10](epics/S-10-claude-code-connection.md) | **Claude Code connection** (`apps/claude-plugin`) | MCP server in the Runner, tool set, `.mcp.json` + `.claude/` scaffolding, generated skills, live reflection in the Studio, concurrent-edit handling. | S-04, S-09, S-08 | 3 | v1 |
+| [S-11](epics/S-11-vs-code-extension.md) | **VS Code extension** | Studio in a webview, extension-host implementation of the Runner API, workspace as project, commands, status bar. | S-09 | 7 | garden |
+| [S-12](epics/S-12-browser-only-mode.md) | **Browser-only mode** | File System Access API storage, in-browser codegen, Sandpack/esbuild-wasm preview, key in the browser. | S-01, S-06 | 7 | garden |

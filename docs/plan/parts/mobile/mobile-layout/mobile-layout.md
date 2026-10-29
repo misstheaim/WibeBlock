@@ -13,10 +13,10 @@ Let the user see how each page looks on a phone and fix it without leaving the S
 - **Overrides**: hidden on mobile, order, direction, wrap, size, gap/padding; "reset to desktop" per field and per block. Overridden fields are marked in the inspector.
 - **Diagnostics**: horizontal overflow, text smaller than a threshold, tap targets under 44px, images without max-width; listed in a panel and highlighted on the canvas.
 - Bodies are not regenerated for mobile; skills require bodies to be fluid. A later option is a mobile-specific body variant if real projects need it.
-- MVP (Phase 1) includes: view switch, defaults, hide/order/direction/size overrides, overflow diagnostic. The rest in Phase 2.
+- Moved to Phase 7 (D-25). The Studio already provides device-width viewports and zoom (S-03); this epic adds computed defaults, override editing and diagnostics on top. Planned in its own session.
 
 ## Epics
 
 | ID | Epic | Summary | Depends on | Phase |
 |---|---|---|---|---|
-| [M-01](epics/M-01-mobile-layout-workflow.md) | **Mobile layout workflow** | Mobile view with device frame, computed mobile defaults, per-block overrides with indicators and reset, diagnostics panel, AI-proposed adaptations (review-before-apply). | S-03, S-06 | 1 (minimal), 2 |
+| [M-01](epics/M-01-mobile-layout-workflow.md) | **Mobile layout workflow** | Mobile view with device frame, computed mobile defaults, per-block overrides with indicators and reset, diagnostics panel, AI-proposed adaptations (review-before-apply). | S-03, S-18, S-19, S-06 | 7 |

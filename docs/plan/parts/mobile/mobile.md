@@ -1,10 +1,10 @@
 # Part — Mobile
 
-> Mobile adaptation of generated apps, preview on devices, and native output. Epic IDs `M-nn`. Phases 1 (M-01 minimal) and 7.
+> Mobile adaptation of generated apps, preview on devices, and native output. Epic IDs `M-nn`. Phase 7 (D-25): planned separately from the Studio, after Studio v1.
 
 ## 1. Scope
 
-Principle P9: every page has a desktop base and a mobile adaptation the user can inspect and adjust. This part owns the **mobile layout workflow** inside the Studio, the **companion app** for previewing on a real device, and the **React Native / Expo target**. The breakpoint data model itself lives in Codegen (S-01); the desktop layout editor in Editor (S-03).
+Principle P9: every page has a desktop base and a mobile adaptation the user can inspect and adjust. This part owns the **mobile layout workflow** inside the Studio, the **companion app** for previewing on a real device, and the **React Native / Expo target**. The breakpoint data model itself lives in Codegen (S-01, a two-breakpoint slot from the Studio alpha); the canvas already renders any device width with zoom (S-03, D-27), and the layout editor lives in Editor (S-18, S-19).
 
 ## 2. Features
 
