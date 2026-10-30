@@ -22,7 +22,7 @@ See the source format in the [Codegen feature](../codegen.md). Key points:
   - Acceptance: `packages/core` exists in the workspace; a sample project folder (two pages, ~10 blocks, one theme) validates; breaking it (missing child, unknown layout type, two roots) produces readable errors with the path to the problem.
   - Notes: decide units for sizes and spacing (token steps vs px) and record them in the codegen feature doc.
 - **US-2** `[alpha]` As a platform developer, I can get the project schema as JSON Schema, so that the .NET Projects module validates the same documents (P-04).
-  - Acceptance: one command produces versioned JSON Schema files; the sample project validates against them with an off-the-shelf validator; the files are committed or published where the backend can read them.
+  - Acceptance: one command produces versioned JSON Schema files; the sample project validates against them with an off-the-shelf validator; the files are committed to `contracts/json-schema/`, where the backend reads them (D-32); the sample project lives in `contracts/fixtures/`.
   - Notes: reference checks (level 2) are not expressible in JSON Schema; document which rules the server must check itself.
 - **US-3** `[alpha]` As a developer, I can turn a frame into CSS in one place, so that the design canvas and the generated code lay blocks out identically.
   - Acceptance: a table of frame examples (row/column, gap, wrap, fill/hug/fixed, grid columns, absolute in an opted-in container) maps to the expected classes; the same function is imported by the canvas and the codegen.

@@ -6,7 +6,9 @@ WibeBlock is a personal pet project, built in the open and used to learn platfor
 
 ## Status
 
-Planning. Nothing is usable yet.
+Early setup. Nothing is usable yet: the workspace runs a Studio stub and the starter platform app.
+
+To run it you need Node LTS (see `.nvmrc`) and pnpm. From the repo root, run `pnpm install`, then `pnpm dev`.
 
 - Plan: [docs/plan/00-master.md](docs/plan/00-master.md)
 - Visual map of the plan: https://claude.ai/artifact/CjKkK1RtSsxGyfrNjbRUUM (private for now)

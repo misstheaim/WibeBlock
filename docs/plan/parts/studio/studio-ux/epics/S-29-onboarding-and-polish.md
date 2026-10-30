@@ -7,7 +7,7 @@ A first-time user understands WibeBlock in minutes and gets a good result in the
 
 ## Scope
 - In: first-run tour; starter templates; empty states with next steps; tips tied to first actions; motion polish; accessibility pass (keyboard, focus, labels, contrast); first Playwright flow.
-- Out: marketing site (P-14); documentation site.
+- Out: marketing site and documentation pages (P-20).
 
 ## User stories
 - **US-1** `[v1]` As a new user, I get a short guided tour of the Studio, so that I know where things are.

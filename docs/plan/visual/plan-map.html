@@ -497,7 +497,7 @@ header h1 span { color: var(--red); }
     <div class="eyebrow">One Studio, three modes</div>
     <h2 id="h-modes">Modes</h2>
     <div class="modes">
-      <div class="mode"><span class="when">Phase 1 · no backend</span><h3>Local</h3><ul><li>Studio + Node Runner, started with <code>npm start</code>; no login or accounts</li><li>Project is a folder of JSON files</li><li>Your own API key (any provider), or Claude Code through the MCP server</li></ul></div>
+      <div class="mode"><span class="when">Phase 1 · no backend</span><h3>Local</h3><ul><li>Studio + Node Runner, started with <code>pnpm dev</code>; no login or accounts</li><li>Project is a folder of JSON files</li><li>Your own API key (any provider), or Claude Code through the MCP server</li></ul></div>
       <div class="mode"><span class="when">Phase 3 · on your machine</span><h3>Connected</h3><ul><li>The platform app, with the Studio inside, + platform services under Aspire and Docker</li><li>Accounts, projects in Postgres, server-side AI and export</li><li>Import a Local project folder or zip; download projects as a zip</li></ul></div>
       <div class="mode"><span class="when">Phase 6 · optional</span><h3>Cloud</h3><ul><li>The same platform deployed to Azure with Terraform</li><li>Cheapest services first; the cluster stops when idle</li><li>Plans and billing (Stripe test mode)</li></ul></div>
     </div>
@@ -711,7 +711,7 @@ header h1 span { color: var(--red); }
     <div class="arch-layout">
       <div class="arch-scroll">
         <svg id="arch-svg" viewBox="0 0 1200 1115" role="img" aria-label="Architecture diagram of WibeBlock modules and their links"></svg>
-        <div class="kinds"><span><i></i>WibeBlock module</span><span><i class="store"></i>data store</span><span><i class="ext"></i>external or user's tool</span><span><i class="bd"></i>where it runs</span><span>grey = not used in the selected view or phases</span><span>dashed outline = existing module the selected phases change</span><span>P1–P7 = phase it arrives in</span></div>
+        <div class="kinds"><span><i></i>WibeBlock module</span><span><i class="store"></i>data store</span><span><i class="ext"></i>external or user's tool</span><span><i class="bd"></i>where it runs</span><span>grey = not used in the selected view or phases</span><span>dashed outline = existing module the selected phases change</span><span>P0–P7 = phase it arrives in</span></div>
       </div>
       <aside class="arch-detail" id="arch-detail" aria-live="polite"></aside>
     </div>
@@ -720,7 +720,7 @@ header h1 span { color: var(--red); }
   <section aria-labelledby="h-road">
     <div class="eyebrow">Order of work</div>
     <h2 id="h-road">Roadmap</h2>
-    <p class="lead">Two tracks run side by side: from Phase 2, sessions alternate between Studio and platform work. Studio epics are listed in the phase where they start; an epic in Phase 1 has alpha stories there and MVP stories in Phase 2. Phases 4–6 are optional additions. Click an epic to open it in the explorer.</p>
+    <p class="lead">Work starts with the platform skeleton (Phase 0): the platform app with a Studio stub, sign-in and profile, built frontend first against mocks, then the backend skeleton it talks to. Then the Studio alpha. From Phase 2 two tracks run side by side and sessions alternate between Studio and platform work. Studio epics are listed in the phase where they start; an epic in Phase 1 has alpha stories there and MVP stories in Phase 2. Phases 4–6 are optional additions. Click an epic to open it in the explorer.</p>
     <div class="roadmap" id="roadmap"></div>
   </section>
 
@@ -736,7 +736,7 @@ header h1 span { color: var(--red); }
 
   <section aria-labelledby="h-next">
     <h2 id="h-next">Next</h2>
-    <div class="next">The Studio part is planned: its 32 epic files are written and <span class="status ready">ready</span> (S-23 and S-30 stay <span class="status draft">draft</span> placeholders until they are designed). The best first story to ticket is <b>S-01 / US-1</b> (the project schema), followed by the rest of the alpha. Mobile, Platform and Learning-track epics are still <span class="status">planned</span>, listed only in their feature docs; the next <code>/plan-part</code> session should take the Platform foundation (P-01 to P-04), which starts right after the Studio alpha.</div>
+    <div class="next">Work starts with the <b>platform skeleton</b> (Phase 0, D-33): its eight epics are written as <span class="status draft">draft</span>, waiting for review. Frontend first against mocks: <b>P-17</b> UI kit with light and dark modes, <b>P-08</b> platform app shell, <b>P-18</b> BFF sign-in, <b>P-19</b> profile and account, <b>P-20</b> landing page; then the backend skeleton (<b>P-01</b>, <b>P-03</b>, <b>P-02</b>) replaces the mocks. The best first story to ticket is <b>P-17 / US-1</b> (the UI package wired into the platform app). The Studio part is planned and <span class="status ready">ready</span>, starting with S-01 / US-1 after the skeleton. The rest of the platform (P-04 onwards) is planned in a later <code>/plan-part</code> session, after the Studio alpha.</div>
   </section>
 </div>
 
@@ -761,13 +761,13 @@ const NOTES = [
 // b: [x, y, w, h]. kind: ours | store | external. views: local | platform | both. big: larger title.
 // subs: clickable inner modules { id, name, phase, about, epics, links: ids of the parent's links this module uses }.
 const MODULES = [
-  { id: "platformapp", name: "Platform app", tech: "apps/platform · React Router v7", b: [60, 44, 250, 70], kind: "ours", color: "red", phase: 3, views: "platform", zone: "Browser",
-    about: "The platform's host for the Studio (D-19, D-26): React Router v7 in framework mode with server rendering. Its Node server is a backend-for-frontend: it runs the login with Identity, keeps the tokens and gives the browser a session cookie, so browser calls reach the Gateway through the same origin. Dashboard, account, plan and usage pages; on its editor route it renders the Studio package with platform adapters (P-16) and fills the slots. Aspire runs it locally, a container in the cluster in Cloud. Learning option: an Angular version hosting the Studio as a <wibe-studio> Web Component.", epics: ["P-08", "P-16", "P-14"] },
+  { id: "platformapp", name: "Platform app", tech: "apps/platform · React Router v8", b: [60, 44, 250, 70], kind: "ours", color: "red", phase: 0, views: "platform", zone: "Browser",
+    about: "The platform's web app (D-19, D-26, D-34, D-36): React Router v8 in framework mode with server rendering, styled with the shared UI kit (packages/ui, light and dark modes). Its Node server is the backend-for-frontend: it runs the OIDC login as a confidential client, keeps the tokens in a server-side session (Redis) and gives the browser only an httpOnly cookie; loaders call the Gateway with the token, and browser calls go through its /api/* forwarding route. Phase 0: top bar, dashboard placeholder, profile and account pages, and a Studio stub on the editor route, built first against a mock login server and MSW mocks (D-33). Phase 3: the real Studio with platform adapters (P-16). Aspire runs it locally, a container in the cluster in Cloud.", epics: ["P-17", "P-08", "P-18", "P-19", "P-16", "P-14"] },
   { id: "studio", name: "Studio", tech: "packages/studio · React · Vite", b: [340, 44, 320, 76], big: true, kind: "ours", color: "blue", phase: 1, views: "both", zone: "Browser",
     extra: "design · logic · theme · knowledge · preview",
     about: "The editor: design canvas with viewports, zoom, block frames and random starter layouts, Structure and Files panel, schema-driven inspector, logic canvas, theme studio, knowledge base, run preview, history, Compact. Every AI change is a proposal to accept or discard. A React package (packages/studio) with no login or account code: each host app renders it and passes its adapters (storage, ai, export, preview, realtime) and slots (D-19). See the Studio chapter below for the interface and the frontend structure.", epics: ["S-02", "S-03", "S-31", "S-18", "S-32", "S-19", "S-15", "S-04", "S-05", "S-21", "S-25", "S-06", "S-14"] },
-  { id: "static", name: "Static hosting", tech: "Azure Static Web Apps", b: [700, 24, 190, 62], kind: "external", color: "red", phase: 6, views: "platform", zone: "Azure · Cloud mode",
-    about: "Hosts the optional Astro landing page on the free tier. The platform app itself runs as a Node service (server rendering + BFF, D-26), under Aspire locally and in the cluster in Cloud.", epics: ["P-13", "P-14"] },
+  { id: "static", name: "Landing page", tech: "apps/website · Astro", b: [700, 24, 190, 62], kind: "ours", color: "red", phase: 0, views: "platform", zone: "Static site · Static Web Apps in Cloud",
+    about: "A one-page static Astro site that explains WibeBlock; its buttons link to the platform app, never to Identity directly, because a login must start at the client (D-34). Docs and pricing pages come later. Hosted on the free tier of Azure Static Web Apps in Cloud mode.", epics: ["P-20", "P-13"] },
   { id: "claude", name: "Claude Code", tech: "your CLI · your subscription", b: [430, 196, 240, 64], kind: "external", color: "lime", phase: 3, views: "local", zone: "Your computer",
     about: "Runs inside the project folder on your own subscription. It connects to the Runner's MCP server and edits blocks through WibeBlock tools; the Studio shows the changes live. WibeBlock never holds your Claude credentials.", epics: ["S-10"] },
   { id: "vscode", name: "VS Code extension", tech: "VS Code API · TS", b: [690, 196, 190, 64], kind: "ours", color: "blue", phase: 7, views: "local", zone: "Your computer",
@@ -781,12 +781,14 @@ const MODULES = [
     about: "Source of truth in Local mode: the universal layer (pages, blocks, themes, knowledge notes) plus targets/react/ with the logic graphs (D-21), history and the AI log. Also holds the generated project in out/<target>/ and the Claude Code config (.mcp.json, .claude/skills).", epics: ["S-01", "S-15", "S-21"] },
   { id: "mobileapp", name: "Companion app", tech: "Expo · React Native", b: [960, 280, 200, 66], kind: "ours", color: "lime", phase: 7, views: "both", zone: "Phone",
     about: "Scan a QR code in the Studio to open the live preview on a phone: over the local network in Local mode, through the platform tunnel in Connected and Cloud. Later it also receives notifications for platform jobs.", epics: ["M-02"] },
-  { id: "gateway", name: "Gateway", tech: "YARP · .NET 10 · JWT · rate limits · behind the BFF", b: [40, 550, 720, 50], kind: "ours", color: "red", phase: 2, views: "platform", zone: "Kubernetes · edge",
-    about: "The single entry point to the platform. Routes requests to services, validates JWTs, applies rate limits (counters in Redis), and proxies SignalR WebSockets and the login pages.", epics: ["P-02"] },
-  { id: "identity", name: "Identity", tech: "OpenIddict", b: [40, 635, 150, 70], kind: "ours", color: "red", phase: 2, views: "platform", zone: "Kubernetes · services",
-    about: "OpenID Connect provider: sign-up, login, GitHub and Google login, roles. Issues the JWTs that every other service validates.", epics: ["P-03"] },
-  { id: "core", name: "Core API", tech: ".NET 10 · modular monolith · outbox", b: [240, 635, 380, 190], big: true, kind: "ours", color: "red", phase: 2, views: "platform", zone: "Kubernetes · services",
+  { id: "gateway", name: "Gateway", tech: "YARP · .NET 10 · JWT · rate limits · not the BFF", b: [40, 550, 720, 50], kind: "ours", color: "red", phase: 0, views: "platform", zone: "Kubernetes · edge",
+    about: "The single entry point for API traffic from the platform app's server (D-34): routes requests to services through service discovery, validates JWTs with Identity's public keys, applies per-user rate limits with 429 responses, and later proxies SignalR WebSockets with limits shared in Redis. A plain gateway: no sessions, no cookies, no CORS, and the login pages are not routed through it.", epics: ["P-02"] },
+  { id: "identity", name: "Identity", tech: "OpenIddict · Razor Pages", b: [40, 635, 150, 70], kind: "ours", color: "red", phase: 0, views: "platform", zone: "Kubernetes · services",
+    about: "OpenID Connect provider for authentication only (D-34): Razor Pages for sign-up with email confirmation, sign-in, password reset and account security, styled with the shared UI kit; GitHub login with safe account linking (Google later). Issues the tokens the platform app keeps and the JWTs every service validates. Profiles live in the Core API, not here. Until it exists, a mock login server stands in (D-33).", epics: ["P-03"] },
+  { id: "core", name: "Core API", tech: ".NET 10 · modular monolith · outbox", b: [240, 635, 380, 190], big: true, kind: "ours", color: "red", phase: 0, views: "platform", zone: "Kubernetes · services",
     subs: [
+      { id: "accounts", name: "Accounts", phase: 0, epics: ["P-19"], links: ["gateway-core", "core-postgres"],
+        about: "User profiles keyed by the token's subject (sub): display name, avatar from GitHub or initials, and preferences such as light or dark mode. Created on first use; the first module, used as the template for the others." },
       { id: "projects", name: "Projects", phase: 2, epics: ["P-04"], links: ["gateway-core", "core-postgres", "core-blob", "core-bus"],
         about: "Projects as JSONB documents with schema validation, versions and assets, plus upload and download between Local and Connected mode. Publishes project events." },
       { id: "realtime", name: "Realtime · SignalR", phase: 3, epics: ["P-06"], links: ["gateway-core", "core-aigen", "core-redis"],
@@ -800,15 +802,15 @@ const MODULES = [
       { id: "notifications", name: "Notifications", phase: 4, epics: ["P-12"], links: ["core-bus"],
         about: "In-app notification centre and email (Mailpit locally), driven by events such as export ready, quota nearly used or billing changes. Later it pushes to the companion app." }
     ],
-    about: "Product logic in modules with hard boundaries: Projects, Realtime (SignalR hub), Billing, Metering, Prompt Library, Notifications. Writes integration events to an outbox. Billing and Metering are extracted into their own service later (L-06). Click a module inside it to see its own job and links.", epics: ["P-04", "P-06", "P-09", "P-10", "P-11", "P-12", "L-06"] },
+    about: "Product logic in modules with hard boundaries, each with its own schema: Accounts (Phase 0), Projects, Realtime (SignalR hub), Billing, Metering, Prompt Library, Notifications. Writes integration events to an outbox. Billing and Metering are extracted into their own service later (L-06). Click a module inside it to see its own job and links.", epics: ["P-01", "P-19", "P-04", "P-06", "P-09", "P-10", "P-11", "P-12", "L-06"] },
   { id: "aigen", name: "AI Generation", tech: ".NET · Anthropic SDK", b: [650, 635, 230, 80], kind: "ours", color: "red", phase: 3, views: "platform", zone: "Kubernetes · services",
     about: "Builds prompts from the prompt library, calls Claude, streams tokens back and reports usage. A fake provider simulates latency for tests, load tests and chaos experiments.", epics: ["P-05", "L-04"] },
   { id: "export", name: "Export", tech: "Node · packages/core", b: [650, 740, 230, 80], kind: "ours", color: "red", phase: 3, views: "platform", zone: "Kubernetes · services",
     about: "Runs the same codegen as the Runner, on the server, and delivers the result as a zip download or a new GitHub repository.", epics: ["P-07"] },
-  { id: "postgres", name: "PostgreSQL", tech: "EF Core · JSONB", b: [40, 900, 210, 70], kind: "store", color: "brown", phase: 2, views: "platform", zone: "Kubernetes · data",
-    about: "Store of record: users, projects as JSONB documents (same schema as the Local JSON), versions, billing, metering and outbox tables. Each module has its own schema.", epics: ["P-01", "P-04"] },
-  { id: "redis", name: "Redis", tech: "cache · backplane", b: [270, 900, 150, 70], kind: "store", color: "brown", phase: 2, views: "platform", zone: "Kubernetes · data",
-    about: "Cache, rate-limit counters, the SignalR backplane (so several Core API instances can push to the same user) and distributed locks.", epics: ["P-01", "P-06"] },
+  { id: "postgres", name: "PostgreSQL", tech: "EF Core · JSONB", b: [40, 900, 210, 70], kind: "store", color: "brown", phase: 0, views: "platform", zone: "Kubernetes · data",
+    about: "Store of record: Identity's users and logins, profiles, projects as JSONB documents (same schema as the Local JSON), versions, billing, metering and outbox tables. Each module has its own schema and migrations.", epics: ["P-01", "P-03", "P-19", "P-04"] },
+  { id: "redis", name: "Redis", tech: "sessions · cache · backplane", b: [270, 900, 150, 70], kind: "store", color: "brown", phase: 0, views: "platform", zone: "Kubernetes · data",
+    about: "The platform app's server-side sessions (Phase 0), then cache, shared rate-limit counters, the SignalR backplane (so several Core API instances can push to the same user) and distributed locks.", epics: ["P-01", "P-18", "P-02", "P-06"] },
   { id: "bus", name: "Message bus", tech: "RabbitMQ · Service Bus", b: [450, 900, 190, 70], kind: "store", color: "brown", phase: 5, views: "platform", zone: "Kubernetes · data",
     about: "Asynchronous backbone (D-15): RabbitMQ locally and in the cluster, Azure Service Bus in Cloud, behind one abstraction. Generation, usage, project, billing and export events fan out to Metering, Notifications and the Design Graph; work queues carry background jobs. Before Phase 5 an in-process dispatcher does this job.", epics: ["L-01"] },
   { id: "kafka", name: "Kafka", tech: "Redpanda / Strimzi", b: [150, 1015, 200, 64], kind: "store", color: "brown", phase: 7, views: "platform", zone: "Kubernetes · data",
@@ -821,8 +823,8 @@ const MODULES = [
     about: "Columnar store fed from Kafka for usage trends and prompt-library metrics over time.", epics: ["L-07"] },
   { id: "models", name: "Model APIs", tech: "Anthropic · OpenAI · Ollama…", b: [960, 630, 200, 80], kind: "external", color: "lime", phase: 1, views: "both", zone: "Third-party",
     about: "External LLM providers. Locally they are called with your own key through the Vercel AI SDK; on the platform the AI Generation service calls Claude with the platform's key.", epics: ["S-07", "P-05"] },
-  { id: "github", name: "GitHub", tech: "REST API · GitHub App", b: [960, 740, 200, 70], kind: "external", color: "lime", phase: 3, views: "platform", zone: "Third-party",
-    about: "Target for the 'push to a new repository' export. Also one of the external login providers in Identity.", epics: ["P-07", "P-03"] },
+  { id: "github", name: "GitHub", tech: "OAuth login · REST API", b: [960, 740, 200, 70], kind: "external", color: "lime", phase: 0, views: "platform", zone: "Third-party",
+    about: "The first external login provider in Identity (Phase 0), and later the target for the 'push to a new repository' export.", epics: ["P-03", "P-07"] },
   { id: "stripe", name: "Stripe", tech: "test mode", b: [960, 900, 200, 70], kind: "external", color: "lime", phase: 4, views: "platform", zone: "Third-party",
     about: "Checkout, subscriptions and the customer portal. Sends signed webhooks to the webhook Function (P-15), which queues them for Billing; before P-15 they go straight to the Core API.", epics: ["P-09", "P-15"] },
   { id: "functions", name: "Functions", tech: "Azure Functions · .NET", b: [960, 1032, 200, 64], kind: "ours", color: "red", phase: 5, views: "platform", zone: "Azure · outside the cluster",
@@ -844,7 +846,7 @@ const LINKS = [
   { id: "studio-runner", from: "studio", to: "runner", proto: "http", label: "REST", desc: "Project reads and writes, AI task runs and Compact requests, through the Studio's Runner adapters.", p: [[370, 120], [370, 342]] },
   { id: "studio-runner-ws", from: "studio", to: "runner", proto: "realtime", label: "WebSocket", desc: "The Runner pushes streamed tokens and file changes made by Claude Code or an editor.", p: [[410, 120], [410, 342]] },
   { id: "studio-vite", from: "studio", to: "vite", proto: "local", label: "iframe + postMessage", desc: "The run preview shows the generated app in an iframe; a small bridge script maps clicks in it to block IDs.", p: [[350, 120], [350, 300], [160, 300], [160, 346]] },
-  { id: "platform-studio", from: "platformapp", to: "studio", proto: "local", label: "renders <Studio>", desc: "Same page: on its editor route the platform app renders packages/studio and passes platform adapters (carrying the user's token) and slots such as the user menu.", p: [[310, 80], [340, 80]] },
+  { id: "platform-studio", from: "platformapp", to: "studio", proto: "local", label: "renders <Studio>", desc: "Same page: on its editor route the platform app renders packages/studio and passes platform adapters and slots such as the user menu (P-16). Until then the route shows a Studio stub.", p: [[310, 80], [340, 80]] },
   { id: "runner-vite", from: "runner", to: "vite", proto: "local", label: "child process", desc: "The Runner starts and stops the Vite dev server for the open project.", p: [[300, 381], [260, 381]] },
   { id: "runner-folder", from: "runner", to: "folder", proto: "local", label: "file system", desc: "Reads and writes wibeblock/*.json, regenerates out/<target>/, and watches for edits made elsewhere.", p: [[600, 381], [640, 381]] },
   { id: "runner-models", from: "runner", to: "models", proto: "http", label: "HTTPS · SSE stream", desc: "Generation calls with your API key through the Vercel AI SDK; tokens arrive as server-sent events.", p: [[560, 420], [560, 470], [1140, 470], [1140, 630]] },
@@ -854,17 +856,17 @@ const LINKS = [
   { id: "vscode-folder", from: "vscode", to: "folder", proto: "local", label: "workspace FS", desc: "The extension reads and writes the project through VS Code's file system API.", p: [[820, 260], [820, 346]] },
   { id: "mobile-vite", from: "mobileapp", to: "vite", proto: "http", label: "HTTP over LAN", desc: "Local mode: a WebView of the live preview; paired by QR code with a short-lived token.", p: [[960, 322], [918, 322], [918, 432], [160, 432], [160, 416]] },
   { id: "mobile-gateway", from: "mobileapp", to: "gateway", proto: "http", label: "HTTPS · platform tunnel", desc: "Connected and Cloud: the live preview opens through the platform tunnel, signed in with an Identity token. Later the app also receives notifications for platform jobs (P-12).", p: [[1000, 346], [1000, 490], [700, 490], [700, 550]] },
-  { id: "platform-gateway", from: "platformapp", to: "gateway", proto: "http", label: "REST (HTTPS)", desc: "Platform API calls from the platform app's own pages and from the platform adapters it gives the Studio, sent through the platform app's backend-for-frontend (same origin, session cookie; the token is attached server-side, D-26). Login redirects go through here too.", p: [[60, 96], [28, 96], [28, 565], [40, 565]] },
-  { id: "platform-gateway-ws", from: "platformapp", to: "gateway", proto: "realtime", label: "SignalR", desc: "Streamed generation tokens and job status for the Studio, through the platform app's realtime adapter; proxied to the Core API's hub.", p: [[60, 76], [18, 76], [18, 585], [40, 585]] },
+  { id: "platform-gateway", from: "platformapp", to: "gateway", proto: "http", label: "REST (HTTPS)", desc: "The platform app's server (the BFF) calls the Gateway from loaders and actions with the access token attached server-side; browser calls go through its same-origin /api/* forwarding route with CSRF protection (D-34). In Phase 0, before the backend exists, MSW answers these calls (D-33).", p: [[60, 96], [28, 96], [28, 565], [40, 565]] },
+  { id: "platform-gateway-ws", from: "platformapp", to: "gateway", proto: "realtime", label: "SignalR", desc: "Streamed generation tokens and job status for the Studio, through the platform app's realtime adapter; the WebSocket is forwarded by the platform app's server and proxied by the Gateway to the Core API's hub (P-06).", p: [[60, 76], [18, 76], [18, 585], [40, 585]] },
+  { id: "platform-identity", from: "platformapp", to: "identity", proto: "auth", label: "OIDC · code + PKCE", desc: "The platform app sends the browser to Identity's Razor login page and back to its callback, then exchanges the code for tokens server-side as a confidential client; refresh and sign-out go to Identity too. In Phase 0 a mock login server plays Identity's part (D-33, D-34).", p: [[60, 108], [34, 108], [34, 680], [40, 680]] },
   { id: "gateway-core", from: "gateway", to: "core", proto: "http", label: "reverse proxy", desc: "Forwards REST and SignalR traffic after validating the JWT.", p: [[400, 600], [400, 635]] },
-  { id: "gateway-identity", from: "gateway", to: "identity", proto: "auth", label: "OIDC · JWKS", desc: "Routes the login pages (Authorization Code + PKCE) and fetches the public keys used to validate JWTs at the edge.", p: [[115, 600], [115, 635]] },
-  { id: "core-identity", from: "core", to: "identity", proto: "grpc", label: "gRPC", desc: "Admin lookups (users, roles). Normal requests only validate the JWT.", p: [[240, 670], [190, 670]] },
+  { id: "gateway-identity", from: "gateway", to: "identity", proto: "auth", label: "JWKS", desc: "The Gateway fetches Identity's public signing keys and validates JWTs at the edge; the services validate them again. Login pages are not routed through the Gateway.", p: [[115, 600], [115, 635]] },
   { id: "core-aigen", from: "core", to: "aigen", proto: "grpc", label: "gRPC stream", desc: "One server stream per generation: tokens flow back as they arrive, and cancelling in the Studio cancels the stream.", p: [[620, 675], [650, 675]] },
   { id: "core-export", from: "core", to: "export", proto: "grpc", label: "gRPC", desc: "Starts export jobs and receives progress; a polyglot .NET → Node boundary.", p: [[620, 780], [650, 780]] },
   { id: "aigen-models", from: "aigen", to: "models", proto: "http", label: "HTTPS · SSE", desc: "Calls Claude with the platform's key through the Anthropic SDK and streams the response.", p: [[880, 670], [960, 670]] },
   { id: "export-github", from: "export", to: "github", proto: "http", label: "GitHub REST", desc: "Creates a repository and pushes the generated project.", p: [[880, 775], [960, 775]] },
-  { id: "identity-postgres", from: "identity", to: "postgres", proto: "data", label: "SQL", desc: "Users, external logins, OpenIddict applications and tokens.", p: [[90, 705], [90, 900]] },
-  { id: "core-postgres", from: "core", to: "postgres", proto: "data", label: "SQL · EF Core", desc: "Project documents (JSONB), versions, billing, metering, outbox.", p: [[250, 825], [250, 855], [170, 855], [170, 900]] },
+  { id: "identity-postgres", from: "identity", to: "postgres", proto: "data", label: "SQL", desc: "Users, external logins, OpenIddict applications, authorizations and tokens.", p: [[90, 705], [90, 900]] },
+  { id: "core-postgres", from: "core", to: "postgres", proto: "data", label: "SQL · EF Core", desc: "Profiles, project documents (JSONB), versions, billing, metering, outbox; one schema per module.", p: [[250, 825], [250, 855], [170, 855], [170, 900]] },
   { id: "core-redis", from: "core", to: "redis", proto: "data", label: "RESP", desc: "Cache, SignalR backplane, locks.", p: [[345, 825], [345, 900]] },
   { id: "core-neo4j", from: "core", to: "neo4j", proto: "data", label: "Bolt · Cypher", desc: "Insights queries for the Studio's Insights panel.", p: [[435, 825], [435, 992], [470, 992], [470, 1015]] },
   { id: "core-bus", from: "core", to: "bus", proto: "events", label: "publish + consume", desc: "The outbox publisher sends events; the Metering and Notifications modules consume them. Published outbox rows stay in Postgres as an event log for replay.", p: [[520, 825], [520, 900]] },
@@ -909,10 +911,11 @@ const FLOWS = [
     ["export-github", "…or creates a repository and pushes the code."],
     ["platform-gateway-ws", "Job status and the download link reach the Studio over SignalR."] ] },
   { id: "signin", name: "Sign in", view: "platform", steps: [
-    ["platform-gateway", "The platform app's server (the BFF) sends the browser to the login page, which the Gateway routes to Identity."],
-    ["gateway-identity", "Identity runs the Authorization Code + PKCE flow with the BFF as a confidential client (or GitHub/Google login)."],
-    ["identity-postgres", "It checks the user and issues tokens, which stay on the BFF; the browser gets a session cookie (D-26)."],
-    ["gateway-core", "From then on the BFF attaches the token and the Gateway validates the JWT on every request before forwarding it."] ] },
+    ["platform-identity", "The platform app's server (the BFF) sends the browser to Identity's login page (Authorization Code + PKCE); the user signs in with a password or GitHub."],
+    ["identity-postgres", "Identity checks the user and redirects back with a code; the BFF exchanges it for tokens, which stay in its server-side session. The browser gets only an httpOnly cookie (D-34)."],
+    ["platform-gateway", "Loaders and the /api/* route call the Gateway with the access token attached server-side."],
+    ["gateway-identity", "The Gateway validates the JWT with Identity's public keys…"],
+    ["gateway-core", "…and forwards the request; the Accounts module creates the profile on first use."] ] },
   { id: "stripe-webhook", name: "Stripe webhook", view: "platform", steps: [
     ["stripe-functions", "Stripe calls the webhook Function, which verifies the signature. This works even while the cluster is stopped."],
     ["functions-bus", "The Function puts the event on a Service Bus queue."],
@@ -926,7 +929,7 @@ const PARTS = [
   { id: "mobile", name: "Mobile", prefix: "M", doc: "parts/mobile/mobile.md",
     about: "Mobile layout workflow, preview on a real phone, and a native target. Planned separately, in Phase 7; the Studio already renders any device width." },
   { id: "platform", name: "Platform", prefix: "P", doc: "parts/platform/platform.md",
-    about: "Backend services behind Connected and Cloud modes. They run on your machine first; Azure deployment is one late, optional epic." },
+    about: "The platform app and the backend services behind Connected and Cloud modes. It starts with a skeleton (Phase 0): UI kit, platform app with sign-in and profile, then Aspire, Identity, Gateway and the Core API. Everything runs on your machine first; Azure deployment is one late, optional epic." },
   { id: "learning", name: "Learning track", prefix: "L", doc: "parts/learning-track/learning-track.md",
     about: "Technologies added mainly to learn them. Each has a real job in the platform, and everything runs locally first." }
 ];
@@ -942,13 +945,13 @@ const FEATURES = [
   { id: "mobile-layout", part: "mobile", name: "Mobile layout", path: "mobile/mobile-layout", about: "Mobile view, computed defaults, per-block overrides, diagnostics." },
   { id: "companion", part: "mobile", name: "Companion app", path: "mobile/companion-app", about: "Expo app: scan a QR code, see the live preview on your phone." },
   { id: "native", part: "mobile", name: "Native target", path: "mobile/native-target", about: "React Native / Expo codegen target." },
-  { id: "foundation", part: "platform", name: "Foundation", path: "platform/foundation", about: ".NET solution, Aspire, OpenTelemetry, conventions; Terraform deployment." },
-  { id: "gateway", part: "platform", name: "Gateway", path: "platform/gateway", about: "YARP entry point: routing, JWT validation, rate limits." },
-  { id: "identity", part: "platform", name: "Identity", path: "platform/identity", about: "OpenIddict OIDC server, external logins, roles." },
-  { id: "core-api", part: "platform", name: "Core API", path: "platform/core-api", about: "Modular monolith: Projects, Realtime, Billing, Metering, Prompt Library, Notifications." },
+  { id: "foundation", part: "platform", name: "Foundation", path: "platform/foundation", about: ".NET solution, Aspire AppHost (services, platform app, mock login server), OpenTelemetry end to end, module template and migrations; Terraform deployment." },
+  { id: "gateway", part: "platform", name: "Gateway", path: "platform/gateway", about: "YARP entry point behind the BFF: routing, JWT validation, rate limits; SignalR later." },
+  { id: "identity", part: "platform", name: "Identity", path: "platform/identity", about: "OpenIddict OIDC server for authentication only: Razor login pages, GitHub login, account security." },
+  { id: "core-api", part: "platform", name: "Core API", path: "platform/core-api", about: "Modular monolith: Accounts, Projects, Realtime, Billing, Metering, Prompt Library, Notifications." },
   { id: "ai-service", part: "platform", name: "AI service", path: "platform/ai-service", about: "gRPC-streaming generation with the platform's key." },
   { id: "export", part: "platform", name: "Export service", path: "platform/export-service", about: "Node gRPC service: codegen, zip or GitHub push." },
-  { id: "connected", part: "platform", name: "Platform app", path: "platform/platform-app", about: "React Router v7 host for the Studio with server rendering and a BFF: login, dashboard, account pages, the Studio's platform adapters; optional Astro landing page." },
+  { id: "connected", part: "platform", name: "Platform app", path: "platform/platform-app", about: "UI kit (packages/ui), React Router v8 app with server rendering and a BFF: shell, sign-in, profile, landing page; later the real Studio with platform adapters and account extras." },
   { id: "serverless", part: "platform", name: "Serverless jobs", path: "platform/serverless-jobs", about: "Azure Functions: Stripe webhook intake, export cleanup, asset thumbnails." },
   { id: "events", part: "learning", name: "Events", path: "learning-track/events", about: "Message bus (RabbitMQ / Service Bus), outbox, idempotent consumers; Billing extraction; Kafka upgrade later." },
   { id: "design-graph", part: "learning", name: "Design Graph", path: "learning-track/design-graph", about: "Neo4j read model for insights on prompts, skills and blocks." },
@@ -961,8 +964,8 @@ const FEATURES = [
 // status: planned | draft | ready | progress | done
 const EPICS = [
   ["S-01","Project schema & codegen engine","codegen",1,[],"Universal + React layer schema in Zod with ports, validation, migrations, JSON Schema export, frame → CSS, body sanitiser, react-vite target.","ready","alpha, MVP"],
-  ["S-14","Studio design system","ux",1,[],"packages/ui on Tailwind v4: own components, Radix for hard behaviour, CVA, pro inputs, Motion, Storybook.","ready","alpha, MVP"],
-  ["S-09","Node Runner","runner",1,["S-01"],"Project storage with validation, AI task execution, localhost security, npm start; then watcher, codegen output, Vite, Compact.","ready","alpha, MVP"],
+  ["S-14","Studio design system","ux",1,["P-17"],"Extends the shared kit from P-17 with Studio components: tree rows, panels, pro inputs, Motion rules, accessibility baseline.","ready","alpha, MVP"],
+  ["S-09","Node Runner","runner",1,["S-01"],"Project storage with validation, AI task execution, localhost security, pnpm dev; then watcher, codegen output, Vite, Compact.","ready","alpha, MVP"],
   ["S-02","Studio shell & project lifecycle","editor",1,["S-01","S-14","S-09"],"Monorepo, packages/studio + apps/studio, adapter contract, Redux/Zustand/Query, TanStack Router, projects with target choice, pages, settings, palette.","ready","alpha, MVP"],
   ["S-03","Design canvas","editor",1,["S-01","S-02"],"Iframe renderer of the project data, viewports phone to 4K, zoom to fit, block frames with border buttons, show/hide frames, error isolation, parity with preview.","ready","alpha, MVP"],
   ["S-18","Structure panel & layout editing","editor",1,["S-03"],"Structure panel (component hierarchy), add/wrap/duplicate/delete, drag-and-drop in tree and canvas, keyboard, multi-select, overlay containers.","ready","alpha, MVP"],
@@ -995,21 +998,25 @@ const EPICS = [
   ["M-01","Mobile layout workflow","mobile-layout",7,["S-03","S-18","S-19","S-06"],"Mobile view, computed defaults, overrides with reset, diagnostics, AI-proposed adaptations."],
   ["M-02","Companion app","companion",7,["S-06","S-09"],"QR pairing, live preview on a device, LAN security, notifications later."],
   ["M-03","React Native / Expo target","native",7,["S-17","M-01"],"HTML to native mapping with NativeWind, conformance validator, Expo Router."],
-  ["P-01","Backend foundation","foundation",2,[],"Solution, Aspire, module boundaries, EF Core + Postgres, Redis, Azurite, OpenTelemetry."],
-  ["P-02","Gateway (YARP)","gateway",2,["P-01"],"Routing, JWT, rate limits, SignalR proxying, local TLS; sits behind the platform app's BFF."],
-  ["P-03","Identity service","identity",2,["P-01"],"OpenIddict, sign-up and login, GitHub and Google, roles, server-side PKCE flow for the BFF."],
+  ["P-17","UI foundation","connected",0,[],"packages/ui: semantic tokens with light and dark modes, base components, overlays and toasts, Storybook; later the app theme edited with the S-05 theme studio.","draft","skeleton, later"],
+  ["P-08","Platform app shell","connected",0,["P-17"],"Server-rendered shell against MSW mocks: top bar with user menu, dashboard placeholder, Studio stub, light/dark without flash, errors; later the project list and Local import/export.","draft","skeleton, foundation, connected"],
+  ["P-18","BFF authentication","connected",0,["P-08"],"OIDC Authorization Code + PKCE on the platform app server against a mock login server: sign in and out, protected routes, quiet refresh, /api/* forwarding with CSRF; then Identity and Redis sessions.","draft","skeleton"],
+  ["P-19","Profile & account","connected",0,["P-08","P-18"],"Profile page, display name, light/dark preference, account security links; Core API Accounts module with first-use profiles; mocks replaced by generated types.","draft","skeleton"],
+  ["P-20","Landing page","connected",0,["P-17","P-08"],"One-page Astro site linking to the platform app; docs and pricing later.","draft","skeleton, later"],
+  ["P-01","Backend foundation","foundation",0,[],"One-command Aspire AppHost (services, platform app, mock login server), one trace end to end, module template, per-module migrations; later Azurite and enforced module boundaries.","draft","skeleton, foundation"],
+  ["P-03","Identity service","identity",0,["P-01","P-17"],"OpenIddict + Razor Pages: sign-up with email confirmation, sign-in, reset, GitHub login and linking, account security, token lifetimes and keys; later Google, roles and service clients.","draft","skeleton, foundation, connected"],
+  ["P-02","Gateway (YARP)","gateway",0,["P-01"],"Routing through service discovery, JWT validation at the edge, per-user rate limits with 429, telemetry; later SignalR proxying and limits shared in Redis.","draft","skeleton, connected"],
   ["P-04","Projects module","core-api",2,["P-01","P-03"],"JSONB projects with schema validation, versions, assets, upload and download."],
   ["P-05","AI Generation service","ai-service",3,["P-01"],"gRPC streaming, Anthropic SDK, retries, fake provider, parity with local generation."],
   ["P-06","Real-time delivery","core-api",3,["P-02","P-04"],"SignalR hub, Redis backplane, streamed tokens and job status."],
   ["P-07","Export service","export",3,["P-01","P-04"],"Node gRPC, zip to Blob, GitHub push, job events."],
-  ["P-08","Platform app","connected",3,["P-03","P-04"],"React Router v7 app with server rendering: BFF login, project dashboard, editor route rendering the Studio, import/export of Local projects."],
   ["P-16","Studio platform adapters","connected",3,["P-05","P-06","P-07","P-08"],"Storage, ai, export, preview and realtime adapters: generated OpenAPI client, SignalR, conflict screen, Sandpack preview."],
   ["P-09","Billing module","core-api",4,["P-04"],"Plans, Stripe test mode, idempotent webhooks, entitlements."],
   ["P-10","Usage & metering","core-api",4,["P-05","P-09"],"Token counting, quotas, enforcement, usage dashboard."],
   ["P-11","Prompt Library module","core-api",4,["P-05"],"Serve versioned skills, per-project pins, experiment flags."],
   ["P-12","Notifications","core-api",4,["P-06"],"In-app notification centre, email (Mailpit locally), event-driven notices."],
   ["P-13","Cloud deployment (Azure, Terraform)","foundation",6,["P-08","L-08"],"Terraform deploys cheapest services first; release workflows; cost controls."],
-  ["P-14","Account pages & landing page","connected",4,["P-03","P-09"],"Account, BYO keys, plan and usage, data export in the platform app; optional Astro landing page."],
+  ["P-14","Account extras","connected",4,["P-19","P-09"],"BYO API keys encrypted at rest, plan and usage pages, data export and account deletion."],
   ["P-15","Serverless jobs (Azure Functions)","serverless",5,["P-04","P-09","L-01"],"Stripe webhook intake to a queue, export cleanup timer, asset thumbnails; Core Tools + Azurite locally, Terraform in P-13."],
   ["L-01","Message bus (RabbitMQ / Service Bus)","events",5,["P-01","P-04"],"RabbitMQ locally, Azure Service Bus in Cloud, contracts, outbox publisher, idempotent consumers, dead-letter queues, event-log replay."],
   ["L-02","Design Graph read model (Neo4j)","design-graph",5,["L-01","P-11"],"Kafka projection, Cypher insights, Studio Insights panel."],
@@ -1025,10 +1032,11 @@ const EPICS = [
   ["L-12","Kafka upgrade","events",7,["L-01","L-02"],"Kafka for event streams: topics, partition keys, projections and analytics read from Kafka, replay; work queues stay on the bus."]
 ].map(([id, name, feature, phase, deps, summary, status = "planned", stages = ""]) => ({ id, name, feature, phase, deps, summary, status, stages }));
 const PHASES = [
+  [0, "Platform skeleton", "Frontend first against mocks: UI kit with light and dark, platform app shell with a Studio stub, BFF sign-in, profile, landing page. Then the backend skeleton: Aspire, Core API with Accounts, Identity, Gateway; mocks switched off."],
   [1, "Studio alpha", "The smallest Studio the backend can be built against: schema + JSON Schema export, adapters, Runner, canvas with block frames, random starter layout, Structure panel, inspector, one AI task with proposals, undo."],
-  [2, "Studio MVP ∥ Platform foundation", "Studio: theme studio, knowledge base, history, run preview, Compact, minimal logic. Platform: .NET solution, Aspire, Gateway, Identity, Projects."],
-  [3, "Studio v1 ∥ Platform connected", "Studio: AI themes, prompt bar, logic v1, prompt library, Developer panels, Claude Code. Platform: AI service, realtime, export, platform app and adapters."],
-  [4, "Product features", "Account pages, billing in Stripe test mode, metering, notifications, optional landing page.", true],
+  [2, "Studio MVP ∥ Platform foundation", "Studio: theme studio, knowledge base, history, run preview, Compact, minimal logic. Platform: Projects module, real project dashboard, Azurite, module boundaries, Google login."],
+  [3, "Studio v1 ∥ Platform connected", "Studio: AI themes, prompt bar, logic v1, prompt library, Developer panels, Claude Code. Platform: AI service, realtime, export, the real Studio in the platform app with adapters, Local import/export."],
+  [4, "Product features", "Account extras, billing in Stripe test mode, metering, notifications, docs and pricing pages.", true],
   [5, "Learning track", "Message bus, Design Graph, observability, load, chaos, extraction, Kubernetes depth, serverless jobs.", true],
   [6, "Cloud deployment", "Terraform to Azure, cheapest first, stopped when idle.", true],
   [7, "Later / garden", "Studio garden (targets, porting, pro tools…), the Mobile part, Kafka upgrade, collaboration, preview hosting, analytics, AWS."]
@@ -1140,11 +1148,11 @@ function moduleSvg(m, cls) {
   s += `<text class="tc" x="${x + 12}" y="${ty + 18}">${esc(m.tech)}</text>`;
   if (m.extra) s += `<text class="ab" x="${x + 12}" y="${ty + 36}">${esc(m.extra)}</text>`;
   if (m.subs) {
-    const cw = (w - 36) / 2;
+    const cw = (w - 36) / 2, step = Math.min(42, (h - 66) / Math.ceil(m.subs.length / 2)), rh = Math.min(34, step - 6);
     m.subs.forEach((t, i) => {
-      const sx = x + 12 + (i % 2) * (cw + 12), sy = y + 60 + Math.floor(i / 2) * 42;
+      const sx = x + 12 + (i % 2) * (cw + 12), sy = y + 60 + Math.floor(i / 2) * step;
       const sc = (arch.mode === "sub" && arch.id === t.id ? " sel" : "") + (phaseOn(t.phase) ? "" : " off");
-      s += `<g class="sub${sc}" data-sub="${t.id}" tabindex="${cls.includes("gone") ? -1 : 0}" role="button" aria-label="${esc(m.name)}: ${esc(t.name)}"><rect x="${sx}" y="${sy}" width="${cw}" height="34" rx="6"/><text x="${sx + 10}" y="${sy + 21.5}">${esc(t.name)}</text></g>`;
+      s += `<g class="sub${sc}" data-sub="${t.id}" tabindex="${cls.includes("gone") ? -1 : 0}" role="button" aria-label="${esc(m.name)}: ${esc(t.name)}"><rect x="${sx}" y="${sy}" width="${cw}" height="${rh}" rx="6"/><text x="${sx + 10}" y="${sy + rh / 2 + 4.5}">${esc(t.name)}</text></g>`;
     });
   }
   return s + "</g>";
@@ -1539,7 +1547,7 @@ renderArch();
 // b: [x, y, w, h]; color: band colour token. Coordinates: 1000 x 664.
 const FE_NODES = [
   { id: "host-local", name: "Local host", tech: "apps/studio · Vite", color: "blue", b: [40, 20, 220, 56], stage: "alpha",
-    about: "What npm start runs: renders the Studio package and passes Runner adapters. No login, no accounts.", epics: ["S-02", "S-09"] },
+    about: "What pnpm dev runs: renders the Studio package and passes Runner adapters. No login, no accounts.", epics: ["S-02", "S-09"] },
   { id: "host-platform", name: "Platform app", tech: "apps/platform · RR7 SSR + BFF", color: "red", b: [280, 20, 220, 56], stage: "Phase 3",
     about: "React Router v7 in framework mode with server rendering: login through a backend-for-frontend, dashboard and account pages. Its editor route renders the Studio with platform adapters and fills the slots (D-26).", epics: ["P-08", "P-16", "P-14"] },
   { id: "host-vscode", name: "VS Code webview", tech: "apps/vscode-ext", color: "blue", b: [520, 20, 220, 56], stage: "garden",

@@ -8,7 +8,7 @@ Compact on the server: run `packages/core` codegen for a stored project and deli
 
 ## Design notes
 
-- Node service exposing gRPC (`@grpc/grpc-js`), registered in Aspire like the .NET services; shares protos from `Shared.Contracts`.
+- Node service in `apps/export` (pnpm workspace, D-32) exposing gRPC (`@grpc/grpc-js`), registered in Aspire like the .NET services; protos come from `contracts/proto/`, shared with the .NET side.
 - GitHub push via a GitHub App installation or the user's OAuth token (scoped to repo creation); creates a new repo and pushes an initial commit.
 - Jobs are short; status is reported to the Core API which relays over SignalR and emits `export.completed`.
 - Learning focus: polyglot gRPC, Node in Aspire/Kubernetes, GitHub App auth.

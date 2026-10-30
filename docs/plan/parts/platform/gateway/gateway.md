@@ -4,17 +4,18 @@
 
 ## Purpose
 
-Single entry point for the platform app (and the Studio inside it): routes to services, validates JWTs issued by Identity, applies rate limits, and proxies SignalR/WebSockets.
+Single entry point for API traffic from the platform app's server (and its `/api/*` forwarding route): routes to services, validates JWTs issued by Identity, applies rate limits, and later proxies SignalR/WebSockets.
 
 ## Design notes
 
-- YARP in ASP.NET Core; routes configured in code from Aspire service discovery locally and from Helm values in Kubernetes.
-- JWT validation at the edge plus per-service validation (defence in depth); user/plan claims forwarded as headers.
-- Rate limiting with the ASP.NET rate limiter backed by Redis; stricter limits on generation endpoints.
-- Local TLS via dev certs. Browser traffic arrives through the platform app's BFF (D-26), so the Gateway mostly serves same-site calls; whether YARP itself plays the BFF role is decided with P-03 and P-08.
+- YARP in ASP.NET Core; routes configured from Aspire service discovery locally and from Helm values in Kubernetes.
+- JWT validation at the edge plus per-service validation (defence in depth); the token is passed through unchanged, so services read claims from it rather than from forwarded headers.
+- Rate limiting with the ASP.NET rate limiter: per user and per IP in memory first, Redis-backed and stricter on generation endpoints later.
+- **Not the BFF** (D-34): sessions and cookies live in the platform app; the Gateway only sees bearer tokens. No CORS, because browsers never call it directly.
+- Local TLS via dev certs.
 
 ## Epics
 
 | ID | Epic | Summary | Depends on | Phase |
 |---|---|---|---|---|
-| [P-02](epics/P-02-gateway.md) | **Gateway (YARP)** | Routing, JWT validation, rate limiting, CORS, SignalR/WebSocket proxying, request logging, local TLS. | P-01 | 2 |
+| [P-02](epics/P-02-gateway.md) | **Gateway (YARP)** | Routing through service discovery, JWT validation at the edge, per-user rate limits with 429, request telemetry, local TLS; later SignalR proxying and shared limits. | P-01 | 0, 3 |

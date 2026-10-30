@@ -8,7 +8,7 @@ Project-wide visual consistency: **themes** (presets, a palette tool, design tok
 
 ## Design notes
 
-- **Tokens → CSS variables → Tailwind v4 `@theme`** (D-03). Token groups: `color` (semantic: background, surface, text, muted, primary, secondary, accent, border, success, warning, error, each with a foreground), `font` (families), `fontSize` scale, `space` scale, `radius`, `shadow`. Every colour token has light and dark values.
+- **Tokens → CSS variables → Tailwind v4 `@theme`** (D-03). The colour token names are shared with the app's own theme, fixed in P-17 (D-35), so the theme studio can later also customise the app's look (P-17 US-6). Token groups: `color` (semantic: background, surface, text, muted, primary, secondary, accent, border, success, warning, error, each with a foreground), `font` (families), `fontSize` scale, `space` scale, `radius`, `shadow`. Every colour token has light and dark values.
 - **Several themes per project, one active.** Presets (a handful of starter themes shipped in `packages/prompts`) are copied into the project when chosen; the user then edits their copy. Themes can be duplicated, renamed, imported and exported as JSON.
 - **Theme studio** is its own workspace: token editor on one side, a **sample sheet** (buttons, cards, forms, typography, surfaces) and the live canvas on the other. A quick theme switcher and light/dark toggle sit in the top bar.
 - **Palette tool**: pick a base colour → generate a tonal scale (OKLCH) → map scale steps to semantic tokens; contrast checks (WCAG AA) next to each text/background pair, with a suggested fix.

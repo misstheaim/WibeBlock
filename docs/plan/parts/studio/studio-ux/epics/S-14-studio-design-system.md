@@ -1,6 +1,8 @@
 # S-14 — Studio design system
 
-> Part: Studio · Phase: 1–2 · Stages: alpha, MVP · Depends on: — · Status: ready
+> Part: Studio · Phase: 1–2 · Stages: alpha, MVP · Depends on: P-17 · Status: ready
+
+> **Changed by D-33 and D-35:** `packages/ui`, the semantic tokens with light and dark modes, the base components and Storybook are created first in [P-17](../../../platform/platform-app/epics/P-17-ui-foundation.md) for the platform app. This epic **extends** that kit with what the Studio needs (tree rows, panels, tabs, toolbars, context menu, select, pro inputs, Motion rules). Where the stories below say "set up" or "Studio tokens", read "extend" and "the shared tokens"; US-1 and most of US-3 are already covered by P-17, and US-7 (dark) comes with the shared kit.
 
 ## Goal
 The Studio has its own small, polished design system in `packages/ui`: Studio tokens, base components written by the owner on Tailwind v4, Radix-backed components for hard behaviour, and the professional inputs a design tool needs, all catalogued in Storybook. The alpha needs enough to build the shell, Structure and inspector; the MVP completes the set.

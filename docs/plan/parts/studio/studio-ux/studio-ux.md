@@ -9,7 +9,7 @@ The Studio's own look and feel: the design system (`packages/ui`), onboarding, e
 ## Design notes
 
 - **Own components, Tailwind v4** (D-24): `packages/ui` is built the shadcn way: Radix primitives for hard behaviour (dialog, popover, menu, select, tooltip, focus management), CVA for variants, source owned and edited in the repo. Simple components (button, input, panel, tabs, tree row) are written from scratch. **Storybook** is the workshop and catalogue.
-- **Studio tokens** are separate from the user's theme: warm light neutrals, one pastel lime accent, light-first (dark later) (D-30). The user's app and the pastel starter blocks are the most colourful things on screen.
+- **Studio tokens** are separate from the user's theme: warm light neutrals, one pastel lime accent (D-30). They are the shared semantic tokens of `packages/ui`, started in P-17 for the platform app, with light and dark modes chosen by the user and customisable later (D-35). The user's app and the pastel starter blocks are the most colourful things on screen.
 - **Visual direction**: minimal and light (D-30): few visible controls, chrome that appears on hover, generous spacing. Motion is short and functional (panels, proposals, selection), built with **Motion**, and respects reduced-motion settings.
 - **Pro inputs** the Studio needs and generic kits lack: number field with drag-to-scrub and units, size mode control (fill / fit / fixed), alignment pad, token colour picker, resizable panels, tree rows with drag handles.
 - Plain language by default; Developer mode shows CSS terms alongside.
@@ -21,6 +21,6 @@ The Studio's own look and feel: the design system (`packages/ui`), onboarding, e
 
 | ID | Epic | Summary | Depends on | Phase | Stages |
 |---|---|---|---|---|---|
-| [S-14](epics/S-14-studio-design-system.md) | **Studio design system** (`packages/ui`) | Studio tokens, base primitives, pro inputs, Storybook, Motion rules, light/dark, accessibility baseline. | — | 1–2 | alpha, MVP |
+| [S-14](epics/S-14-studio-design-system.md) | **Studio design system** (`packages/ui`) | Extends the kit from P-17 with Studio components: tree rows, panels, pro inputs, Motion rules, accessibility baseline. | P-17 | 1–2 | alpha, MVP |
 | [S-29](epics/S-29-onboarding-and-polish.md) | **Onboarding & polish** | First-run tour, starter templates, empty states, motion polish, accessibility pass, first Playwright flow. | S-14, S-04 | 3 | v1 |
 | [S-30](epics/S-30-pro-tools.md) | **Pro tools** | Figma/Photoshop-like tools for the side panels: lock, hide, groups, align/distribute, guides, measurements, reusable components. Placeholder, to be designed. | S-18, S-19 | 7 | garden |

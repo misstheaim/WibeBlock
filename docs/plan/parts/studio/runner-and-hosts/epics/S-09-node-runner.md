@@ -3,10 +3,10 @@
 > Part: Studio · Phase: 1–2 · Stages: alpha, MVP · Depends on: S-01 · Status: ready
 
 ## Goal
-A small local server gives the Studio what a browser cannot do safely: read and write project folders, call AI providers with the user's key, and later generate code, serve the run preview and run Compact. It is deliberately the same shape as the platform, so the adapter contract is proven against a real server before the .NET services exist (D-25). One `npm start` launches the Studio host and the Runner.
+A small local server gives the Studio what a browser cannot do safely: read and write project folders, call AI providers with the user's key, and later generate code, serve the run preview and run Compact. It is deliberately the same shape as the platform, so the adapter contract is proven against a real server before the .NET services exist (D-25). One `pnpm dev` from the repo root launches the Studio host and the Runner.
 
 ## Scope
-- In: `apps/runner`; HTTP API + WebSocket; localhost binding and session token; workspace folder for projects; project list/create/open/save with validation; AI task execution through `packages/ai`; `npm start`; file watcher; codegen output to `out/`; Vite dev server lifecycle; Compact execution; event stream.
+- In: `apps/runner`; HTTP API + WebSocket; localhost binding and session token; workspace folder for projects; project list/create/open/save with validation; AI task execution through `packages/ai`; `pnpm dev`; file watcher; codegen output to `out/`; Vite dev server lifecycle; Compact execution; event stream.
 - Out: the MCP server (S-10); AI task logic (S-07); Compact UI (S-13); preview UI (S-06).
 
 ## Concepts and model
@@ -15,8 +15,8 @@ A small local server gives the Studio what a browser cannot do safely: read and 
 - **Runner API surface** (what crosses the boundary, not the exact shape): projects (list, create, read, save document parts), AI (run task with streaming, cancel, settings), codegen and preview (status, URL), Compact (start, progress), events (external file change, job status).
 
 ## User stories
-- **US-1** `[alpha]` As a user, I can run `npm start` once and get the Studio and the Runner together, so that local setup is one step.
-  - Acceptance: from a fresh clone with `.env` filled, `npm start` starts both; the Studio shows "Runner connected" in the status bar; stopping the Runner shows "disconnected" with a retry.
+- **US-1** `[alpha]` As a user, I can run `pnpm dev` once and get the Studio and the Runner together, so that local setup is one step.
+  - Acceptance: from a fresh clone with `.env` filled, `pnpm install` and `pnpm dev` start both; the Studio shows "Runner connected" in the status bar; stopping the Runner shows "disconnected" with a retry.
 - **US-2** `[alpha]` As a user, I can create, list and open projects stored as folders on my disk, so that I own my files.
   - Acceptance: creating a project writes a valid `wibeblock/` folder; the project list shows name, path and last opened; opening reads and validates it and reports problems by path.
 - **US-3** `[alpha]` As a user, my edits are saved to disk automatically and safely, so that I never lose work.
@@ -49,7 +49,7 @@ API contract tests (create → save → read round trip, token refusal) and the 
 - Port collisions for the Vite server; pick free ports and report them.
 
 ## Done when
-- [ ] `npm start` brings up Studio + Runner; projects can be created, opened and saved.
+- [ ] `pnpm dev` brings up Studio + Runner; projects can be created, opened and saved.
 - [ ] AI tasks run with the key kept on the Runner.
 - [ ] Foreign origins and missing tokens are refused.
 - [ ] (MVP) External edits appear live; `out/react` and its preview server follow the project; Compact runs with progress.

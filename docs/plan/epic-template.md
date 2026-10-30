@@ -4,7 +4,7 @@ One file per epic at `parts/<part>/<feature>/epics/<ID>-<kebab-name>.md` (e.g. `
 
 Epics are detailed enough to write user stories and tickets from, but they do not contain tickets. Tickets reference the epic ID and the user story number (e.g. `S-04 / US-3`).
 
-**Stages (D-25).** Studio work is delivered in stages: `alpha` → `MVP` → `v1` → `garden`. An epic can span stages, so each user story carries a stage tag in square brackets after its number. The header lists the stages the epic touches. An epic is "alpha-done" when its `[alpha]` stories are done. Epics outside the Studio may omit stage tags when the whole epic belongs to one phase.
+**Stages (D-25).** Studio work is delivered in stages: `alpha` → `MVP` → `v1` → `garden`. An epic can span stages, so each user story carries a stage tag in square brackets after its number. The header lists the stages the epic touches. An epic is "alpha-done" when its `[alpha]` stories are done. Platform epics use their own stages (D-33): `skeleton` (Phase 0) → `foundation` (Phase 2) → `connected` (Phase 3) → `later`. Epics in other parts may omit stage tags when the whole epic belongs to one phase.
 
 ## Template
 

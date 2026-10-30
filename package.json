@@ -1,0 +1,21 @@
+{
+  "name": "wibeblock",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "dev": "pnpm -r --parallel dev",
+    "dev:studio": "pnpm --filter @wibeblock/studio-app dev",
+    "dev:platform": "pnpm --filter @wibeblock/platform-app dev"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.16.1",
+  "type": "module"
+}

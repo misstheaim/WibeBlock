@@ -1,15 +1,16 @@
 # Feature — Core API (modular monolith)
 
-> Part: [Platform](../platform.md) · Epics: P-04, P-06, P-09, P-10, P-11, P-12
+> Part: [Platform](../platform.md) · Epics: P-04, P-06, P-09, P-10, P-11, P-12 · Accounts module: P-19 (in [Platform app](../platform-app/platform-app.md))
 
 ## Purpose
 
-The product's server-side logic in one deployable with hard module boundaries: Projects, Realtime, Billing, Metering, Prompt Library, Notifications. Modules talk through public interfaces and in-process events; the outbox publishes integration events (message bus from L-01, D-15). Billing + Metering are extracted into their own service later as an exercise (L-06).
+The product's server-side logic in one deployable with hard module boundaries: Accounts, Projects, Realtime, Billing, Metering, Prompt Library, Notifications. Modules talk through public interfaces and in-process events; the outbox publishes integration events (message bus from L-01, D-15). Billing + Metering are extracted into their own service later as an exercise (L-06).
 
 ## Module map
 
 | Module | Owns | Talks to |
 |---|---|---|
+| Accounts | user profiles keyed by the token's `sub` (display name, avatar URL, preferences as JSONB), created on first use; the first module, built in the platform skeleton (P-19, D-34) | Projects and Notifications (display names, preferences) |
 | Projects | project documents (JSONB, validated by `packages/core` schema via a JSON Schema export), versions, assets (Blob), upload/download | AI Generation (gRPC), Export (gRPC), Realtime |
 | Realtime | SignalR hub, groups per project/user, Redis backplane | all modules (publish), Gateway (proxy) |
 | Billing | plans, Stripe (test mode), subscriptions, webhooks (idempotent; from a queue fed by the webhook Function after P-15), entitlements | Metering, Identity claims |
@@ -19,6 +20,7 @@ The product's server-side logic in one deployable with hard module boundaries: P
 
 ## Design notes
 
+- The Core API skeleton and module template come from P-01; Accounts is the first module (Phase 0), Projects the second (Phase 2).
 - Vertical slices inside modules (minimal APIs + handlers); one `DbContext` per module; migrations per module.
 - Outbox table per module; dispatcher in-process until L-01 swaps in the message bus. Published rows are kept as an event log for replay.
 - Optimistic concurrency on project documents (`version` column); Connected mode reconciles conflicts in the Studio.

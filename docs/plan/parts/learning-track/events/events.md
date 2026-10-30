@@ -9,7 +9,7 @@ A message bus as the asynchronous backbone of the platform (D-15), replacing the
 ## Design notes
 
 - Message bus: RabbitMQ in Docker (Aspire) for daily work and the RabbitMQ Cluster Operator in kind; Azure Service Bus (Standard, for topics) in Cloud. One transport abstraction, so the broker is configuration; choose it when planning L-01 (Wolverine, MassTransit, or a thin interface over the official clients; note MassTransit v9+ is commercially licensed).
-- Events: `generation.completed`, `tokens.used`, `project.changed`, `export.completed`, `billing.subscription-changed`, …; JSON contracts in `Shared.Contracts`. Pub/sub through exchanges (RabbitMQ) and topics/subscriptions (Service Bus); work queues for background jobs such as batch regeneration.
+- Events: `generation.completed`, `tokens.used`, `project.changed`, `export.completed`, `billing.subscription-changed`, …; JSON contracts in `contracts/json-schema/` (C# types in `Shared.Contracts`, D-32). Pub/sub through exchanges (RabbitMQ) and topics/subscriptions (Service Bus); work queues for background jobs such as batch regeneration.
 - Consumer framework: idempotency store keyed by event ID, retries with backoff, dead-letter queues.
 - Replay: published outbox rows are kept as an append-only event log in Postgres; a replay tool feeds them to one consumer (e.g. to rebuild the Design Graph).
 - Kafka upgrade (L-12): Redpanda in Docker, Strimzi in kind; Strimzi in AKS or Event Hubs' Kafka API in Cloud. Event streams move to topics (keys by user/project, optional Avro + schema registry); projections and Analytics read from Kafka and replay from it; work queues stay on the bus.

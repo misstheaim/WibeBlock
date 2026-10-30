@@ -12,7 +12,7 @@ Not here: the mobile layout workflow, companion app and native target ([Mobile p
 
 | Stage | Phase | Goal | Done when |
 |---|---|---|---|
-| **alpha** | 1 | The smallest Studio the backend can be built against: schema with JSON Schema export, adapter contract, Runner storage and AI proxy, design canvas with block frames, starter layout, Structure panel, inspector, one AI task with proposals, undo. | `npm start` → create a project → add a page, which opens with a random starter layout → add, nest and reorder blocks in the Structure panel → set flex layout in the inspector → view the page at phone, Full HD and 4K with zoom → generate a block body (own API key or the fake provider) → accept or discard → undo/redo → the project is on disk as schema-valid JSON, and the JSON Schema export exists for the platform. |
+| **alpha** | 1 | The smallest Studio the backend can be built against: schema with JSON Schema export, adapter contract, Runner storage and AI proxy, design canvas with block frames, starter layout, Structure panel, inspector, one AI task with proposals, undo. | `pnpm dev` → create a project → add a page, which opens with a random starter layout → add, nest and reorder blocks in the Structure panel → set flex layout in the inspector → view the page at phone, Full HD and 4K with zoom → generate a block body (own API key or the fake provider) → accept or discard → undo/redo → the project is on disk as schema-valid JSON, and the JSON Schema export exists for the platform. |
 | **MVP** | 2 (alongside Platform foundation) | The full local loop. | Create a project with a preset theme, tune the palette, write knowledge notes and a style guide, lay out two pages, generate and refine bodies, revert an AI turn from history, (optional) wire a button to show/hide a block in the logic canvas, check the real app in the run preview, Compact to a folder, and run `npm install && npm run dev` there with no WibeBlock dependency. |
 | **v1** | 3 (alongside Platform connected) | AI depth and developer power. | AI themes from a prompt, the global prompt bar arranging a page through a reviewed proposal, logic v1 (data, lists, forms, context), prompt library with pinned versions, Developer panels, snapshots, assets, Claude Code connection, onboarding. |
 | **garden** | 7 | Everything else, picked freely. | Each epic stands alone. |
@@ -69,13 +69,13 @@ Agreed in the 2026-10-28 design session. Visual sketch: the "Studio" chapter of 
 - **AI feedback** (D-22): every AI change is a proposal shown on the canvas with *Accept* and *Discard*; accepted proposals are one history entry.
 - **Prompt bar**: a command input in the top bar with a scope (selection in the MVP; page and project in v1, S-22).
 - **Plain language by default**: "Stack: vertical / horizontal", "Size: fill / fit / fixed"; Developer mode adds CSS terms, IDs, raw JSON and code.
-- **Visual direction** (D-30): minimal and light: warm paper-like neutrals, one pastel lime accent, few visible controls, chrome that appears on hover. The pastel starter blocks and the user's app are the most colourful things on screen. A dark Studio theme comes later. Details in S-14.
+- **Visual direction** (D-30): minimal and light: warm paper-like neutrals, one pastel lime accent, few visible controls, chrome that appears on hover. The pastel starter blocks and the user's app are the most colourful things on screen. Light and dark modes come from the shared kit (`packages/ui`, P-17, D-35); details in S-14.
 - **Later** (garden, S-30): Photoshop-style layers and Figma-like tools (locking and grouping, align/distribute, guides, measurements, reusable components).
 
 ## 5. Architecture
 
 ```
-apps/studio (local host) ──renders──► packages/studio ◄──renders── apps/platform (RR7, D-26)
+apps/studio (local host) ──renders──► packages/studio ◄──renders── apps/platform (RR8, D-26)
    │ Runner adapters                     │                              │ platform adapters (P-16)
    ▼                                     │                              ▼
 apps/runner (HTTP + WebSocket)           │                        Gateway → services
@@ -139,7 +139,7 @@ Each technology has one real job (P7). Where it is introduced:
 | **Monaco** | Developer-mode code panel | S-28 |
 | Vitest, React Testing Library, Playwright | optional tests (D-16) | S-01, S-19, S-29 |
 
-The platform app adds **React Router v7 framework mode** (server rendering, loaders, actions), a generated **OpenAPI client** and the **SignalR client** (D-26, P-08, P-16).
+The platform app adds **React Router v8 framework mode** (server rendering, loaders, actions), a generated **OpenAPI client** and the **SignalR client** (D-26, P-08, P-16).
 
 ## 7. Platform touchpoints (general shape)
 

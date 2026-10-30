@@ -6,12 +6,12 @@
 The Studio becomes a real app: a monorepo with `packages/studio` rendered by a thin local host `apps/studio`, the adapter contract every host fills in (D-19), the stores and routes everything else builds on, and the project lifecycle: create a project (choosing its frameworks), open recent ones, manage pages and settings. This is where most of the React foundations are learned: context, Suspense, routing, Redux Toolkit, TanStack Query and Actions.
 
 ## Scope
-- In: pnpm workspace and moving the scaffold to `apps/studio`; `packages/studio` as a component taking adapters and slots; adapter contract (storage, ai, export, preview, realtime); Redux store with the document slice; Zustand UI store; TanStack Query client; TanStack Router routes and search params; project list, create, open; target choice; pages; project settings; Developer mode; shortcuts; command palette; responsive shell.
+- In: pnpm workspace with `apps/studio` and `packages/studio` (set up first, D-32); the code structure inside `packages/studio`; `packages/studio` as a component taking adapters and slots; adapter contract (storage, ai, export, preview, realtime); Redux store with the document slice; Zustand UI store; TanStack Query client; TanStack Router routes and search params; project list, create, open; target choice; pages; project settings; Developer mode; shortcuts; command palette; responsive shell.
 - Out: the canvas (S-03), Structure (S-18), inspector (S-19), history logic (S-15), the platform host (P-08, P-16).
 
 ## Concepts and model
 - **Host**: renders `<Studio adapters slots />`. `apps/studio` passes Runner adapters; until S-09 exists, an **in-memory adapter** (optionally persisted to browser storage) lets editor work start immediately.
-- **Adapter contract**: plain TypeScript interfaces in `packages/studio` (or a small `packages/contracts`) describing operations and events, not transport. Each host implements them.
+- **Adapter contract**: plain TypeScript interfaces in `packages/studio` (or a small TS package of its own; not the root `contracts/` folder, which holds language-neutral schemas, D-32) describing operations and events, not transport. Each host implements them.
 - **Routes**: project list; project workspaces Design, Logic, Theme, Knowledge, Preview; project settings. **Search params**: page, selected block, viewport, zoom.
 - **Project settings**: name, targets, history depth (S-15), AI defaults (S-07), Developer mode default.
 
@@ -44,6 +44,10 @@ See the layout sketch in the [Studio part](../../studio.md) §4. The top bar hol
 Adapter contract tests with the in-memory adapter; route search-param parsing.
 
 ## Risks and open questions
+- **Code structure inside `packages/studio` (decide in the first step of this epic).** Not decided while setting up the workspace. Before the shell, stores and routes are written, decide and write up in `docs/development.md` (workspace conventions) and `decisions.md`:
+  - folders **by feature** (`features/canvas`, `features/projects`, … each with its components, hooks and state) vs **by type** (`components/`, `hooks/`, `store/`);
+  - TanStack Router **file-based** routes (generated route tree, Vite plugin in the host) vs **code-based** routes, keeping in mind that the Studio is a package rendered by several hosts and must accept a base path (risk below);
+  - **barrel files** only at the package boundary (`src/index.ts`), no `index.ts` re-exports inside the package.
 - **Two routers in the platform app**: `apps/platform` uses React Router (D-26) and the Studio uses TanStack Router. The Studio must accept a base path (and possibly a history object) from its host. Validate early with a small spike; fallback: memory history synced to the host URL, or React Router inside the Studio.
 - Autosave granularity: debounce vs per action; decide with S-09 and S-15.
 
