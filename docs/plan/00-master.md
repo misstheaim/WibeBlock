@@ -178,6 +178,8 @@ See [decisions.md](decisions.md).
 - D-35 App UI on semantic tokens with light and dark modes chosen by the user; customisable later with the S-05 theme editor.
 - D-32 Repo root is the pnpm workspace; Export service in `apps/export`; `contracts/` (JSON Schema, protos, fixtures) shared by TS and .NET; `backend/` is .NET only.
 - D-36 Platform app on React Router v8, scaffolded in the monorepo setup; `pnpm dev` starts every app, `pnpm dev:studio` / `pnpm dev:platform` one.
+- D-37 Themes are datasets of one shape (default, presets, custom) applied by one mechanism; a theme supports light, dark or both modes; the server renders the effective mode as `data-mode`.
+- D-38 Colour tokens use shadcn role names: `background` / `foreground` and `X` / `X-foreground` pairs, mapped with `@theme inline`.
 
 ## 8. Open questions
 
