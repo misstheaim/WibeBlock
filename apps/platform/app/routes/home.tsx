@@ -10,7 +10,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-8 flex flex-col gap-6">
+    <main className="flex min-h-screen flex-col gap-6 p-8">
       <div>
         <Button
           intent="ghost"
@@ -24,7 +24,7 @@ export default function Home() {
           }}
         ></Button>
       </div>
-      <section className="bg-card text-card-foreground border border-border rounded-xl shadow-md p-6 flex flex-col gap-6">
+      <section className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md">
         <div className="flex flex-wrap gap-3">
           <Button intent="primary">Primary</Button>
           <Button intent="secondary">Secondary</Button>
@@ -35,31 +35,31 @@ export default function Home() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-3">
-          <div className="bg-background text-foreground border border-border rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground">
             background
           </div>
-          <div className="bg-card text-card-foreground border border-border rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md border border-border bg-card px-3 py-2 text-sm text-card-foreground">
             card
           </div>
-          <div className="bg-muted text-muted-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
             muted
           </div>
-          <div className="bg-primary text-primary-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
             primary
           </div>
-          <div className="bg-secondary text-secondary-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-secondary px-3 py-2 text-sm text-secondary-foreground">
             secondary
           </div>
-          <div className="bg-accent text-accent-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
             accent
           </div>
-          <div className="bg-success text-success-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-success px-3 py-2 text-sm text-success-foreground">
             success
           </div>
-          <div className="bg-warning text-warning-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-warning px-3 py-2 text-sm text-warning-foreground">
             warning
           </div>
-          <div className="bg-destructive text-destructive-foreground rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-destructive px-3 py-2 text-sm text-destructive-foreground">
             destructive
           </div>
         </div>
@@ -74,20 +74,20 @@ export default function Home() {
           <p className="text-4xl">text-4xl</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <div className="bg-background border border-border size-16 rounded-sm" />
-          <div className="bg-background border border-border size-16 rounded-md" />
-          <div className="bg-background border border-border size-16 rounded-lg" />
-          <div className="bg-background border border-border size-16 rounded-xl" />
-          <div className="bg-background border border-border size-16 rounded-lg shadow-xs" />
-          <div className="bg-background border border-border size-16 rounded-lg shadow-sm" />
-          <div className="bg-background border border-border size-16 rounded-lg shadow-md" />
-          <div className="bg-background border border-border size-16 rounded-lg shadow-lg" />
+          <div className="size-16 rounded-sm border border-border bg-background" />
+          <div className="size-16 rounded-md border border-border bg-background" />
+          <div className="size-16 rounded-lg border border-border bg-background" />
+          <div className="size-16 rounded-xl border border-border bg-background" />
+          <div className="size-16 rounded-lg border border-border bg-background shadow-xs" />
+          <div className="size-16 rounded-lg border border-border bg-background shadow-sm" />
+          <div className="size-16 rounded-lg border border-border bg-background shadow-md" />
+          <div className="size-16 rounded-lg border border-border bg-background shadow-lg" />
         </div>
         <div className="flex flex-wrap gap-3">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             A hint, like the text under a form field
           </p>
-          <p className="text-destructive text-sm">An error message</p>
+          <p className="text-sm text-destructive">An error message</p>
           <p className="font-mono text-sm">packages/ui/src/styles/index.css</p>
         </div>
       </section>

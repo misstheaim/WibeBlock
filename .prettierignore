@@ -1,0 +1,12 @@
+# Lock file: pnpm writes it, nobody edits it by hand
+pnpm-lock.yaml
+
+# Build output and generated types (apps/platform/.gitignore lists them, but Prettier only reads the root .gitignore)
+apps/platform/build/
+apps/platform/.react-router/
+
+# Markdown: hand-written plans and docs; Prettier would realign every table and rewrite list markers
+*.md
+
+# Source of the plan-map artifact, edited as one document
+docs/plan/visual/plan-map.html
