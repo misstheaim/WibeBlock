@@ -1,7 +1,6 @@
 import { Button } from "@wibeblock/ui";
-import type { Route } from "./+types/home";
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
     { title: "WibeBlock" },
     { name: "description", content: "Welcome to WibeBlock!" },
