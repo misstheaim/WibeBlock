@@ -11,7 +11,12 @@ export const buttonVariants = cva(
     variants: {
       intent: {
         primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-        ghost: "bg-transparent text-foreground hover:bg-foreground/10",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+        ghost:
+          "bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
       },
       size: {
         sm: "h-8 px-3 text-sm",
