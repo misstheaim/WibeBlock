@@ -1,0 +1,27 @@
+@source "../";
+
+:root {
+  color-scheme: light dark;
+  --background: light-dark(#f4ede1, #1c1611);
+  --foreground: light-dark(#2a1f17, #f2e9dc);
+  --primary-foreground: light-dark(#2a1f17, #1c1611);
+  --primary: light-dark(#86b81e, #b4e14b);
+  --ring: light-dark(#557a0d, #b4e14b);
+  --border: light-dark(#ddd0bc, #463a2f);
+}
+
+[data-mode="dark"] {
+  color-scheme: dark;
+}
+[data-mode="light"] {
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-border: var(--border);
+}

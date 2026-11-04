@@ -32,7 +32,8 @@ Each library has one job in the Studio (D-24); the full map with first epics is 
 | **Tailwind CSS v4** (+ `@tailwindcss/browser` in the canvas iframe) | Styling of the Studio *and* of generated bodies; theme tokens as CSS variables via `@theme` |
 | **Monaco editor** | Developer-mode code panel |
 | **React Router** | Routing in the generated React projects |
-| **Prettier** | Deterministic formatting of codegen output |
+| **Prettier** (+ `prettier-plugin-tailwindcss`) | Formatting of the repo's own code (format on save) and deterministic formatting of codegen output |
+| **ESLint** (`typescript-eslint`, React Hooks rules) | Linting of every TypeScript package and app (`pnpm lint`) |
 | **Vercel AI SDK** (`ai` + provider packages, UI hooks) | AI tasks over Anthropic, OpenAI, Google and Ollama (`packages/ai`); streamed structured output in the Studio |
 | **Model Context Protocol** (TypeScript SDK) | MCP server in the Runner for the Claude Code connection |
 | **Node.js** (LTS) | Node Runner (`apps/runner`), Export service (`apps/export`) |
@@ -123,6 +124,22 @@ docs/                plan and this file
 - **TypeScript** projects extend `tsconfig.base.json` (`apps/studio/tsconfig.app.json`, `apps/platform/tsconfig.json`, `packages/studio/tsconfig.json`).
 - **Root scripts** run across the workspace: `pnpm build` and `pnpm lint` are recursive (`pnpm -r`, in dependency order; packages without the script are skipped); `pnpm dev` starts every app in parallel (`pnpm -r --parallel dev`); `pnpm dev:studio` and `pnpm dev:platform` start one app (`pnpm --filter`). The platform app's type check is `pnpm --filter @wibeblock/platform-app typecheck`, because `react-router build` does not type-check.
 - **TypeScript 6.x** is pinned in the catalog because typescript-eslint does not support TypeScript 7 yet. Move to 7 when it does.
+
+### Formatting, linting and editor
+
+- **Indentation and line endings** come from [.editorconfig](../.editorconfig) (2 spaces, LF). Prettier reads it, so the two never disagree.
+- **Prettier** formats all JS/TS/CSS/JSON. `prettier-plugin-tailwindcss` sorts Tailwind classes. ESLint's style rules stay off, so the two tools don't fight: Prettier decides how code looks, ESLint reports likely bugs.
+- **ESLint** today exists only in `apps/studio` (the Vite template's config). `packages/ui` and `apps/platform` get it in the setup task below, so `pnpm lint` covers them.
+- **VS Code:** recommended extensions are Prettier, ESLint, Tailwind CSS IntelliSense and EditorConfig. Turn on *Format On Save* with Prettier as the default formatter. Associate `*.css` with the `tailwindcss` language mode (`"files.associations"` in your user settings). Otherwise the built-in CSS checker warns about `@source`, `@apply` and `@theme`. `.vscode/*` is git-ignored except `extensions.json`, so these are personal settings; shared recommendations go in `.vscode/extensions.json`.
+- **Setup task (before P-17 US-2):** add Prettier and its Tailwind plugin at the root with a config and a `format` script; add ESLint to `packages/ui` and `apps/platform` (shared config, or one per package like `apps/studio`); add `.vscode/extensions.json`; run the formatter once over the existing code (it currently mixes 2- and 4-space indentation).
+
+### `packages/ui` structure (P-17)
+
+- **One folder per component** in `src/components/<name>/` (kebab-case folder): the component in `PascalCase.tsx` (e.g. `Button.tsx`, with its CVA variants in the same file), its stories next to it (`Button.stories.tsx`), and an `index.ts` that re-exports the public parts. Sub-parts of compound components (dropdown menu, form field) live in the same folder.
+- **Shared code** outside components: `src/lib/` (helpers such as the class-merging `cn`), `src/styles/` (tokens and the Tailwind mapping).
+- **Public API:** `src/index.ts` re-exports each component folder with `export *`; each component's `index.ts` lists its public parts by name (values with `export { }`, types with `type`, as `verbatimModuleSyntax` requires), so internal exports don't leak. The package exposes `.` (components) and `./styles.css` (the stylesheet, imported once by each app). Apps never import deep paths.
+- **Component API:** a component accepts every native prop of its element plus its variants (`ComponentProps<"button"> & VariantProps<typeof buttonVariants>`), spreads the rest onto the element, merges `className` last with `cn` so the app's classes win, and sets safe native defaults before the spread (`type="button"`). The CVA function is exported too, so other elements can take the same look.
+- **Styles in an app:** the app's stylesheet imports `tailwindcss` first, then `@wibeblock/ui/styles.css`; the kit's `@source` makes Tailwind scan the kit's sources. Page colours use tokens (`bg-background text-foreground`), never `dark:` (D-38).
 
 ## Running locally
 

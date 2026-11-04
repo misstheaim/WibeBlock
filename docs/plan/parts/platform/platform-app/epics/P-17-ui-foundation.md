@@ -11,7 +11,7 @@ The platform app gets a small, polished design system to build on, and the Studi
 
 ## Concepts and model
 - **Semantic tokens** are the contract between the kit and everything that uses it. Components only use semantic names, never raw colours. Groups, aligned with the project theme groups in [design.md](../../../studio/design/design.md):
-  - `color`: background, surface, text, muted, primary, secondary, accent, border, success, warning, error, each with a foreground pair where text sits on it; plus a focus ring colour.
+  - `color` (names per D-38): background / foreground, card (the raised surface), muted, primary, secondary, accent, success, warning, destructive (error), each with an `X-foreground` pair for the text on it; plus `border` and `ring` (focus).
   - `font` (families), `fontSize` scale, `radius`, `shadow`. Spacing uses Tailwind's default scale; it becomes a token group only if customisation needs it.
 - **App theme** = one set of token values with a **light** and a **dark** mode. The light mode is the D-30 look (warm paper-like neutrals, one pastel lime accent); the dark mode is its counterpart, not an inversion: same accent family, softened surfaces. Users pick the mode; the first paint follows the operating-system setting until they do.
 - **Token names are fixed here** and adopted by S-05 for project themes (D-35). This answers the colour part of the master plan's open question on token naming; S-05 may add groups, not rename these.
@@ -41,11 +41,14 @@ The platform app gets a small, polished design system to build on, and the Studi
 - References for the feel: Linear and Vercel dashboards (quiet chrome), Radix Themes (token naming ideas), the WibeBlock plan map's palette.
 
 ## Technical design
-- Tailwind v4, CSS-first: tokens are declared once as CSS variables, with a dark-mode block overriding them; Tailwind's theme maps its utilities to those variables, so `bg-surface`-style utilities follow the mode automatically. Dark mode is driven by an attribute or class on the root element (a custom dark variant), not only by the OS media query, because the user's choice must win.
+- **Superseded by the `light-dark()` note below and D-38:** tokens are declared once on `:root` (no separate dark block), named by role (`bg-background`, `bg-primary`, not `bg-surface`), and components never use Tailwind's `dark:` variant (it follows only the OS); no custom dark variant is needed. Original note: Tailwind v4, CSS-first: tokens are declared once as CSS variables, with a dark-mode block overriding them; Tailwind's theme maps its utilities to those variables, so `bg-surface`-style utilities follow the mode automatically. Dark mode is driven by an attribute or class on the root element (a custom dark variant), not only by the OS media query, because the user's choice must win.
 - The shadcn approach: Radix primitives for hard behaviour, component source owned in the repo, CVA for variants, a small class-merging helper for overrides.
 - Storybook with the Vite builder, the accessibility addon and a theme toolbar.
 - Package conventions follow D-32: source-only, `exports` pointing at the sources, React and React DOM as peers from the catalog. The kit has no knowledge of the platform app, the Studio or React Router.
-- Folder structure inside the package (one folder per component vs flat files) is decided in the first step; document it in `docs/development.md`.
+- Folder structure inside the package (one folder per component vs flat files) is decided in the first step; document it in `docs/development.md`. Decided: one folder per component.
+- **Modes with `light-dark()`** (decided 2026-11-03): each colour token is declared once as `light-dark(light, dark)` on `:root` with `color-scheme: light dark`, so the OS preference applies with no script; the mode attribute on `<html>` only narrows `color-scheme` to `light` or `dark`.
+- **Themes are datasets** (D-37): the default theme, every preset and every user's custom theme are datasets of the same shape (same shape as S-05 project themes), applied by one mechanism: the active theme's values become the CSS variables on `:root`. A theme supports light, dark or both modes. The mode attribute on `<html>` is `data-mode` (`light` / `dark`), rendered by the server from the effective mode (the user's choice if the theme supports it, otherwise the theme's only mode).
+- **Theme source is CSS for now** (decided 2026-11-03): until the theme object exists, the default dataset is written by hand as the `:root` block of the kit's stylesheet. The object and a generator (dataset → CSS) come when the first consumer needs them: presets or custom themes (US-6), the Storybook Tokens page (US-5), the S-05 theme schema, or the native mobile target; the hand-written block then becomes generated output and stays the fallback. Custom themes are validated on the server with the same Zod schema the editor uses, because they reach the server as requests.
 
 ## Learning notes
 Concepts in a sensible order:
@@ -63,12 +66,13 @@ Storybook interaction tests for dialog and dropdown focus handling (open, trap, 
 
 ## Risks and open questions
 - **Building ahead of need.** Build a component when a screen in P-08, P-18, P-19 or P-20 needs it; the list in US-3 and US-4 is what the skeleton uses.
-- **Token names must survive S-05.** If S-05 needs a different structure, rename once, early, across both.
+- **Token names must survive S-05.** If S-05 needs a different structure, rename once, early, across both. Names follow D-38.
+- **Radix or Base UI** for the hard primitives (dialog, menu, select): the plan names Radix (D-24); Base UI (by the MUI team, also supported by shadcn) is the alternative. Compare them when the first complex component is built (US-4).
 - **Razor Pages in Identity (P-03) need the same look** without React: they can only reuse the CSS (tokens and Tailwind classes), so keep component styles expressible as classes, not only as React logic.
 - Hydration and the mode: the server must render the right mode attribute (P-08 US-5); the kit must not read `window` during render.
 
 ## Done when
-- [ ] `apps/platform` imports `@wibeblock/ui` and renders a styled button.
+- [x] `apps/platform` imports `@wibeblock/ui` and renders a styled button.
 - [ ] Storybook shows every skeleton component in light and dark, with a Tokens page.
 - [ ] Switching the mode attribute restyles everything; contrast pairs pass AA in both modes.
 - [ ] Menus and dialogs are fully usable with the keyboard.
