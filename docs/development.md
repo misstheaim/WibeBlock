@@ -187,6 +187,8 @@ Git flow with squash-merged features and merge-committed releases (D-31).
 | `release/<version>` | Prepares a release from `develop`. |
 | `hotfix/<desc>` | Urgent fix for released code, from `master`. |
 
+**Protection:** two GitHub rulesets, `develop` and `master`, one per branch. Neither branch can be deleted or force-pushed, and changes reach them only through a pull request (0 required approvals, since a solo owner can't approve their own PR). `develop` allows squash (features) and merge commit (`master` → `develop` after a release, also a PR). `master` allows **merge commit only**, so a release or hotfix PR can't be squashed by mistake. There are no required status checks (no PR CI). **Repository admins bypass both rulesets (mode: always):** in an emergency the owner can commit on the local branch and push directly; GitHub records it as a bypass.
+
 ### Day-to-day work
 
 1. `git fetch origin develop` and `git switch -c feature/42-short-name origin/develop`.
@@ -198,7 +200,7 @@ Git flow with squash-merged features and merge-committed releases (D-31).
 1. Create `release/<version>` from `develop` (e.g. `release/0.1.0`); only release fixes, version bumps and notes go on it.
 2. PR `release/<version>` into `master`, merged with a **merge commit**.
 3. Tag the merge commit on `master` as `v<version>` (e.g. `v0.1.0`) and push the tag; the release workflow runs from the tag.
-4. Merge `master` back into `develop` with a **merge commit**, so the release fixes reach `develop`.
+4. Merge `master` back into `develop` with a **merge commit**, so the release fixes reach `develop`. Because of the ruleset this is a PR from `master` into `develop`, merged with **Create a merge commit**.
 
 **Hotfixes** follow the same path: `hotfix/<desc>` from `master` → PR into `master` (merge commit) → patch tag (e.g. `v0.1.1`) → merge `master` back into `develop`.
 
@@ -220,6 +222,8 @@ Between milestones, minor releases and patches are cut when something is worth r
 ### Tickets and naming
 
 - Tickets are **GitHub issues**. Each one references its epic and user story in the body (e.g. `S-02 / US-1`).
+- **Every implementation starts from a ticket.** If none exists when work begins, the agent writes and creates it (also in `/guide-me` and `/teach-me`) without asking for approval.
+- **One template for every ticket type** (feature, bug, chore, docs): [.github/ISSUE_TEMPLATE/ticket.md](../.github/ISSUE_TEMPLATE/ticket.md), also offered by GitHub's "New issue" page. Sections: Context, Goal, Implementation notes, Acceptance criteria (`AC1`…), Related, Suggested model.
 - Names use the **issue number**: branch `feature/42-studio-package`, commits `feat(#42): add studio package`, PR title `#42 Add studio package`, and `Closes #42` in the PR description.
 - `Closes #42` closes the issue only when the PR merges into the default branch, which is why `develop` is the default.
 - Commits follow Conventional Commits (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, …).

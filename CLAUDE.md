@@ -10,11 +10,11 @@ A **pet project of the owner, built for learning**. Two goals carry equal weight
 The flow from plan to code:
 
 ```
-plan part (/plan-part) → epics → user stories → tickets (the owner writes them) → /teach-me or /guide-me, 1–2 tickets per session
+plan part (/plan-part) → epics → user stories → tickets → /teach-me or /guide-me, 1–2 tickets per session
 ```
 
 - **Planning** a part of the plan uses the project skill **`/plan-part`** (`.claude/skills/plan-part/`): a design discussion where the owner describes what they want, Claude proposes solutions, and both refine them until the final version, which is then written as epics and user stories. It designs and does not implement.
-- **Tickets** are created by the owner from user stories. Don't use `decompose-feature` here, and don't create tickets unless asked.
+- **Tickets** come from user stories. The owner may write them; otherwise the agent does. **No implementation starts without a ticket**: before the first step of any implementation work (including `/guide-me` and `/teach-me`, where the agent writes no code), check for a GitHub issue for the work. If there is none, write one with the `create-ticket` skill (reference `<epic> / US-n`). Every ticket, of any type, uses the one template in [.github/ISSUE_TEMPLATE/ticket.md](.github/ISSUE_TEMPLATE/ticket.md). **Creating tickets needs no approval** (standing permission from the owner, 2026-11-04): create the GitHub issue straight away, whether the owner asked for it or it is needed before implementation, then show its link and body. This covers creating issues only; editing, closing or labelling existing ones still needs approval. Then branch, commit and title the PR with its number. Don't use `decompose-feature` here, and don't create tickets for work that isn't about to start.
 - **Implementation** happens with the owner's learning skills, one or two tickets per session: **`/teach-me`** (Claude implements step by step and explains each step) or **`/guide-me`** (Claude guides, the owner writes the code). In those modes the goal is the owner's understanding, not speed. Explain the technology, not just the change.
 - **Tests are optional** (D-14): never required for a ticket to be done. When the owner wants them, they are usually written by an AI agent after the implementation; epics list where they would pay off.
 - No CI on pull requests. GitHub Actions is used only for releases and deployment (see [docs/development.md](docs/development.md)).
