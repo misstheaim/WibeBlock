@@ -1,11 +1,5 @@
 @import "tailwindcss";
 @import "@wibeblock/ui/styles.css";
-
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
-
 html,
 body {
   @apply bg-background text-foreground;

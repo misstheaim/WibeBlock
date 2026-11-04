@@ -2,12 +2,45 @@
 
 :root {
   color-scheme: light dark;
+
   --background: light-dark(#f4ede1, #1c1611);
   --foreground: light-dark(#2a1f17, #f2e9dc);
-  --primary-foreground: light-dark(#2a1f17, #1c1611);
+  --card: light-dark(#fbf7f0, #261e18);
+  --card-foreground: light-dark(#2a1f17, #f2e9dc);
+  --muted: light-dark(#ebe3d5, #30271f);
+  --muted-foreground: light-dark(#6b5a4a, #b3a493);
   --primary: light-dark(#86b81e, #b4e14b);
-  --ring: light-dark(#557a0d, #b4e14b);
+  --primary-foreground: light-dark(#2a1f17, #1c1611);
+  --secondary: light-dark(#e6dccb, #3a2f26);
+  --secondary-foreground: light-dark(#2a1f17, #f2e9dc);
+  --accent: light-dark(#e3efc4, #34401f);
+  --accent-foreground: light-dark(#2f4a05, #dff0b0);
+  --success: light-dark(#2e7d4f, #6cc38b);
+  --success-foreground: light-dark(#f7fbf4, #10261a);
+  --warning: light-dark(#e0a526, #f0bf55);
+  --warning-foreground: light-dark(#2a1f17, #2a1f17);
+  --destructive: light-dark(#b83a27, #ef7a66);
+  --destructive-foreground: light-dark(#fff8f2, #2a0f0a);
   --border: light-dark(#ddd0bc, #463a2f);
+  --ring: light-dark(#557a0d, #b4e14b);
+  --shadow-color: light-dark(rgb(42 31 23 / 0.1), rgb(0 0 0 / 0.45));
+
+  --font-family-sans:
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-family-mono:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  --radius: 0.625rem;
 }
 
 [data-mode="dark"] {
@@ -20,8 +53,47 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary-foreground: var(--primary-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-primary: var(--primary);
-  --color-ring: var(--ring);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
+
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg: var(--font-size-lg);
+  --text-xl: var(--font-size-xl);
+  --text-2xl: var(--font-size-2xl);
+  --text-3xl: var(--font-size-3xl);
+  --text-4xl: var(--font-size-4xl);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-xs: 0 1px 2px 0 var(--shadow-color);
+  --shadow-sm:
+    0 1px 3px 0 var(--shadow-color), 0 1px 2px -1px var(--shadow-color);
+  --shadow-md:
+    0 4px 6px -1px var(--shadow-color), 0 2px 4px -2px var(--shadow-color);
+  --shadow-lg:
+    0 10px 15px -3px var(--shadow-color), 0 4px 6px -4px var(--shadow-color);
 }
