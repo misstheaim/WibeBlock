@@ -120,7 +120,7 @@ docs/                plan and this file
 - **Internal packages are source-only.** `packages/*` ship no build step: `exports` points at `./src/index.ts` and the host's bundler (Vite) compiles them. A package gets a build only if something outside the workspace has to consume it.
 - **Package names** use the `@wibeblock/` scope: `@wibeblock/studio` (the package), `@wibeblock/studio-app` (its local host), `@wibeblock/platform-app` (the platform app).
 - **Linking:** apps depend on packages with `workspace:*`.
-- **Shared versions** go in the `catalog:` of `pnpm-workspace.yaml` (React, React DOM, their types, TypeScript, Vite, `@types/node`) and are referenced as `"catalog:"`. A dependency moves into the catalog as soon as a second package uses it. Libraries such as `packages/studio` take React as a **peer dependency**, so only one React is ever loaded.
+- **Shared versions** go in the `catalog:` of `pnpm-workspace.yaml` (React and its types, TypeScript, Vite, `@types/node`, Tailwind, the React Compiler toolchain, `class-variance-authority` / `clsx` / `tailwind-merge`) and are referenced as `"catalog:"`. A dependency goes into the catalog as soon as we know a second package will use it, not only once it does; the catalog is kept alphabetical. Libraries such as `packages/studio` take React as a **peer dependency**, so only one React is ever loaded.
 - **TypeScript** projects extend `tsconfig.base.json` (`apps/studio/tsconfig.app.json`, `apps/platform/tsconfig.json`, `packages/studio/tsconfig.json`).
 - **Root scripts** run across the workspace: `pnpm build` is recursive (`pnpm -r`, in dependency order; packages without the script are skipped); `pnpm lint` (`eslint .`) and `pnpm format` / `pnpm format:check` (Prettier) run once from the root over every app and package; `pnpm dev` starts every app in parallel (`pnpm -r --parallel dev`); `pnpm dev:studio` and `pnpm dev:platform` start one app (`pnpm --filter`). The platform app's type check is `pnpm --filter @wibeblock/platform-app typecheck`, because `react-router build` does not type-check.
 - **TypeScript 6.x** is pinned in the catalog because typescript-eslint does not support TypeScript 7 yet. Move to 7 when it does.
@@ -139,6 +139,15 @@ docs/                plan and this file
 - **Public API:** `src/index.ts` re-exports each component folder with `export *`; each component's `index.ts` lists its public parts by name (values with `export { }`, types with `type`, as `verbatimModuleSyntax` requires), so internal exports don't leak. The package exposes `.` (components) and `./styles.css` (the stylesheet, imported once by each app). Apps never import deep paths.
 - **Component API:** a component accepts every native prop of its element plus its variants (`ComponentProps<"button"> & VariantProps<typeof buttonVariants>`), spreads the rest onto the element, merges `className` last with `cn` so the app's classes win, and sets safe native defaults before the spread (`type="button"`). The CVA function is exported too, so other elements can take the same look.
 - **Styles in an app:** the app's stylesheet imports `tailwindcss` first, then `@wibeblock/ui/styles.css`; the kit's `@source` makes Tailwind scan the kit's sources. Page colours use tokens (`bg-background text-foreground`), never `dark:` (D-38).
+
+### `apps/platform` structure (P-08)
+
+- **Routes are declared in [app/routes.ts](../apps/platform/app/routes.ts)** with `index()`, `route()` and later `layout()` / `prefix()`, not with file-system routing: the whole route map is readable in one file, URLs don't depend on file names, and the nested layouts (public, signed-in, full-screen editor) are explicit.
+- **Route modules are thin**, one file per route in `app/routes/` (kebab-case, e.g. `dev-tokens.tsx`): `meta`, `loader`, `action` and a small page component that composes features. No business logic or large UI in them.
+- **Features** live in `app/features/<name>/` (components, hooks, their server code), created when a route grows beyond a few elements or two routes share UI. **App-wide helpers** go in `app/lib/`.
+- **Server-only code** (API client, session, mocks) uses the `.server.ts` suffix (or a `.server/` folder). React Router refuses to bundle these into the browser build, so secrets and tokens can't leak.
+- **React Compiler** runs through `@rolldown/plugin-babel` with `reactCompilerPreset()` from `@vitejs/plugin-react` (the same as `apps/studio`, without the `react()` plugin, which `reactRouter()` replaces). The preset compiles only the client build.
+- **Dev-only pages** live under `/dev/*` (today `/dev/tokens`, the token showcase with a temporary mode toggle; removed when Storybook arrives, P-17 US-5).
 
 ## Running locally
 
