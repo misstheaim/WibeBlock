@@ -1,1 +1,1 @@
-export { default } from "./Studio";
+export { type StudioProps, default } from "./Studio";
