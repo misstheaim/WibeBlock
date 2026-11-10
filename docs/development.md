@@ -144,6 +144,7 @@ docs/                plan and this file
 
 - **Routes are declared in [app/routes.ts](../apps/platform/app/routes.ts)** with `index()`, `route()` and later `layout()` / `prefix()`, not with file-system routing: the whole route map is readable in one file, URLs don't depend on file names, and the nested layouts (public, signed-in, full-screen editor) are explicit.
 - **Route modules are thin**, one file per route in `app/routes/` (kebab-case, e.g. `dev-tokens.tsx`): `meta`, `loader`, `action` and a small page component that composes features. No business logic or large UI in them.
+- **Layout routes** live in `app/layouts/` (e.g. `signed-in.tsx`), apart from the pages, and are declared with `layout()` in `routes.ts`. A layout owns the page frame (full height, background, the single `<main>` landmark, the top bar) and renders the page through `<Outlet />`; pages render only their content.
 - **Features** live in `app/features/<name>/` (components, hooks, their server code), created when a route grows beyond a few elements or two routes share UI. **App-wide helpers** go in `app/lib/`.
 - **Server-only code** (API client, session, mocks) uses the `.server.ts` suffix (or a `.server/` folder). React Router refuses to bundle these into the browser build, so secrets and tokens can't leak.
 - **React Compiler** runs through `@rolldown/plugin-babel` with `reactCompilerPreset()` from `@vitejs/plugin-react` (the same as `apps/studio`, without the `react()` plugin, which `reactRouter()` replaces). The preset compiles only the client build.
