@@ -7,11 +7,11 @@ export function meta() {
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background p-8 text-foreground">
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
       <h1 className="text-4xl font-semibold">WibeBlock</h1>
       <p className="text-muted-foreground">
         Build web apps with AI, block by block.
       </p>
-    </main>
+    </div>
   );
 }
