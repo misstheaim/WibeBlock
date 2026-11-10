@@ -11,4 +11,5 @@ export default [
     route("projects", "routes/projects.tsx"),
     route("dev/tokens", "routes/dev-tokens.tsx"),
   ]),
+  route("projects/:id/edit", "routes/project-editor.tsx"),
 ] satisfies RouteConfig;

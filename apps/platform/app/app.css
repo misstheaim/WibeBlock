@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "@wibeblock/ui/styles.css";
+
+@source "../../../packages/studio/src";
 html,
 body {
   @apply bg-background text-foreground;
