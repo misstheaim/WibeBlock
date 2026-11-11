@@ -1,8 +1,14 @@
 import { Button } from "@wibeblock/ui";
 import { Link, NavLink, Outlet } from "react-router";
-import { mockUser } from "~/lib/mock-user";
+import { getProfile } from "~/lib/accounts.server";
+import type { Route } from "./+types/signed-in";
 
-export default function SignedInLayout() {
+export async function loader() {
+  const profile = await getProfile();
+  return { profile };
+}
+
+export default function SignedInLayout({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex h-14 items-center gap-6 border-b border-border px-4">
@@ -32,7 +38,9 @@ export default function SignedInLayout() {
           </NavLink>
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{mockUser.name}</span>
+          <span className="text-sm text-muted-foreground">
+            {loaderData.profile.displayName}
+          </span>
           <Button
             intent="ghost"
             onClick={() => {
