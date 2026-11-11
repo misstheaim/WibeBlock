@@ -29,6 +29,7 @@
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
+    "msw": "^3.0.4",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"

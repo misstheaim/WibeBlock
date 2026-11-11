@@ -150,6 +150,30 @@ docs/                plan and this file
 - **React Compiler** runs through `@rolldown/plugin-babel` with `reactCompilerPreset()` from `@vitejs/plugin-react` (the same as `apps/studio`, without the `react()` plugin, which `reactRouter()` replaces). The preset compiles only the client build.
 - **Dev-only pages** live under `/dev/*` (today `/dev/tokens`, the token showcase with a temporary mode toggle; removed when Storybook arrives, P-17 US-5).
 
+### Platform API settings and mocked backend (P-08 US-2, D-33)
+
+Until the backend exists, MSW answers the platform app's server-side calls to the API. The browser never calls the API directly; loaders and actions do, through the server-only API client.
+
+- **Settings** come from the `.env` files in `apps/platform` (copy [.env.example](../apps/platform/.env.example) to `.env`); variables set in the shell win. The mocks read them with Vite's `loadEnv`; how the app's own server code reads `API_BASE_URL` is decided with the API client.
+
+  | Variable | Meaning |
+  |---|---|
+  | `API_BASE_URL` | Base URL of the API, later the Gateway (P-02), e.g. `http://localhost:5100` (the port is a placeholder until P-02 picks one) |
+  | `API_MOCKS` | `on` answers requests to `API_BASE_URL` with MSW, in development only; anything else is off |
+  | `API_MOCK_SCENARIO` | `normal` (default, 100–300 ms delay), `slow` (about 3 s), `error` (500), `unauthorized` (401) |
+
+- **How it starts:** a dev-only Vite plugin, `apiMocks()` in [app/mocks/index.server.ts](../apps/platform/app/mocks/index.server.ts), registered in `vite.config.ts`. It starts MSW in the dev server's process when `API_MOCKS=on`; no app module imports the mocks, so MSW never reaches `build/`. Editing a mock file restarts the dev server and swaps the handlers in place (one interceptor per process). The log shows `[mocks] API mocks on for <url>, scenario: <name>`.
+- **Files** in [app/mocks/](../apps/platform/app/mocks/), all `.server.ts` and imported with the extension (Vite's native config loader needs it): `index` (the plugin), `handlers` (one entry per endpoint), `scenarios` (delay, errors, `problem()`), `fixtures` (data and hand-written types).
+- **Adding an endpoint:** add `http.<method>(\`${baseUrl}/<path>\`, mock(() => ...))` in `handlers.server.ts`; wrapping the resolver in `mock(...)` applies the scenario. A call to `API_BASE_URL` without a handler prints an `[MSW] Error` and then fails on the network.
+- **Errors** are RFC 9457 problem details (`application/problem+json`, `{ type, title, status, detail }`), the shape ASP.NET Core returns.
+- **Endpoints** (Gateway paths: the Core API's Accounts module lives under `/accounts`):
+
+  | Endpoint | Response |
+  |---|---|
+  | `GET /accounts/me` | `200` `{ id, displayName, email, avatarUrl: string \| null, preferences: { theme: "light" \| "dark" \| "system" }, createdAt, updatedAt }` (ISO 8601 dates) |
+
+- The mock types are hand-written and small on purpose; P-19 US-6 replaces them with types generated from the Core API's OpenAPI document and switches the mocks off.
+
 ## Running locally
 
 _Fill in as each piece exists._
@@ -158,7 +182,7 @@ _Fill in as each piece exists._
 - **Everything (now):** from the repo root, `pnpm install`, then `pnpm dev` starts the Studio and the platform app side by side (each prints its own `localhost` URL; the second one moves to the next free port). `pnpm build` and `pnpm lint` run the same way for the whole workspace.
 - **One app:** `pnpm dev:studio` (only the local Studio, no accounts) or `pnpm dev:platform`.
 - **Studio + Runner (Phase 1, Studio alpha):** the Runner joins `pnpm dev` and `pnpm dev:studio`.
-- **Platform frontend (Phase 0):** `pnpm dev:platform` (and later `apps/website`), against mocks: MSW in the server process and the mock login server in Docker (D-33).
+- **Platform frontend (Phase 0):** `pnpm dev:platform` (and later `apps/website`), against mocks: MSW in the server process (copy `apps/platform/.env.example` to `.env` once; see "Platform API settings and mocked backend") and the mock login server in Docker (D-33).
 - **Platform with backend (Phase 0 onwards):** run the Aspire AppHost in `backend/` (starts the services, containers and the platform app); needs Docker Desktop.
 - **Kubernetes (Phase 5):** kind/k3d cluster scripts in `infra/`.
 
