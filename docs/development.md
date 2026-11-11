@@ -154,7 +154,7 @@ docs/                plan and this file
 
 Until the backend exists, MSW answers the platform app's server-side calls to the API. The browser never calls the API directly; loaders and actions do, through the server-only API client.
 
-- **Settings** come from the `.env` files in `apps/platform` (copy [.env.example](../apps/platform/.env.example) to `.env`); variables set in the shell win. The mocks read them with Vite's `loadEnv`; how the app's own server code reads `API_BASE_URL` is decided with the API client.
+- **Settings** come from the `.env` files in `apps/platform` (copy [.env.example](../apps/platform/.env.example) to `.env`); variables set in the shell win. In development, `vite.config.ts` copies them into `process.env` with Vite's `loadEnv`, and server code reads `process.env.API_BASE_URL` at request time, never at build time, so one build runs against any backend. In production `react-router-serve` reads no `.env` file: set real environment variables. **After changing `.env`, stop the dev server (Ctrl+C) and start it again:** Vite's automatic restart runs in the same process, where the old values are already in `process.env` and win over the file. A one-off value can also come from the shell, e.g. `$env:API_MOCK_SCENARIO = "slow"; pnpm dev:platform` in PowerShell.
 
   | Variable | Meaning |
   |---|---|
@@ -162,6 +162,14 @@ Until the backend exists, MSW answers the platform app's server-side calls to th
   | `API_MOCKS` | `on` answers requests to `API_BASE_URL` with MSW, in development only; anything else is off |
   | `API_MOCK_SCENARIO` | `normal` (default, 100–300 ms delay), `slow` (about 3 s), `error` (500), `unauthorized` (401) |
 
+- **API client** (server-only, `.server.ts`, so the build fails if browser code imports it):
+  - [app/lib/api.server.ts](../apps/platform/app/lib/api.server.ts) is the only code that calls `fetch` to the API. `apiGetRequest<T>(path)` joins `API_BASE_URL` and the path (which starts with `/`), asks for JSON and returns the body as `T`. Any non-2xx answer throws an `ApiError`, which carries `status`, the parsed `problem` (or `null`) and a message with the status and the problem's title.
+  - One module per backend module holds its types and endpoint functions: [app/lib/accounts.server.ts](../apps/platform/app/lib/accounts.server.ts) has `Profile` and `getProfile()`.
+  - App code never imports from `app/mocks/`.
+- **Consumers:** loaders call the endpoint functions. Components never do; they read `loaderData`.
+  - The signed-in layout's loader returns `{ profile }`, and pages inside it read it with `useRouteLoaderData<typeof loader>("layouts/signed-in")` instead of fetching again.
+  - The editor route sits outside that layout, so it has its own loader.
+  - A failing call currently lands in the root error boundary; friendly error states are US-6, and the 401 → sign-in redirect is P-18.
 - **How it starts:** a dev-only Vite plugin, `apiMocks()` in [app/mocks/index.server.ts](../apps/platform/app/mocks/index.server.ts), registered in `vite.config.ts`. It starts MSW in the dev server's process when `API_MOCKS=on`; no app module imports the mocks, so MSW never reaches `build/`. Editing a mock file restarts the dev server and swaps the handlers in place (one interceptor per process). The log shows `[mocks] API mocks on for <url>, scenario: <name>`.
 - **Files** in [app/mocks/](../apps/platform/app/mocks/), all `.server.ts` and imported with the extension (Vite's native config loader needs it): `index` (the plugin), `handlers` (one entry per endpoint), `scenarios` (delay, errors, `problem()`), `fixtures` (data and hand-written types).
 - **Adding an endpoint:** add `http.<method>(\`${baseUrl}/<path>\`, mock(() => ...))` in `handlers.server.ts`; wrapping the resolver in `mock(...)` applies the scenario. A call to `API_BASE_URL` without a handler prints an `[MSW] Error` and then fails on the network.
