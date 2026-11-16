@@ -21,7 +21,7 @@ WibeBlock gets its own OpenID Connect provider (D-07): people sign up with email
 - **US-1** `[skeleton]` As a new user, I can sign up with my email and a password and confirm my email, so that I have a WibeBlock account.
   - Acceptance: from the login page, "Create account" opens a sign-up page with password rules shown up front; a confirmation email arrives in Mailpit; the link confirms the email and signs me in; unconfirmed accounts cannot sign in and can resend the email; the pages use the app's tokens and follow the OS light/dark setting.
 - **US-2** `[skeleton]` As a user, I can sign in and out of the platform app through Identity, so that one account opens the product.
-  - Acceptance: the platform app's sign-in (P-18 US-6) shows Identity's login page and returns me signed in; discovery and JWKS documents are served; the ID token carries `sub`, `email`, `email_verified`, `name`, `picture`; signing out from the platform app also ends the Identity session; a wrong password shows a generic message; repeated failures lock the account for a while.
+  - Acceptance: the platform app's sign-in (P-18 US-1; until it exists, a generic OIDC client such as Postman's OAuth 2.0 helper runs the same flow, D-39) shows Identity's login page and returns me signed in; discovery and JWKS documents are served; the ID token carries `sub`, `email`, `email_verified`, `name`, `picture`; signing out from the platform app also ends the Identity session; a wrong password shows a generic message; repeated failures lock the account for a while.
 - **US-3** `[skeleton]` As a user who forgot my password, I can reset it by email, so that I can get back in.
   - Acceptance: "Forgot password" sends a reset link to Mailpit; the page says the same thing whether or not the email exists; the link expires and works once; after the reset, existing refresh tokens are revoked.
 - **US-4** `[skeleton]` As a user, I can sign in with GitHub, so that I don't need another password.
@@ -29,7 +29,7 @@ WibeBlock gets its own OpenID Connect provider (D-07): people sign up with email
 - **US-5** `[skeleton]` As a user, I can manage how I sign in, so that my account stays secure.
   - Acceptance: account security pages (reached from the platform app's `/account`, P-19 US-4) let me change my password, link or unlink GitHub (I can't remove my last way to sign in), and "sign out everywhere", which revokes all my refresh tokens so other devices must sign in again when their access token expires; each page has a way back to the platform app.
 - **US-6** `[skeleton]` As a developer, tokens and keys are configured deliberately, so that the system is secure and pleasant in development.
-  - Acceptance: access token lifetime of a few minutes, refresh tokens rotating with reuse detection, documented lifetimes; signing keys persist across restarts in development; access tokens for the API scope can be validated by the Gateway and the Core API (P-02 US-2) using the JWKS; the platform app client is seeded from configuration; Identity is added to the AppHost and replaces the mock login server.
+  - Acceptance: access token lifetime of a few minutes, refresh tokens rotating with reuse detection, documented lifetimes; signing keys persist across restarts in development; access tokens for the API scope can be validated by the Gateway and the Core API (P-02 US-2) using the JWKS; the platform app client is seeded from configuration; Identity is added to the AppHost.
 - **US-7** `[foundation]` As a user, I can sign in with Google too, so that I can use the account I prefer.
   - Acceptance: same behaviour as GitHub (US-4) with Google; linking rules identical.
 - **US-8** `[connected]` As a developer, services can call each other with their own tokens and admins have a role, so that service-to-service calls and admin features are authorised.
@@ -67,8 +67,8 @@ Integration tests with Testcontainers for the risky rules pay off: account linki
 - Email deliverability does not matter locally (Mailpit); a real provider is chosen in P-13 / P-12.
 
 ## Done when
-- [ ] (skeleton) Sign up with email confirmation, sign in, sign out, password reset and GitHub login work through the platform app.
+- [ ] (skeleton) Sign up with email confirmation, sign in, sign out, password reset and GitHub login work (through the platform app once P-18 is done).
 - [ ] (skeleton) Account security pages work, including sign out everywhere.
-- [ ] (skeleton) Identity runs in the AppHost and has replaced the mock login server; tokens validate at the Gateway.
+- [ ] (skeleton) Identity runs in the AppHost; tokens validate at the Gateway.
 - [ ] (foundation) Google login works.
 - [ ] (connected) Service clients and the admin role exist.

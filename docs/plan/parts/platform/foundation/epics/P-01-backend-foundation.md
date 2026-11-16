@@ -6,7 +6,7 @@
 The .NET side gets its skeleton: a solution in `backend/`, an **Aspire** AppHost that starts every service and container with one command (including the platform app's dev server), shared service defaults with **OpenTelemetry** from the first line (D-10), and a **Core API** shaped as a modular monolith with its first module (Accounts, P-19) on EF Core and Postgres. After this epic, every later service is "add a project, register it in the AppHost".
 
 ## Scope
-- In: `backend/WibeBlock.slnx` with `src/` and `tests/` (D-32); AppHost; ServiceDefaults (OpenTelemetry, health checks, service discovery, HTTP resilience); Core API skeleton with the module structure and conventions; Postgres and Redis containers with persistent volumes; EF Core per module with its own schema and migrations applied locally; the platform app and the mock login server in the AppHost; the platform app's server sending traces to the same dashboard; Azurite (foundation); module boundary enforcement (foundation).
+- In: `backend/WibeBlock.slnx` with `src/` and `tests/` (D-32); AppHost; ServiceDefaults (OpenTelemetry, health checks, service discovery, HTTP resilience); Core API skeleton with the module structure and conventions; Postgres and Redis containers with persistent volumes; EF Core per module with its own schema and migrations applied locally; the platform app in the AppHost; the platform app's server sending traces to the same dashboard; Azurite (foundation); module boundary enforcement (foundation).
 - Out (and where it lives instead): Identity (P-03) and Gateway (P-02) projects; the Accounts module's content (P-19 US-5); `Shared.Contracts` built from `contracts/` (with the first proto or schema that needs it: P-04, P-05); outbox and message bus (P-04, L-01); Kubernetes (L-08); cloud (P-13).
 
 ## Concepts and model
@@ -17,8 +17,8 @@ The .NET side gets its skeleton: a solution in `backend/`, an **Aspire** AppHost
 
 ## User stories
 - **US-1** `[skeleton]` As a developer, I can start the whole platform with one command, so that working on it is as easy as the Studio.
-  - Acceptance: one command (e.g. `aspire run` or `dotnet run` on the AppHost) starts Postgres, Redis, the Core API, the mock login server and the platform app's dev server; the Aspire dashboard lists them with their state and health; stopping the AppHost stops them all; Docker is the only extra prerequisite; `docs/development.md` explains it.
-  - Notes: the mock login server stays in the AppHost until P-03 replaces it; Identity and Gateway are added by their epics.
+  - Acceptance: one command (e.g. `aspire run` or `dotnet run` on the AppHost) starts Postgres, Redis, the Core API and the platform app's dev server; the Aspire dashboard lists them with their state and health; stopping the AppHost stops them all; Docker is the only extra prerequisite; `docs/development.md` explains it.
+  - Notes: Identity and Gateway are added by their epics; there is no mock login server (D-39).
 - **US-2** `[skeleton]` As a developer, I can follow one request through every service in the dashboard, so that I understand and debug the system from day one.
   - Acceptance: loading the profile page shows one trace spanning the platform app server, the Core API and the Postgres query; logs are structured and linked to their trace; basic metrics (request rate, duration, errors) are visible per service; health and liveness endpoints exist in development.
   - Notes: the platform app (Node) needs the OpenTelemetry Node SDK pointed at the dashboard's OTLP endpoint; Aspire passes the endpoint as configuration.
@@ -37,7 +37,7 @@ No end-user UI. The developer experience is the product: one command, one dashbo
 
 ## Technical design
 - .NET 10, `WibeBlock.slnx`, `backend/src/AppHost`, `backend/src/ServiceDefaults`, `backend/src/CoreApi` (host) plus module projects or folders (choose in US-3: separate projects make boundaries compiler-enforced, folders are simpler; separate projects recommended for US-6).
-- Aspire hosting integrations for Postgres and Redis; the JavaScript hosting integration for the platform app; a container resource for the mock login server.
+- Aspire hosting integrations for Postgres and Redis; the JavaScript hosting integration for the platform app.
 - EF Core with Npgsql; one `DbContext` per module with its own default schema and migrations history table.
 - Central package management (`Directory.Packages.props`) and shared build settings (`Directory.Build.props`) for the solution.
 
@@ -60,7 +60,7 @@ An architecture test (e.g. NetArchTest or ArchUnitNET) that fails when a module 
 - Aspire evolves quickly (new CLI, renamed packages); follow the current docs, not older blog posts.
 
 ## Done when
-- [ ] (skeleton) One command starts Postgres, Redis, the Core API, the mock login server and the platform app; the dashboard shows them healthy.
+- [ ] (skeleton) One command starts Postgres, Redis, the Core API and the platform app; the dashboard shows them healthy.
 - [ ] (skeleton) A profile page load is one trace from the platform app server to Postgres.
 - [ ] (skeleton) The Accounts module has its schema, created automatically; module conventions are documented.
 - [ ] (foundation) Azurite runs; module boundaries are enforced.

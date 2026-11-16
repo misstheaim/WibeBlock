@@ -24,7 +24,7 @@ Each library has one job in the Studio (D-24); the full map with first epics is 
 | **Storybook** | Workshop and catalogue for `packages/ui` |
 | **React Router v8** (framework mode) | Platform app: server rendering, loaders/actions, BFF (D-26, D-34, D-36) |
 | **openid-client** (or similar) | OIDC client in the platform app's BFF (P-18) |
-| **MSW** (Mock Service Worker) + a mock OIDC server (`mock-oauth2-server`, Docker) | Backend mocks while the platform frontend is built first (D-33) |
+| **MSW** (Mock Service Worker) | API mocks while the platform frontend is built first (D-33); sign-in is not mocked (D-39) |
 | **orval** or **openapi-typescript** + **@microsoft/signalr** | Typed platform API client generated from the Core API's OpenAPI; realtime in the platform adapters |
 | **Astro** | Static landing page (`apps/website`, P-20) |
 | **dnd-kit** | Drag-and-drop in the layout editor |
@@ -190,7 +190,7 @@ _Fill in as each piece exists._
 - **Everything (now):** from the repo root, `pnpm install`, then `pnpm dev` starts the Studio and the platform app side by side (each prints its own `localhost` URL; the second one moves to the next free port). `pnpm build` and `pnpm lint` run the same way for the whole workspace.
 - **One app:** `pnpm dev:studio` (only the local Studio, no accounts) or `pnpm dev:platform`.
 - **Studio + Runner (Phase 1, Studio alpha):** the Runner joins `pnpm dev` and `pnpm dev:studio`.
-- **Platform frontend (Phase 0):** `pnpm dev:platform` (and later `apps/website`), against mocks: MSW in the server process (copy `apps/platform/.env.example` to `.env` once; see "Platform API settings and mocked backend") and the mock login server in Docker (D-33).
+- **Platform frontend (Phase 0):** `pnpm dev:platform`, against MSW in the server process (copy `apps/platform/.env.example` to `.env` once; see "Platform API settings and mocked backend"); a fixed mock user stands in until sign-in (P-18) is built after Identity (D-39).
 - **Platform with backend (Phase 0 onwards):** run the Aspire AppHost in `backend/` (starts the services, containers and the platform app); needs Docker Desktop.
 - **Kubernetes (Phase 5):** kind/k3d cluster scripts in `infra/`.
 

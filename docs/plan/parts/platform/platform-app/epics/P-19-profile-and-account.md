@@ -1,6 +1,6 @@
 # P-19 — Profile & account
 
-> Part: Platform · Phase: 0 · Stages: skeleton · Depends on: P-08, P-18 (P-01, P-02, P-03 for US-5 and US-6) · Status: draft
+> Part: Platform · Phase: 0 · Stages: skeleton · Depends on: P-08, P-17 (P-18 for the signed-in checks; P-01, P-02, P-03 for US-5 and US-6) · Status: draft
 
 ## Goal
 A signed-in user can see and edit their profile, has their light/dark choice follow them to any device, and finds their account security actions. The epic crosses the whole stack in the skeleton: the frontend is built first against mocks (D-33), then a small **Accounts module** in the Core API serves the real data through the Gateway, and the mocks are switched off. Identity stays responsible for credentials and security only; the profile lives in the Core API (D-34).
@@ -22,11 +22,12 @@ A signed-in user can see and edit their profile, has their light/dark choice fol
   - Acceptance: an edit form with validation (required, trimmed, 1–50 characters) checked in the browser and again on the server; server-side errors appear under the field; the form also works with JavaScript disabled; on success a toast confirms and the user menu shows the new name immediately.
 - **US-3** `[skeleton]` As a user, my light/dark choice follows me to every browser I sign in on, so that I set it once.
   - Acceptance: switching the mode (P-08 US-5) also saves it to my profile in the background, without blocking the UI (if saving fails, the mode stays and a quiet toast says it wasn't saved); after signing in on another browser, the saved mode is applied and written to that browser's mode cookie; signed out, the cookie or OS preference is used.
+  - Notes: until P-18 the fixed mock user and the mocked profile are enough; the check on another browser is done after P-18 (D-39).
 - **US-4** `[skeleton]` As a user, I can find my account security settings, so that I can manage how I sign in.
   - Acceptance: `/account` shows my email with a "verified" badge, my linked sign-in methods, and buttons "Change password", "Manage linked accounts" and "Sign out everywhere" that open Identity's pages (P-03) and return me to `/account`; in mocked mode these buttons are disabled with a short explanation.
 - **US-5** `[skeleton]` As a developer, the Core API's Accounts module serves the profile through the Gateway, so that the frontend has a real backend.
   - Acceptance: through the Gateway with a valid token, "get my profile" returns the profile and creates it on first call; "update my profile" changes display name and preferences with validation errors returned as problem details (400); another user's profile is never reachable; data lives in the module's own Postgres schema with migrations; an OpenAPI document and a dev API explorer (e.g. Scalar) describe the endpoints.
-  - Notes: depends on P-01 (Core API skeleton), P-02 (Gateway) and a token issuer (mock server or P-03).
+  - Notes: depends on P-01 (Core API skeleton), P-02 (Gateway) and P-03 (the token issuer).
 - **US-6** `[skeleton]` As a developer, I can switch the profile pages from mocks to the real API, so that the skeleton runs end to end.
   - Acceptance: with the mock flag off, US-1 to US-4 work against Gateway → Core API with no other changes to pages; differences between mock and real responses are fixed in the platform app's API client, whose types are now generated from the Core API's OpenAPI document; the mock handlers are either deleted or rebuilt on the generated types as dev fixtures (decide in the ticket).
 

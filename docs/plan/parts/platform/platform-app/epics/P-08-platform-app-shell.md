@@ -23,7 +23,7 @@
   - Notes: the app was scaffolded from the `create-react-router` default template in the monorepo setup and is wired into the workspace, with the dev scripts, server rendering and route type generation already working (D-36). What remains: React Compiler, the route configuration, the code structure, the production start check, and replacing the template's sample route.
 - **US-2** `[skeleton]` As a developer, I can run the app against a mocked backend, so that every screen can be built before the .NET services exist.
   - Acceptance: with the mock flag on, requests from the server to the API base URL are answered by mock handlers with a small realistic delay; a scenario switch (environment variable or a dev-only control) makes them slow, failing (500) or unauthorised (401); with the flag off, the app calls the configured base URL; the production build never includes mocks.
-  - Notes: mocks cover only what the skeleton uses (profile, P-19). Login is mocked differently, by a mock OIDC server (P-18). Split in two tickets: the mock infrastructure and its contract (env names, `GET /accounts/me`, problem details; #15, documented in `docs/development.md`), then the server-only API client and the signed-in layout loader as its first consumer.
+  - Notes: mocks cover only what the skeleton uses (profile, P-19). Login is not mocked: until P-18 (built after Identity, D-39) a fixed mock user stands in. Split in two tickets: the mock infrastructure and its contract (env names, `GET /accounts/me`, problem details; #15, documented in `docs/development.md`), then the server-only API client and the signed-in layout loader as its first consumer.
 - **US-3** `[skeleton]` As a signed-in user, I see a clear layout with navigation and my user menu, so that I always know where I am.
   - Acceptance: a top bar with the logo, "Projects" navigation (active item highlighted) and the user menu (avatar, name; Profile, Account, light/dark, Sign out); the layout works from phone width (navigation collapses into a menu) to wide screens; every page sets its own title; keyboard users can skip to the content.
   - Notes: user name and avatar come from the session (P-18); until P-18 is done, a fixed mock user.
@@ -68,7 +68,7 @@ Concepts in a sensible order:
 References: [React Router — framework mode](https://reactrouter.com/start/framework/installation) (routing, data loading, actions, pending UI, error boundaries, sessions and cookies chapters), [React — server rendering APIs](https://react.dev/reference/react-dom/server), [React — hydrateRoot and mismatches](https://react.dev/reference/react-dom/client/hydrateRoot), [MSW — Node integration](https://mswjs.io/docs/integrations/node), [MDN — HTTP cookies](https://developer.mozilla.org/docs/Web/HTTP/Cookies).
 
 ## Tests (optional)
-A Playwright smoke run (sign in with the mock login server, open dashboard, open editor, switch mode, reload) would catch hydration and routing regressions cheaply; D-16 puts the first Playwright tests in S-29, so this can be the first instead if the owner wants it earlier.
+A Playwright smoke run (open dashboard, open editor, switch mode, reload; sign-in added with P-18) would catch hydration and routing regressions cheaply; D-16 puts the first Playwright tests in S-29, so this can be the first instead if the owner wants it earlier.
 
 ## Risks and open questions
 - **Two routers** (D-24): the editor route will host the Studio's TanStack Router inside React Router. The stub does not exercise it; S-02's spike must run before the real Studio lands here.
