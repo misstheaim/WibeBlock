@@ -1,6 +1,6 @@
 # P-02 — Gateway (YARP)
 
-> Part: Platform · Phase: 0, 3 · Stages: skeleton, connected · Depends on: P-01 (a token issuer: the mock login server, then P-03) · Status: draft
+> Part: Platform · Phase: 0, 3 · Stages: skeleton, connected · Depends on: P-01, P-03 (the token issuer, D-39) · Status: draft
 
 ## Goal
 All API traffic enters the platform through one **YARP** gateway: it routes requests to the right service, rejects requests without a valid token before they reach a service, limits how fast one user can call, and makes every request visible in traces. It is a plain gateway, not the BFF: sessions live in the platform app (D-34).
@@ -18,7 +18,7 @@ All API traffic enters the platform through one **YARP** gateway: it routes requ
 - **US-1** `[skeleton]` As a developer, the platform app reaches the Core API only through the Gateway, so that there is one entry point to secure and observe.
   - Acceptance: the platform app's API base URL is the Gateway; requests under the Core API's prefix reach the Core API, found through service discovery; unknown paths return 404 from the Gateway; adding a service is a route and a cluster in configuration.
 - **US-2** `[skeleton]` As a developer, requests without a valid token are rejected at the edge, so that services only see authenticated traffic.
-  - Acceptance: missing, expired, wrongly signed, wrong-issuer and wrong-audience tokens get 401 from the Gateway and never reach the Core API; valid requests pass with the token unchanged and the Core API validates it again; switching the issuer from the mock login server to Identity is configuration only.
+  - Acceptance: missing, expired, wrongly signed, wrong-issuer and wrong-audience tokens get 401 from the Gateway and never reach the Core API; valid requests pass with the token unchanged and the Core API validates it again; issuer and audience come from configuration (Identity's discovery URL).
 - **US-3** `[skeleton]` As a user, the app tells me to slow down instead of breaking when I send too many requests, so that the platform stays responsive for everyone.
   - Acceptance: above the limit the Gateway answers 429 with `Retry-After`; limits are per user for authenticated calls and per IP otherwise; the platform app shows a calm "Too many requests, try again in a moment" message; limits are configurable.
 - **US-4** `[skeleton]` As a developer, I can see every request the Gateway handles, so that I can find slow or failing calls.

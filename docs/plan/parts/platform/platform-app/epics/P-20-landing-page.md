@@ -14,9 +14,9 @@ Visitors find a simple public page that says what WibeBlock is and one button th
 - **Shared look:** the site imports the kit's stylesheet (tokens and Tailwind setup) but no React components, unless an interactive island needs one.
 
 ## User stories
-- **US-1** `[skeleton]` As a visitor, I can read what WibeBlock is and open it with one button, so that I get into the product quickly.
+- **US-1** `[later]` As a visitor, I can read what WibeBlock is and open it with one button, so that I get into the product quickly.
   - Acceptance: the page has a hero (name, one-sentence pitch), three short feature points and an "Open WibeBlock" button; the button opens the platform app root; signed in, I land on the dashboard, otherwise on the sign-in page and then on the dashboard; the page uses the app's tokens and follows the OS light/dark setting; it reads well on a phone.
-- **US-2** `[skeleton]` As a developer, I can run and build the site from the repo root, so that it is part of the workspace like everything else.
+- **US-2** `[later]` As a developer, I can run and build the site from the repo root, so that it is part of the workspace like everything else.
   - Acceptance: a root script starts the Astro dev server; the build produces static files only; the platform app URL comes from environment configuration (local, later cloud); the page scores well in Lighthouse (performance, accessibility).
 - **US-3** `[later]` As a visitor, I can read docs and see pricing, so that I understand the product before signing up.
   - Acceptance: docs pages from Markdown content; a pricing page reflecting the plans from P-09; navigation between landing, docs and pricing.

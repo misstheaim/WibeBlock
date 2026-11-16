@@ -14,7 +14,7 @@ A self-hosted OpenID Connect provider (D-07): sign-up, login, external logins, a
 - Claims: `sub`, `email`, `email_verified`, `name`, `picture`; roles later; plan from Billing later (P-09). Other services validate JWTs with the JWKS endpoint. OpenIddict encrypts access tokens by default; turning it off for the API audience, or using OpenIddict validation in the services, is decided in P-03 US-6.
 - Email through Mailpit locally.
 - The admin gRPC lookup from the first plan is dropped until a service needs it.
-- In Phase 0 the frontend uses a mock OIDC server; Identity replaces it by configuration (D-33).
+- There is no mock login server: the platform app's sign-in (P-18) is built after Identity, directly against it (D-39).
 - Learning focus: OIDC flows, token lifetimes, refresh rotation, key handling, PKCE, account linking, security headers.
 
 ## Epics

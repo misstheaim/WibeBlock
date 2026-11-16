@@ -1,6 +1,6 @@
 # WibeBlock — Master Plan
 
-> **Status:** v1.2, 2026-10-30 (platform skeleton planned as Phase 0: UI kit, platform app shell, BFF sign-in, profile, landing page, backend skeleton; D-33…D-35). v1.1, 2026-10-28: Studio part planned in detail. Supersedes `IDEA.md` wherever they differ. Decisions are recorded in [decisions.md](decisions.md).
+> **Status:** v1.3, 2026-11-16 (no mock login server: sign-in is built after Identity; landing page moved to Phase 4; D-39). v1.2, 2026-10-30 (platform skeleton planned as Phase 0: UI kit, platform app shell, BFF sign-in, profile, landing page, backend skeleton; D-33…D-35). v1.1, 2026-10-28: Studio part planned in detail. Supersedes `IDEA.md` wherever they differ. Decisions are recorded in [decisions.md](decisions.md).
 > **Visual map:** https://claude.ai/artifact/CjKkK1RtSsxGyfrNjbRUUM (source: [visual/plan-map.html](visual/plan-map.html); update its DATA block and republish to the same URL when the plan changes).
 
 ## How this plan is organised
@@ -126,11 +126,11 @@ The repo root is the pnpm workspace with a version catalog (+ Turborepo if build
 
 | Phase | Studio track | Platform track | Epics |
 |---|---|---|---|
-| **0. Platform skeleton** | — (the Studio is a stub in the platform app) | Frontend first against mocks: UI kit with light/dark, platform app shell, BFF sign-in, profile and account, Astro landing page. Then the backend skeleton: Aspire, Core API with the Accounts module, Identity, Gateway; mocks switched off. | P-17, P-08, P-18, P-19, P-20 · `[skeleton]` stories of P-01, P-03, P-02 |
+| **0. Platform skeleton** | — (the Studio is a stub in the platform app) | Frontend first against MSW mocks: UI kit with light/dark, platform app shell, profile and account. Then the backend skeleton: Aspire, Core API with the Accounts module, Identity, Gateway; then BFF sign-in against Identity and the mocks switched off (D-39). | P-17, P-08, P-19 · `[skeleton]` stories of P-01, P-03, P-02 · P-18 |
 | **1. Studio alpha** | The smallest Studio the backend can be built against: schema + JSON Schema export, adapters, Runner storage and AI proxy, canvas with viewports and block frames, random starter layouts, Structure panel, inspector, one AI task with proposals, undo. | — | `[alpha]` stories of S-01, S-14, S-02, S-09, S-03, S-18, S-31, S-19, S-15, S-07, S-04, S-05 |
 | **2. Studio MVP ∥ Platform foundation** | The full local loop up to Compact: theme studio, knowledge base, history panel, run preview, Compact; minimal logic canvas (optional). | Projects module, real project dashboard, the rest of the foundation (Azurite, module boundaries, Google login). | `[MVP]` stories of the alpha epics + S-32, S-21, S-06, S-13, S-25 · P-04, `[foundation]` stories of P-01, P-03, P-08 |
 | **3. Studio v1 ∥ Platform connected** | AI themes, global prompt bar, logic v1, prompt library, Developer panels, snapshots, assets, Claude Code, onboarding. | AI Generation service, realtime, Export service, the real Studio in the platform app, platform adapters, Local import/export. | S-20, S-22, S-08, S-24, S-16, S-26, S-28, S-10, S-29 · P-05, P-06, P-07, P-16, `[connected]` stories of P-02, P-03, P-08 |
-| **4. Product features** | — | Account extras (BYO keys, plan and usage, data export), plans, billing (Stripe test mode), metering, notifications, docs and pricing pages. All still local. | P-09, P-10, P-11, P-12, P-14, P-20 US-3 |
+| **4. Product features** | — | Account extras (BYO keys, plan and usage, data export), plans, billing (Stripe test mode), metering, notifications, Astro landing page with docs and pricing. All still local. | P-09, P-10, P-11, P-12, P-14, P-20 |
 | **5. Learning track** | — | Message bus + outbox, Design Graph, observability, load tests, chaos, service extraction, k8s maturity, serverless jobs. | L-01 … L-06, L-08, P-15 |
 | **6. Cloud deployment** | — | Terraform to Azure, cheapest first; stop/scale-to-zero by default. | P-13 |
 | **7. Later / garden** | Garden: other targets, framework porting, AI knowledge base, VS Code, browser-only, pro tools. | Mobile part, Kafka upgrade, collaboration, preview hosting, analytics store, AWS exercise. | S-17, S-27, S-23, S-11, S-12, S-30, M-01, M-02, M-03, L-07, L-09, L-10, L-11, L-12 |
@@ -173,13 +173,14 @@ See [decisions.md](decisions.md).
 - D-29 Block frames with border buttons are editor chrome that stays after generation and is never exported.
 - D-30 Left panel = Structure + Files; Photoshop-style layers later; minimal light Studio with a pastel lime accent.
 - D-31 Git flow: `develop` (default) for squash-merged work, `master` for tagged releases via `release/*` merge commits; alpha `0.1.0`, MVP `0.2.0`, v1 `1.0.0`.
-- D-33 Platform skeleton first (Phase 0), frontend first against a mock OIDC server and MSW; versions: skeleton `0.1.0`, Studio alpha `0.2.0`, MVP `0.3.0`, v1 `1.0.0`.
+- D-33 Platform skeleton first (Phase 0), frontend first against MSW (the mock OIDC server was dropped by D-39); versions: skeleton `0.1.0`, Studio alpha `0.2.0`, MVP `0.3.0`, v1 `1.0.0`.
 - D-34 Identity for authentication only (Razor Pages, GitHub first); the platform app's server is the BFF; YARP a plain gateway; profiles in a Core API Accounts module.
 - D-35 App UI on semantic tokens with light and dark modes chosen by the user; customisable later with the S-05 theme editor.
 - D-32 Repo root is the pnpm workspace; Export service in `apps/export`; `contracts/` (JSON Schema, protos, fixtures) shared by TS and .NET; `backend/` is .NET only.
 - D-36 Platform app on React Router v8, scaffolded in the monorepo setup; `pnpm dev` starts every app, `pnpm dev:studio` / `pnpm dev:platform` one.
 - D-37 Themes are datasets of one shape (default, presets, custom) applied by one mechanism; a theme supports light, dark or both modes; the server renders the effective mode as `data-mode`.
 - D-38 Colour tokens use shadcn role names: `background` / `foreground` and `X` / `X-foreground` pairs, mapped with `@theme inline`.
+- D-39 No mock login server: MSW mocks only the API; sign-in (P-18) is built after Identity (P-03); the landing page (P-20) moves to Phase 4.
 
 ## 8. Open questions
 
