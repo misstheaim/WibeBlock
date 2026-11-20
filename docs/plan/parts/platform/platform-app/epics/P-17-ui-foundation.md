@@ -67,8 +67,9 @@ Storybook interaction tests for dialog and dropdown focus handling (open, trap, 
 
 ## Risks and open questions
 - **Building ahead of need.** Build a component when a screen in P-08, P-18, P-19 or P-20 needs it; the list in US-3 and US-4 is what the skeleton uses.
+- **Composed dialogs come with their first screen.** US-4 ships the dialog parts (shadcn-style). A generic `ConfirmDialog` (title, description, confirm label, destructive intent, async confirm with a loading button and an error state, controlled `open`) goes in `packages/ui` with the first screen that needs a destructive confirmation (e.g. deleting a project), so its API follows a real use; dialogs with app content (e.g. editing the profile in P-19) stay in the app.
 - **Token names must survive S-05.** If S-05 needs a different structure, rename once, early, across both. Names follow D-38.
-- **Radix or Base UI** for the hard primitives (dialog, menu, select): the plan names Radix (D-24); Base UI (by the MUI team, also supported by shadcn) is the alternative. Compare them when the first complex component is built (US-4).
+- ~~**Radix or Base UI** for the hard primitives (dialog, menu, select): the plan names Radix (D-24); Base UI (by the MUI team, also supported by shadcn) is the alternative. Compare them when the first complex component is built (US-4).~~ **Decided 2026-11-18: Radix Primitives** (the unified `radix-ui` package), keeping D-24; US-4 is built in one ticket (#22). Radix has no combobox or number field, so S-14's pro inputs may need our own code or another library for those; that is decided in S-14.
 - **Razor Pages in Identity (P-03) need the same look** without React: they can only reuse the CSS (tokens and Tailwind classes), so keep component styles expressible as classes, not only as React logic.
 - Hydration and the mode: the server must render the right mode attribute (P-08 US-5); the kit must not read `window` during render.
 

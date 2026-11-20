@@ -27,3 +27,11 @@ export const buttonVariants = cva(
     },
   },
 );
+
+export const buttonContentVariants = cva(["inline-flex items-center gap-2"], {
+  variants: {
+    loading: { true: "opacity-0", false: "" },
+  },
+});
+
+export const buttonSpinnerVariants = cva(["absolute"]);
