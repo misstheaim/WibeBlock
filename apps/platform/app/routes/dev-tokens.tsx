@@ -5,14 +5,39 @@ import {
   IconButton,
   Label,
   FormField,
+  Skeleton,
+  Spinner,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  toast,
 } from "@wibeblock/ui";
-import { File, List, Plus, Trash } from "lucide-react";
+import { File, List, LogOut, Plus, Trash, User } from "lucide-react";
+import { useState } from "react";
 
 export function meta() {
   return [{ title: "Tokens - WibeBlock" }];
 }
 
 export default function DevTokens() {
+  const [mode, setMode] = useState("system");
+
   return (
     <main className="flex min-h-screen flex-col gap-6 p-8">
       <div>
@@ -163,6 +188,192 @@ export default function DevTokens() {
           >
             <Textarea defaultValue="Short" />
           </FormField>
+        </div>
+      </section>
+      <section className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md">
+        <h2 className="text-lg font-semibold">Loading</h2>
+        <div className="flex items-center gap-4">
+          <Spinner size="sm" />
+          <Spinner size="md" />
+          <Spinner size="lg" />
+          <Spinner label="Loading projects" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton className="size-10 rounded-full" />
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      </section>
+      <section className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md">
+        <h2 className="text-lg font-semibold">Dropdown menu</h2>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button intent="secondary">Open menu</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuLabel>My account</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => console.log("profile")}>
+                <User /> Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>Billing (soon)</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Mode</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={mode} onValueChange={setMode}>
+                <DropdownMenuRadioItem value="light">
+                  Light
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system">
+                  System
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem intent="destructive">
+                <LogOut /> Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </section>
+      <section className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md">
+        <h2 className="text-lg font-semibold">Avatar</h2>
+        <div className="flex flex-wrap items-center gap-4">
+          <Avatar size="sm">
+            <AvatarImage
+              src="https://avatars.githubusercontent.com/u/9919"
+              alt="GitHub"
+            />
+            <AvatarFallback>GH</AvatarFallback>
+          </Avatar>
+          <Avatar>
+            <AvatarImage
+              src="https://avatars.githubusercontent.com/u/9919"
+              alt="GitHub"
+            />
+            <AvatarFallback>GH</AvatarFallback>
+          </Avatar>
+          <Avatar size="lg">
+            <AvatarImage
+              src="https://avatars.githubusercontent.com/u/9919"
+              alt="GitHub"
+            />
+            <AvatarFallback>GH</AvatarFallback>
+          </Avatar>
+          <Avatar>
+            <AvatarImage
+              src="data:image/png;base64,broken"
+              alt="Ada Lovelace"
+            />
+            <AvatarFallback>AL</AvatarFallback>
+          </Avatar>
+          <Avatar>
+            <AvatarFallback>MU</AvatarFallback>
+          </Avatar>
+          <Avatar>
+            <AvatarImage src="data:image/png;base64,broken" alt="" />
+            <AvatarFallback name="Ada Lovelace" />
+          </Avatar>
+          <Avatar>
+            <AvatarFallback name="Mock User" />
+          </Avatar>
+          <Avatar>
+            <AvatarFallback name="Grace Hopper" />
+          </Avatar>
+          <Avatar>
+            <AvatarFallback name="Linus" />
+          </Avatar>
+          <Avatar>
+            <AvatarFallback name="Margaret Heafield Hamilton" />
+          </Avatar>
+          <Avatar>
+            <AvatarFallback>??</AvatarFallback>
+          </Avatar>
+        </div>
+      </section>
+      <section className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md">
+        <h2 className="text-lg font-semibold">Dialog</h2>
+        <div className="flex flex-wrap gap-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button intent="secondary">Edit profile</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit profile</DialogTitle>
+                <DialogDescription>
+                  Change how others see you in WibeBlock.
+                </DialogDescription>
+              </DialogHeader>
+              <FormField label="Display name">
+                <Input defaultValue="Mock User" />
+              </FormField>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button intent="ghost">Cancel</Button>
+                </DialogClose>
+                <Button>Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button intent="destructive">Delete project</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete this project?</DialogTitle>
+                <DialogDescription>
+                  The project and its history are removed. You can't undo this.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button intent="ghost">Cancel</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button intent="destructive">Delete</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
+      <section className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md">
+        <h2 className="text-lg font-semibold">Toast</h2>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            intent="secondary"
+            onClick={() => toast({ title: "Profile saved" })}
+          >
+            Show toast
+          </Button>
+          <Button
+            intent="secondary"
+            onClick={() =>
+              toast({
+                title: "Project created",
+                description: "You can start adding blocks.",
+                tone: "success",
+              })
+            }
+          >
+            Success toast
+          </Button>
+          <Button
+            intent="destructive"
+            onClick={() =>
+              toast({
+                title: "Couldn't save",
+                description: "Check your connection and try again.",
+                tone: "destructive",
+              })
+            }
+          >
+            Error toast
+          </Button>
         </div>
       </section>
     </main>

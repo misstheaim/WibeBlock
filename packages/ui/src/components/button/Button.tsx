@@ -1,8 +1,12 @@
 import type { VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 import { cn } from "../../lib/cn";
-import { buttonVariants } from "./buttonVariants";
-import { LoaderCircle } from "lucide-react";
+import {
+  buttonContentVariants,
+  buttonSpinnerVariants,
+  buttonVariants,
+} from "./buttonVariants";
+import { Spinner } from "../spinner";
 
 export type ButtonProps = ComponentProps<"button"> & {
   loading?: boolean;
@@ -25,18 +29,9 @@ export function Button({
       aria-busy={loading || undefined}
       className={cn(buttonVariants({ intent, size }), className)}
     >
-      <span
-        className={cn("inline-flex items-center gap-2", loading && "opacity-0")}
-      >
-        {children}
-      </span>
+      <span className={cn(buttonContentVariants({ loading }))}>{children}</span>
 
-      {loading && (
-        <LoaderCircle
-          aria-hidden
-          className="absolute size-4 animate-spin motion-reduce:animate-none"
-        />
-      )}
+      {loading && <Spinner size="sm" className={buttonSpinnerVariants()} />}
     </button>
   );
 }
