@@ -1,6 +1,6 @@
 # WibeBlock — Master Plan
 
-> **Status:** v1.3, 2026-11-16 (no mock login server: sign-in is built after Identity; landing page moved to Phase 4; D-39). v1.2, 2026-10-30 (platform skeleton planned as Phase 0: UI kit, platform app shell, BFF sign-in, profile, landing page, backend skeleton; D-33…D-35). v1.1, 2026-10-28: Studio part planned in detail. Supersedes `IDEA.md` wherever they differ. Decisions are recorded in [decisions.md](decisions.md).
+> **Status:** v1.4, 2026-11-23 (light/dark switch, mode in the profile and Storybook moved after the backend skeleton; the platform frontend's structure is the reference for generated projects; D-40, D-41). v1.3, 2026-11-16 (no mock login server: sign-in is built after Identity; landing page moved to Phase 4; D-39). v1.2, 2026-10-30 (platform skeleton planned as Phase 0: UI kit, platform app shell, BFF sign-in, profile, landing page, backend skeleton; D-33…D-35). v1.1, 2026-10-28: Studio part planned in detail. Supersedes `IDEA.md` wherever they differ. Decisions are recorded in [decisions.md](decisions.md).
 > **Visual map:** https://claude.ai/artifact/CjKkK1RtSsxGyfrNjbRUUM (source: [visual/plan-map.html](visual/plan-map.html); update its DATA block and republish to the same URL when the plan changes).
 
 ## How this plan is organised
@@ -126,7 +126,7 @@ The repo root is the pnpm workspace with a version catalog (+ Turborepo if build
 
 | Phase | Studio track | Platform track | Epics |
 |---|---|---|---|
-| **0. Platform skeleton** | — (the Studio is a stub in the platform app) | Frontend first against MSW mocks: UI kit with light/dark, platform app shell, profile and account. Then the backend skeleton: Aspire, Core API with the Accounts module, Identity, Gateway; then BFF sign-in against Identity and the mocks switched off (D-39). | P-17, P-08, P-19 · `[skeleton]` stories of P-01, P-03, P-02 · P-18 |
+| **0. Platform skeleton** | — (the Studio is a stub in the platform app) | Frontend first against MSW mocks: UI kit with light/dark tokens, platform app shell, profile and account. Then the backend skeleton: Aspire, Core API with the Accounts module, Identity, Gateway; then BFF sign-in against Identity and the mocks switched off (D-39); last the light/dark switch, the mode in the profile and Storybook (D-40). | P-17, P-08, P-19 · `[skeleton]` stories of P-01, P-03, P-02 · P-18 |
 | **1. Studio alpha** | The smallest Studio the backend can be built against: schema + JSON Schema export, adapters, Runner storage and AI proxy, canvas with viewports and block frames, random starter layouts, Structure panel, inspector, one AI task with proposals, undo. | — | `[alpha]` stories of S-01, S-14, S-02, S-09, S-03, S-18, S-31, S-19, S-15, S-07, S-04, S-05 |
 | **2. Studio MVP ∥ Platform foundation** | The full local loop up to Compact: theme studio, knowledge base, history panel, run preview, Compact; minimal logic canvas (optional). | Projects module, real project dashboard, the rest of the foundation (Azurite, module boundaries, Google login). | `[MVP]` stories of the alpha epics + S-32, S-21, S-06, S-13, S-25 · P-04, `[foundation]` stories of P-01, P-03, P-08 |
 | **3. Studio v1 ∥ Platform connected** | AI themes, global prompt bar, logic v1, prompt library, Developer panels, snapshots, assets, Claude Code, onboarding. | AI Generation service, realtime, Export service, the real Studio in the platform app, platform adapters, Local import/export. | S-20, S-22, S-08, S-24, S-16, S-26, S-28, S-10, S-29 · P-05, P-06, P-07, P-16, `[connected]` stories of P-02, P-03, P-08 |
@@ -181,6 +181,8 @@ See [decisions.md](decisions.md).
 - D-37 Themes are datasets of one shape (default, presets, custom) applied by one mechanism; a theme supports light, dark or both modes; the server renders the effective mode as `data-mode`.
 - D-38 Colour tokens use shadcn role names: `background` / `foreground` and `X` / `X-foreground` pairs, mapped with `@theme inline`.
 - D-39 No mock login server: MSW mocks only the API; sign-in (P-18) is built after Identity (P-03); the landing page (P-20) moves to Phase 4.
+- D-40 Phase 0 order: frontend (P-08 US-6, P-19 US-1, US-2, US-4), backend skeleton, sign-in, mocks off, then the light/dark switch (P-08 US-5), the mode in the profile (P-19 US-3) and Storybook (P-17 US-5).
+- D-41 The platform frontend's conventions (component folders as in `packages/ui`, thin routes, layouts, `features/`, `lib/`) are the reference for the structure of generated projects; modular where it pays off; S-01 fixes the generated layout.
 
 ## 8. Open questions
 

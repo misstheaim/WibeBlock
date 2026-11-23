@@ -144,6 +144,8 @@ docs/                plan and this file
 
 ### `apps/platform` structure (P-08)
 
+These conventions, together with the `packages/ui` ones above, are the reference for the structure of generated projects (D-41). When you make a structure decision here or in the kit, check whether a generated `react-vite` project would use it the same way, and say so in this section. Split folders and packages when the code needs it, not up front.
+
 - **Routes are declared in [app/routes.ts](../apps/platform/app/routes.ts)** with `index()`, `route()` and later `layout()` / `prefix()`, not with file-system routing: the whole route map is readable in one file, URLs don't depend on file names, and the nested layouts (public, signed-in, full-screen editor) are explicit.
 - **Route modules are thin**, one file per route in `app/routes/` (kebab-case, e.g. `dev-tokens.tsx`): `meta`, `loader`, `action` and a small page component that composes features. No business logic or large UI in them.
 - **Layout routes** live in `app/layouts/` (e.g. `signed-in.tsx`), apart from the pages, and are declared with `layout()` in `routes.ts`. A layout owns the page frame (full height, background, the single `<main>` landmark, the top bar) and renders the page through `<Outlet />`; pages render only their content.
@@ -270,6 +272,41 @@ Between milestones, minor releases and patches are cut when something is worth r
 - Names use the **issue number**: branch `feature/42-studio-package`, commits `feat(#42): add studio package`, PR title `#42 Add studio package`, and `Closes #42` in the PR description.
 - `Closes #42` closes the issue only when the PR merges into the default branch, which is why `develop` is the default.
 - Commits follow Conventional Commits (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, …).
+
+### Project board
+
+Tickets are tracked on the GitHub Project **WibeBlock** (owner `misstheaim`, Board layout, linked to this repo). Its `Status` field has five columns:
+
+| Status | When | Who moves it |
+|---|---|---|
+| `Todo` | The issue is created | The project's **Auto-add to project** workflow (filter `is:issue`) and **Item added to project** workflow (sets `Todo`); the agent also adds and sets it when it creates a ticket |
+| `Blocked` | Work started (often with a branch), then turned out to depend on another feature that must come first (e.g. the light/dark switch waiting for the backend) | The agent, once the owner agrees the ticket waits. The branch is kept; when work resumes, the ticket goes back to `In Progress` and the branch is updated from `origin/develop` |
+| `In Progress` | Work on the ticket starts (the first step of `/guide-me` or `/teach-me`, or the implementer's first change) | The agent |
+| `In Review` | The PR for the ticket is opened | Whoever opens the PR: the agent if it opens it, otherwise the owner with the command the agent gives in the session-end git block |
+| `Done` | The PR is merged | GitHub: `Closes #N` closes the issue on merge into `develop`, and the built-in **Item closed** workflow sets `Done` |
+
+GitHub's built-in workflows have no trigger for "work started" or "blocked", and the PR move is made explicitly too, so these moves are made with the `gh` CLI (needs the `project` token scope; `gh auth refresh -s project` adds it). Current IDs (re-check with the lookups below if a command fails):
+
+| What | ID |
+|---|---|
+| Project number / node id | `4` / `PVT_kwHOB4W9ys4Bs3Mv` |
+| `Status` field | `PVTSSF_lAHOB4W9ys4Bs3MvzhrDS9w` |
+| Options | `Todo` `f75ad846` · `Blocked` `a6c3bcb1` · `In Progress` `47fc9ee4` · `In Review` `05f20bba` · `Done` `98236657` |
+
+Lookups:
+
+```bash
+# project number and node id (PVT_…) of the "WibeBlock" project
+gh project list --owner misstheaim --format json
+# id of the Status field and of each of its options
+gh project field-list <number> --owner misstheaim --format json
+# item id of the issue on the board (adds it if it is missing, otherwise returns the existing item)
+gh project item-add <number> --owner misstheaim --url https://github.com/misstheaim/WibeBlock/issues/<N> --format json --jq .id
+# set the status
+gh project item-edit --id <item-id> --project-id <PVT_…> --field-id <status-field-id> --single-select-option-id <option-id>
+```
+
+The agent moves its own ticket's status without asking (standing permission from the owner, 2026-11-23). It never moves other items, and never moves an item backwards without asking.
 
 ### Other rules
 
