@@ -34,6 +34,7 @@ See the source format in the [Codegen feature](../codegen.md). Key points:
   - Acceptance: a project with `targets: ["react"]` has `targets/react/`; ports are derived from bodies with markers; a binding to a missing port is reported by validation.
 - **US-7** `[MVP]` As a developer, I can generate a React + Vite project from a WibeBlock project, so that the user gets real, idiomatic code.
   - Acceptance: the sample project generates a project with React Router routes per page, Tailwind v4 with the theme as CSS variables, one component per page and per named block, and logic graphs turned into hooks and handlers; `npm install && npm run dev` works; generating twice gives byte-identical output.
+  - Notes: the generated folder layout starts from the platform frontend's conventions (D-41): one folder per component as in `packages/ui`, thin route modules, layouts apart from pages, `features/` and `lib/`. Decide here whether user components go in a package of their own or in `src/components/`.
 - **US-8** `[MVP]` As a developer, I can regenerate only what changed, so that the run preview updates quickly.
   - Acceptance: changing one block's body rewrites only the affected component files; the engine reports which files changed.
 

@@ -26,14 +26,15 @@ The first milestone of the whole project (D-33): the platform app with a Studio 
 
 | Step | Epic (skeleton stories) | Result |
 |---|---|---|
-| 1 | [P-17](platform-app/epics/P-17-ui-foundation.md) UI foundation | `packages/ui` with light/dark tokens, base components, Storybook |
-| 2 | [P-08](platform-app/epics/P-08-platform-app-shell.md) Platform app shell | Server-rendered app: layouts, dashboard placeholder, editor stub, errors, light/dark, mocked backend |
-| 3 | [P-19](platform-app/epics/P-19-profile-and-account.md) Profile & account (US-1…US-4) | Profile, display name, mode preference, account page, against mocks with a fixed mock user |
+| 1 | [P-17](platform-app/epics/P-17-ui-foundation.md) UI foundation (US-1…US-4) | `packages/ui` with light/dark tokens and base components |
+| 2 | [P-08](platform-app/epics/P-08-platform-app-shell.md) Platform app shell (US-1…US-4, US-6) | Server-rendered app: layouts, dashboard placeholder, editor stub, loading and error states, mocked backend |
+| 3 | [P-19](platform-app/epics/P-19-profile-and-account.md) Profile & account (US-1, US-2, US-4) | Profile, display name, account page, against mocks with a fixed mock user |
 | 4 | [P-01](foundation/epics/P-01-backend-foundation.md) Backend foundation | Aspire AppHost, OTel, Core API with the Accounts schema, Postgres, Redis |
 | 5 | [P-03](identity/epics/P-03-identity-service.md) Identity service | Razor login, sign-up, reset, GitHub, account security, tokens |
 | 6 | [P-02](gateway/epics/P-02-gateway.md) Gateway | Routing, JWT at the edge, rate limits |
 | 7 | [P-18](platform-app/epics/P-18-bff-authentication.md) BFF authentication | Sign in/out through Identity; sessions in Redis; `/api/*` forwarding |
 | 8 | P-19 US-5, US-6 | Accounts module live, mocks switched off: the skeleton runs end to end |
+| 9 | P-08 US-5, P-19 US-3, P-17 US-5 | Light/dark switch without a flash, the mode saved to the profile, Storybook for the kit (moved after the backend, D-40) |
 
 The landing page (P-20) moved to Phase 4 (D-39).
 

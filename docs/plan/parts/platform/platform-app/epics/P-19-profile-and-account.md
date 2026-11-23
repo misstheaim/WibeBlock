@@ -22,7 +22,7 @@ A signed-in user can see and edit their profile, has their light/dark choice fol
   - Acceptance: an edit form with validation (required, trimmed, 1–50 characters) checked in the browser and again on the server; server-side errors appear under the field; the form also works with JavaScript disabled; on success a toast confirms and the user menu shows the new name immediately.
 - **US-3** `[skeleton]` As a user, my light/dark choice follows me to every browser I sign in on, so that I set it once.
   - Acceptance: switching the mode (P-08 US-5) also saves it to my profile in the background, without blocking the UI (if saving fails, the mode stays and a quiet toast says it wasn't saved); after signing in on another browser, the saved mode is applied and written to that browser's mode cookie; signed out, the cookie or OS preference is used.
-  - Notes: until P-18 the fixed mock user and the mocked profile are enough; the check on another browser is done after P-18 (D-39).
+  - Notes: built after US-6 together with P-08 US-5 (D-40), so it saves to the real Accounts module and the check on another browser is done at once (P-18 exists by then).
 - **US-4** `[skeleton]` As a user, I can find my account security settings, so that I can manage how I sign in.
   - Acceptance: `/account` shows my email with a "verified" badge, my linked sign-in methods, and buttons "Change password", "Manage linked accounts" and "Sign out everywhere" that open Identity's pages (P-03) and return me to `/account`; in mocked mode these buttons are disabled with a short explanation.
 - **US-5** `[skeleton]` As a developer, the Core API's Accounts module serves the profile through the Gateway, so that the frontend has a real backend.
