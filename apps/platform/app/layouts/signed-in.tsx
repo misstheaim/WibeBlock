@@ -1,11 +1,28 @@
 import { Button } from "@wibeblock/ui";
-import { Link, NavLink, Outlet } from "react-router";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  type ShouldRevalidateFunctionArgs,
+} from "react-router";
 import { getProfile } from "~/lib/accounts.server";
 import type { Route } from "./+types/signed-in";
+import { UserMenu } from "~/features/account";
 
 export async function loader() {
   const profile = await getProfile();
   return { profile };
+}
+
+export function shouldRevalidate({
+  currentUrl,
+  formMethod,
+  nextUrl,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs) {
+  if (formMethod) return defaultShouldRevalidate;
+  if (currentUrl.href === nextUrl.href) return defaultShouldRevalidate;
+  return false;
 }
 
 export default function SignedInLayout({ loaderData }: Route.ComponentProps) {
@@ -38,9 +55,8 @@ export default function SignedInLayout({ loaderData }: Route.ComponentProps) {
           </NavLink>
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">
-            {loaderData.profile.displayName}
-          </span>
+          <UserMenu profile={loaderData.profile} />
+
           <Button
             intent="ghost"
             onClick={() => {

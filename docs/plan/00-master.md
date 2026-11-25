@@ -183,6 +183,7 @@ See [decisions.md](decisions.md).
 - D-39 No mock login server: MSW mocks only the API; sign-in (P-18) is built after Identity (P-03); the landing page (P-20) moves to Phase 4.
 - D-40 Phase 0 order: frontend (P-08 US-6, P-19 US-1, US-2, US-4), backend skeleton, sign-in, mocks off, then the light/dark switch (P-08 US-5), the mode in the profile (P-19 US-3) and Storybook (P-17 US-5).
 - D-41 The platform frontend's conventions (component folders as in `packages/ui`, thin routes, layouts, `features/`, `lib/`) are the reference for the structure of generated projects; modular where it pays off; S-01 fixes the generated layout.
+- D-42 Platform pages stay on plain loaders (no client cache); if a cache is ever needed, it is the TanStack Query hybrid: `clientLoader` + `fetchQuery`, cache seeded during hydration, shared resource routes, `useQuery` subscriptions for components that must stay in sync.
 
 ## 8. Open questions
 

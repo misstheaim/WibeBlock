@@ -45,6 +45,7 @@ Lightweight decision log. Each entry: context → decision → consequences. Add
 | D-39 | Authentication waits for Identity; no mock login server; landing page after Phase 0 | 2026-11-16 |
 | D-40 | Phase 0: the light/dark switch, the mode in the profile and Storybook move after the backend skeleton | 2026-11-23 |
 | D-41 | The platform frontend's structure is the reference for the structure of generated projects | 2026-11-23 |
+| D-42 | Platform data stays on plain loaders; a client cache, if ever needed, is the TanStack Query hybrid with loaders | 2026-11-23 |
 
 ## D-01 Flex/grid block tree instead of free coordinates
 **Context.** IDEA.md described blocks as divs positioned "however the user likes". Absolute x/y coordinates export to non-responsive code that developers won't own.
@@ -265,6 +266,18 @@ Lightweight decision log. Each entry: context → decision → consequences. Add
 **Context.** The owner wants the structure of the platform frontend (or parts of it) to become the template for the projects WibeBlock generates (S-01's `react-vite` target, Compact in S-13). Example: `packages/ui` keeps one folder per component in `src/components/<name>/`, which maps naturally to the components a user creates in the Studio (named blocks). The platform app itself is a server-rendered BFF app (D-26, D-34), while a generated project is a Vite + React + React Router app with no server, so the platform app cannot be copied as a whole.
 **Decision.** The **conventions** of the platform frontend are the reference for the structure of generated projects: one folder per component with the component, its variants and an `index.ts` (as in `packages/ui`); thin route modules; layouts apart from pages; `features/` and `lib/`; tokens as CSS variables. Server-only parts (`.server.ts`, the API client, sessions, MSW) have no counterpart there. **Modular where it pays off**: folders and packages are split when the code needs it, not up front. When a structure decision is made in the platform app or the kit, ask whether a generated project would use it the same way, and note it in `docs/development.md`. S-01 fixes the generated layout (including whether user components sit in a package of their own or in `src/components/`).
 **Consequences.** S-01 US-7 (the `react-vite` target) starts from these conventions. A structure change in the platform frontend is weighed against generated projects too.
+
+## D-42 Platform data: plain loaders now, the TanStack Query hybrid if a client cache is ever needed
+**Context.** Building `/profile` (P-19 US-1) showed how loaders behave with server rendering: React Router's single fetch re-runs **every matched loader on each navigation** by default, so the signed-in layout re-fetches the profile on every click, and the layout's and the page's `loaderData` are separate snapshots (a newer profile loaded by the page does not update the top bar). `shouldRevalidate` can stop a layout from re-running, but there is no cache: data is fetched on every visit and nothing is shared between routes. The owner wants a known path for when the platform has more data reused across pages.
+**Decision.** For now the platform pages keep **plain loaders and actions** (D-33 stands): fresh data on each visit, no cache. If a client cache becomes worth it, the path is the **TanStack Query hybrid**, not replacing loaders:
+- a `QueryClient` per browser tab (a `.client` module or created in the root), never shared on the server;
+- each route's `clientLoader` reads through the cache with `queryClient.fetchQuery({ queryKey, queryFn, staleTime })`, so a fresh entry costs no request;
+- `clientLoader.hydrate = true` seeds the cache from the server-rendered data during hydration (`serverLoader()` returns the embedded data then, without a request), so a full load costs one call per kind of data;
+- data shared by several routes gets its own resource route (e.g. `GET /api/<data>`) and one shared query definition, so any route can fill or reuse the same key; `serverLoader()` only fits data owned by one route;
+- components that must stay in sync (the top bar's profile) read with `useQuery` on the shared key, a subscription: when any route refetches or a mutation writes the entry, every reader re-renders;
+- `clientAction` calls `serverAction()` and then invalidates or sets the affected keys.
+Server loaders keep rendering the first page, `<Form>` keeps working without JavaScript and router error handling stays, which a "React Query instead of loaders" design would lose.
+**Consequences.** No change to current tickets. Adopting the hybrid is its own planned change (likely a P-08 story) and updates D-33 and the platform-app design notes. Until then, a layout whose data only changes through forms may use `shouldRevalidate` to skip re-running on plain navigations.
 
 ## Superseded ideas from IDEA.md
 - Claude Code subscription as an AI provider → D-05.

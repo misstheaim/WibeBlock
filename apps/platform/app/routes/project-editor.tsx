@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import type { Route } from "./+types/project-editor";
 import Studio from "@wibeblock/studio";
 import { getProfile } from "~/lib/accounts.server";
+import { UserMenu } from "~/features/account";
 
 export function meta() {
   return [{ title: "Editor - WibeBlock" }];
@@ -27,9 +28,7 @@ export default function ProjectEditor({
             Projects
           </Link>
           <span className="text-sm text-muted-foreground">{params.id}</span>
-          <span className="text-sm text-muted-foreground">
-            {loaderData.profile.displayName}
-          </span>
+          <UserMenu profile={loaderData.profile} />
         </>
       }
     />

@@ -10,6 +10,7 @@ export default [
     index("routes/home.tsx"),
     route("projects", "routes/projects.tsx"),
     route("dev/tokens", "routes/dev-tokens.tsx"),
+    route("profile", "routes/profile.tsx"),
   ]),
   route("projects/:id/edit", "routes/project-editor.tsx"),
 ] satisfies RouteConfig;
