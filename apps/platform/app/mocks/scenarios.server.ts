@@ -62,3 +62,19 @@ export function withScenario(scenario: Scenario) {
       return resolver(info);
     };
 }
+
+/**
+ * A 400 with validation problem details, the shape ASP.NET Core returns for
+ * invalid input: `errors` maps each field (camelCase) to its messages.
+ */
+export function validationProblem(errors: Record<string, string[]>) {
+  return HttpResponse.json(
+    {
+      type: "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+      title: "One or more validation errors occurred.",
+      status: 400,
+      errors,
+    },
+    { status: 400, headers: { "Content-Type": "application/problem+json" } },
+  );
+}

@@ -4,11 +4,19 @@ import {
   AvatarImage,
   Button,
   Skeleton,
+  toast,
 } from "@wibeblock/ui";
 import type { Route } from "./+types/profile";
-import { getProfile, type Profile as ProfileData } from "~/lib/accounts.server";
-import { Suspense } from "react";
-import { Await, useAsyncError, useRevalidator } from "react-router";
+import {
+  getProfile,
+  updateProfile,
+  type Profile as ProfileData,
+} from "~/lib/accounts.server";
+import { Suspense, useEffect } from "react";
+import { Await, data, useAsyncError, useRevalidator } from "react-router";
+import { ProfileForm, profileUpdateSchema } from "~/features/account";
+import * as z from "zod";
+import { ApiError } from "~/lib/api.server";
 
 export function meta() {
   return [{ title: "Profile - WibeBlock" }];
@@ -19,19 +27,72 @@ export function loader() {
   return { profile };
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const name = formData.get("displayName");
+  const result = profileUpdateSchema.safeParse({ displayName: name });
+  if (!result.success) {
+    return data(
+      {
+        ok: false as const,
+        fieldErrors: z.flattenError(result.error).fieldErrors,
+      },
+      { status: 400 },
+    );
+  } else {
+    try {
+      await updateProfile(result.data);
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 400 &&
+        error.problem?.errors
+      ) {
+        return data(
+          { ok: false as const, fieldErrors: error.problem.errors },
+          { status: 400 },
+        );
+      } else {
+        throw error;
+      }
+    }
+    return { ok: true as const };
+  }
+}
+
 const formatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
   timeZone: "UTC",
 });
 
-export default function Profile({ loaderData }: Route.ComponentProps) {
+export default function Profile({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  useEffect(() => {
+    if (actionData?.ok)
+      toast({ title: "Display name saved!", tone: "success" });
+  }, [actionData]);
+  const error =
+    actionData?.ok === false
+      ? actionData.fieldErrors.displayName?.[0]
+      : undefined;
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 p-8">
       <h1 className="text-2xl font-semibold">Profile</h1>
       <Suspense fallback={<ProfileSkeleton />}>
         <Await resolve={loaderData.profile} errorElement={<ProfileError />}>
-          {(profile) => <ProfileDetails profile={profile} />}
+          {(profile) => (
+            <>
+              <ProfileDetails profile={profile} />
+              <ProfileForm
+                key={profile.updatedAt}
+                profile={profile}
+                error={error}
+              />
+            </>
+          )}
         </Await>
       </Suspense>
     </div>

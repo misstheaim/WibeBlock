@@ -167,8 +167,8 @@ Until the backend exists, MSW answers the platform app's server-side calls to th
   | `API_MOCK_SCENARIO` | `normal` (default, 100–300 ms delay), `slow` (about 3 s), `error` (500), `unauthorized` (401) |
 
 - **API client** (server-only, `.server.ts`, so the build fails if browser code imports it):
-  - [app/lib/api.server.ts](../apps/platform/app/lib/api.server.ts) is the only code that calls `fetch` to the API. `apiGetRequest<T>(path)` joins `API_BASE_URL` and the path (which starts with `/`), asks for JSON and returns the body as `T`. Any non-2xx answer throws an `ApiError`, which carries `status`, the parsed `problem` (or `null`) and a message with the status and the problem's title.
-  - One module per backend module holds its types and endpoint functions: [app/lib/accounts.server.ts](../apps/platform/app/lib/accounts.server.ts) has `Profile` and `getProfile()`.
+  - [app/lib/api.server.ts](../apps/platform/app/lib/api.server.ts) is the only code that calls `fetch` to the API. `apiRequest<T>(path, { method, body })` joins `API_BASE_URL` and the path (which starts with `/`), asks for JSON and returns the body as `T`; `method` defaults to `GET`, and a `body` (anything but `undefined`) is sent as JSON with `Content-Type: application/json`. Any non-2xx answer throws an `ApiError`, which carries `status`, the parsed `problem` (or `null`) and a message with the status and the problem's title.
+  - One module per backend module holds its types and endpoint functions: [app/lib/accounts.server.ts](../apps/platform/app/lib/accounts.server.ts) has `Profile`, `getProfile()` and `updateProfile()`. Request types there describe the API's contract (replaced by generated types in P-19 US-6); form schemas live with their feature in `app/features/` and are not imported by `app/lib/`.
   - App code never imports from `app/mocks/`.
 - **Consumers:** loaders call the endpoint functions. Components never do; they read `loaderData`.
   - The signed-in layout's loader returns `{ profile }`, and pages inside it read it with `useRouteLoaderData<typeof loader>("layouts/signed-in")` instead of fetching again.
@@ -177,12 +177,14 @@ Until the backend exists, MSW answers the platform app's server-side calls to th
 - **How it starts:** a dev-only Vite plugin, `apiMocks()` in [app/mocks/index.server.ts](../apps/platform/app/mocks/index.server.ts), registered in `vite.config.ts`. It starts MSW in the dev server's process when `API_MOCKS=on`; no app module imports the mocks, so MSW never reaches `build/`. Editing a mock file restarts the dev server and swaps the handlers in place (one interceptor per process). The log shows `[mocks] API mocks on for <url>, scenario: <name>`.
 - **Files** in [app/mocks/](../apps/platform/app/mocks/), all `.server.ts` and imported with the extension (Vite's native config loader needs it): `index` (the plugin), `handlers` (one entry per endpoint), `scenarios` (delay, errors, `problem()`), `fixtures` (data and hand-written types).
 - **Adding an endpoint:** add `http.<method>(\`${baseUrl}/<path>\`, mock(() => ...))` in `handlers.server.ts`; wrapping the resolver in `mock(...)` applies the scenario. A call to `API_BASE_URL` without a handler prints an `[MSW] Error` and then fails on the network.
-- **Errors** are RFC 9457 problem details (`application/problem+json`, `{ type, title, status, detail }`), the shape ASP.NET Core returns.
+- **Errors** are RFC 9457 problem details (`application/problem+json`, `{ type, title, status, detail }`), the shape ASP.NET Core returns. Validation failures are `400` with an extra `errors` map from field name (camelCase, as in the request) to messages, like ASP.NET Core's validation problem details: `{ type, title, status: 400, errors: { displayName: ["…"] } }` (`validationProblem()` in `scenarios`).
+- **State:** the mocks keep an in-memory copy of the profile, so a `PATCH` is visible to later `GET`s until the dev server restarts (editing a mock file also resets it).
 - **Endpoints** (Gateway paths: the Core API's Accounts module lives under `/accounts`):
 
   | Endpoint | Response |
   |---|---|
   | `GET /accounts/me` | `200` `{ id, displayName, email, avatarUrl: string \| null, preferences: { theme: "light" \| "dark" \| "system" }, createdAt, updatedAt }` (ISO 8601 dates) |
+  | `PATCH /accounts/me` | body `{ displayName?: string }` (only the fields to change). `200` the updated profile (same shape as `GET`, new `updatedAt`). `400` validation problem when `displayName` is not a string of 1–50 characters after trimming, or is the reserved mock name `admin` (any case), which lets the API-side error be tested past the form's own checks |
 
 - The mock types are hand-written and small on purpose; P-19 US-6 replaces them with types generated from the Core API's OpenAPI document and switches the mocks off.
 
