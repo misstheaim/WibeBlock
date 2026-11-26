@@ -3,6 +3,7 @@ export type ProblemDetails = {
   title?: string;
   detail?: string;
   status?: number;
+  errors?: Record<string, string[]>;
 };
 
 export class ApiError extends Error {
@@ -28,10 +29,17 @@ function getApiBaseUrl(): string {
   return baseUrl.replace(/\/+$/, "");
 }
 
-export async function apiGetRequest<T>(path: string): Promise<T> {
+export async function apiRequest<T>(
+  path: string,
+  { method = "GET", body }: { method?: string; body?: unknown } = {},
+): Promise<T> {
   const url = `${getApiBaseUrl()}${path}`;
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
   const response = await fetch(url, {
-    headers: { Accept: "application/json" },
+    method: method,
+    headers: headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!response.ok) {
     const contentType = response.headers.get("Content-Type");
@@ -41,7 +49,7 @@ export async function apiGetRequest<T>(path: string): Promise<T> {
     throw new ApiError(
       response.status,
       problem,
-      `GET ${path} failed with ${response.status} ${problem?.title ?? response.statusText}`,
+      `${method} ${path} failed with ${response.status} ${problem?.title ?? response.statusText}`,
     );
   }
   return (await response.json()) as T;

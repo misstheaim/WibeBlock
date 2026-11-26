@@ -1,4 +1,4 @@
-import { apiGetRequest } from "./api.server";
+import { apiRequest } from "./api.server";
 
 export type Profile = {
   id: string;
@@ -10,6 +10,17 @@ export type Profile = {
   updatedAt: string;
 };
 
+export type UpdateProfileRequest = { displayName?: string };
+
 export async function getProfile(): Promise<Profile> {
-  return await apiGetRequest<Profile>("/accounts/me");
+  return await apiRequest<Profile>("/accounts/me");
+}
+
+export async function updateProfile(
+  update: UpdateProfileRequest,
+): Promise<Profile> {
+  return await apiRequest<Profile>("/accounts/me", {
+    method: "PATCH",
+    body: update,
+  });
 }
