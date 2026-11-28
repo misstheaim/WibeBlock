@@ -77,5 +77,5 @@ Storybook interaction tests for dialog and dropdown focus handling (open, trap, 
 ## Done when
 - [x] `apps/platform` imports `@wibeblock/ui` and renders a styled button.
 - [ ] Storybook shows every skeleton component in light and dark, with a Tokens page.
-- [ ] Switching the mode attribute restyles everything; contrast pairs pass AA in both modes.
-- [ ] Menus and dialogs are fully usable with the keyboard.
+- [x] Switching the mode attribute restyles everything; contrast pairs pass AA in both modes.
+- [x] Menus and dialogs are fully usable with the keyboard.

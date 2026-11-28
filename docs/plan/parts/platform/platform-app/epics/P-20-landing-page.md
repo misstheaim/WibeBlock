@@ -1,6 +1,6 @@
 # P-20 — Landing page (Astro)
 
-> Part: Platform · Phase: 0, 4 · Stages: skeleton, later · Depends on: P-17, P-08 (P-09 for pricing) · Status: draft
+> Part: Platform · Phase: 4 · Stages: later · Depends on: P-17, P-08 (P-09 for pricing) · Status: draft
 
 ## Goal
 Visitors find a simple public page that says what WibeBlock is and one button that takes them into the product: signed-in users land on their dashboard, everyone else on the sign-in page. It is a static **Astro** site (`apps/website`, D-19) that looks like the platform app. Later it grows docs and pricing pages.
@@ -26,7 +26,7 @@ Visitors find a simple public page that says what WibeBlock is and one button th
 Quiet and light like the app (D-30), the pastel lime accent on the call to action. No cookie banner needed: the site sets no cookies.
 
 ## Technical design
-Astro with static output and Tailwind v4 through the shared stylesheet; content collections for docs later; hosted later on Static Web Apps (P-13). No client JavaScript in the skeleton unless the mode switch is added.
+Astro with static output and Tailwind v4 through the shared stylesheet; content collections for docs later; hosted later on Static Web Apps (P-13). No client JavaScript unless the mode switch is added.
 
 ## Learning notes
 1. **Astro basics**: pages, layouts, components, static output.
@@ -37,7 +37,7 @@ Astro with static output and Tailwind v4 through the shared stylesheet; content 
 References: [Astro docs](https://docs.astro.build), [Astro islands](https://docs.astro.build/en/concepts/islands/), [Tailwind CSS with Astro](https://tailwindcss.com/docs/installation/framework-guides/astro), [content collections](https://docs.astro.build/en/guides/content-collections/).
 
 ## Tests (optional)
-Nothing worth testing automatically in the skeleton.
+Nothing worth testing automatically at first.
 
 ## Risks and open questions
 - Importing a workspace package's CSS into Astro: confirm Tailwind scans what it needs (same issue as P-17 US-1).

@@ -22,7 +22,7 @@ parts/<part>/<feature>/epics/<ID>-<name>.md   an EPIC: one deliverable feature, 
 | **Learning track** — platform engineering technologies | `L-nn` | [parts/learning-track/learning-track.md](parts/learning-track/learning-track.md) |
 
 - Epics are written by hand (or with AI pointed at the epic). No automated decomposition. Tickets reference the epic ID and user story (`S-04 / US-3`).
-- When something here conflicts with code or a later decision, update this plan; it is the source of truth for scope.
+- When something here conflicts with code or a later decision, update this plan. It is the agreed direction for scope, not a final decision: it changes when development teaches us something.
 
 ## 1. Vision
 
@@ -189,7 +189,7 @@ See [decisions.md](decisions.md).
 
 - Exact theme token set and naming (align with Tailwind v4 `@theme` conventions). Colour token names are fixed in P-17 for the app theme and adopted by S-05 (D-35); the remaining groups are decided in S-05.
 - Prompt library evaluation: how do we measure a skill version is better? Decide in S-08.
-- Studio UI decisions: recorded in [parts/studio/studio.md §4](parts/studio/studio.md).
+- Studio UI decisions: the first ones are in [parts/studio/studio.md §4](parts/studio/studio.md); the rest are decided when each Studio epic is planned.
 - Sizes and spacing units in the schema (token steps vs px). Decide in S-01.
 - Knowledge base editor: plain markdown vs a rich editor (Lexical / TipTap). Decide in S-21.
 - Generated-app libraries for data and forms (plain React vs TanStack Query / a form library). Decide in S-26.

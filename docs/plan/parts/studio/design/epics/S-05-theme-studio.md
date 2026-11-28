@@ -10,9 +10,9 @@ Projects don't have just one look: WibeBlock ships several preset themes, a proj
 - Out: AI themes (S-24); fonts upload and assets (S-16); the Studio's own tokens (S-14).
 
 ## Concepts and model
-- **Theme**: id, name, tokens per group (color, font, fontSize, space, radius, shadow), colour tokens with light and dark values. Stored in `themes/<id>.json`; the project's `activeThemeId` picks one.
+- **Theme**: id, name, tokens per group (color, font, fontSize, space, radius, shadow), colour tokens with a value for each mode the theme supports (D-37); the mode toggle is disabled while a single-mode theme is active. Stored in `themes/<id>.json`; the project's `activeThemeId` picks one.
 - **Preset**: a theme shipped in `packages/prompts` (data); choosing one copies it into the project.
-- **Palette**: a base colour → tonal scale (in OKLCH) → semantic tokens (primary, surface, text…); the mapping is editable.
+- **Palette**: a base colour → tonal scale (in OKLCH) → role tokens (`primary`, `card`, `muted`…, D-38); the mapping is editable.
 - **Contrast check**: WCAG AA for each text/background token pair, with a suggested nearest passing value.
 
 ## User stories
@@ -39,7 +39,7 @@ Tokens → CSS variables in a stylesheet injected into the canvas iframe and gen
 Palette generation and contrast calculation (pure functions); theme JSON import validation.
 
 ## Risks and open questions
-- The token set must be settled before many bodies exist; AI skills reference token names. Lock it in US-1 (master §8 open question).
+- The token set must be settled before many bodies exist; AI skills reference token names. The colour names are fixed (D-38); lock the remaining groups (font, size, space, radius, shadow) in US-1 (master §8 open question).
 - Fonts: system and Google Fonts first; loading fonts in the canvas iframe and in generated apps the same way.
 
 ## Done when

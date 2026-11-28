@@ -17,7 +17,7 @@ Not here: the mobile layout workflow, companion app and native target ([Mobile p
 | **v1** | 3 (alongside Platform connected) | AI depth and developer power. | AI themes from a prompt, the global prompt bar arranging a page through a reviewed proposal, logic v1 (data, lists, forms, context), prompt library with pinned versions, Developer panels, snapshots, assets, Claude Code connection, onboarding. |
 | **garden** | 7 | Everything else, picked freely. | Each epic stands alone. |
 
-User stories carry their stage tag (`[alpha]`, `[MVP]`, `[v1]`, `[garden]`). The platform track starts right after the alpha (D-25); sessions alternate between tracks.
+User stories carry their stage tag (`[alpha]`, `[MVP]`, `[v1]`, `[garden]`). The platform skeleton comes first (Phase 0, D-33); the rest of the platform track starts right after the alpha (D-25), and sessions alternate between tracks.
 
 ## 3. Features
 
@@ -43,7 +43,7 @@ User stories carry their stage tag (`[alpha]`, `[MVP]`, `[v1]`, `[garden]`). The
 
 ## 4. Studio UI decisions
 
-Agreed in the 2026-10-28 design session. Visual sketch: the "Studio" chapter of the [plan map](../../00-master.md).
+Agreed in the 2026-10-28 design session. Not complete: the remaining UI details are decided when each Studio epic is planned, and added here. Visual sketch: the "Studio" chapter of the [plan map](../../00-master.md).
 
 ```
 ┌ Top bar (quiet) ───────────────────────────────────────────────────────────────────────┐

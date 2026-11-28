@@ -35,5 +35,5 @@ Bug: steps to reproduce, expected behaviour, actual behaviour, environment; say 
 <!-- Epic and decision docs, linked tickets and PRs, logs. -->
 
 ## Suggested model
-<!-- Tier sized to the scope, with confidence and a one-line reason, e.g.:
-**Sonnet 5.5** (confidence: High). Self-contained change in one package, clear requirements. -->
+<!-- Tier sized to the scope, named with its latest version as the session lists it, with confidence and a one-line reason, e.g.:
+**Sonnet x.y** (confidence: High). Self-contained change in one package, clear requirements. -->
