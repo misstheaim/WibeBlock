@@ -1,0 +1,1261 @@
+<title>WibeBlock Docs Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: two fixed panes (document map | session context) under a slim header; popups float above as draggable windows.
+   Palette follows the WibeBlock plan map and UI kit: beige ground, brown ink, blue/orange/red/lime as load-class signals. */
+:root {
+  --bg: #f4ede1;
+  --surface: #fffaf2;
+  --sunken: #ece3d4;
+  --lane: #efe6d7;
+  --fg: #2a1f17;
+  --muted: #6f5f50;
+  --line: #ddd0bc;
+  --line-strong: #c7b69d;
+  --accent: #2b66c9;
+  --edge: #a08a72;
+  --l-auto: #557a0d;
+  --l-recall: #c46a12;
+  --l-rule: #2b66c9;
+  --l-command: #c8431d;
+  --l-skill: #8b5a36;
+  --l-manual: #9a8877;
+  --s-draft: #9a8877;
+  --s-ready: #2b66c9;
+  --s-progress: #c46a12;
+  --s-done: #4f8a12;
+  --warn: #b83a27;
+  --on-color: #ffffff;
+  --shadow: 0 1px 2px rgba(60, 40, 20, .08), 0 12px 32px rgba(60, 40, 20, .18);
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --text: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1611; --surface: #261e18; --sunken: #30261f; --lane: #2a211b; --fg: #f2e9dc; --muted: #b5a591;
+    --line: #463a2f; --line-strong: #5c4d3f; --accent: #74a5ff; --edge: #8c7864;
+    --l-auto: #b4e14b; --l-recall: #f5a04a; --l-rule: #74a5ff; --l-command: #ff7b52; --l-skill: #cf9a72; --l-manual: #9c8d7c;
+    --s-draft: #9c8d7c; --s-ready: #74a5ff; --s-progress: #f5a04a; --s-done: #b4e14b; --warn: #ef7a66;
+    --on-color: #1c1611; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 40px rgba(0, 0, 0, .55); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1611; --surface: #261e18; --sunken: #30261f; --lane: #2a211b; --fg: #f2e9dc; --muted: #b5a591;
+  --line: #463a2f; --line-strong: #5c4d3f; --accent: #74a5ff; --edge: #8c7864;
+  --l-auto: #b4e14b; --l-recall: #f5a04a; --l-rule: #74a5ff; --l-command: #ff7b52; --l-skill: #cf9a72; --l-manual: #9c8d7c;
+  --s-draft: #9c8d7c; --s-ready: #74a5ff; --s-progress: #f5a04a; --s-done: #b4e14b; --warn: #ef7a66;
+  --on-color: #1c1611; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 40px rgba(0, 0, 0, .55); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.5 var(--text); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: grid; gap: 12px;
+  padding-block: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 24px; }
+.top h1 { font: 800 22px/1.1 var(--display); letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+.top p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.panes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.pane.map .pane-body { overflow-x: auto; overflow-y: hidden; flex: none; }
+.pane.ctxp .pane-body { overflow: visible; }
+.pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.pane-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.pane-bar h2 { font: 700 15px/1.2 var(--display); margin: 0; }
+.pane-bar .sub { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.pane-bar .spacer { flex: 1; }
+.pane-body { flex: 1; min-height: 0; overflow: auto; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 3px 10px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--sunken); color: var(--fg); font-weight: 600; }
+.seg .zl { min-width: 46px; font-variant-numeric: tabular-nums; }
+.tgl { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+
+
+/* ---------- marks ---------- */
+.mark { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; background: var(--l-manual); }
+.mark[data-l="auto"] { background: var(--l-auto); }
+.mark[data-l="recall"] { background: var(--l-recall); }
+.mark[data-l="rule"] { background: var(--l-rule); }
+.mark[data-l="command"] { background: var(--l-command); }
+.mark[data-l="skill"] { background: var(--l-skill); border-radius: 50%; }
+.mark[data-l="manual"] { background: var(--l-manual); }
+.mark[data-l="none"] { background: transparent; border: 1.5px dashed var(--l-manual); }
+
+/* ---------- board ---------- */
+.sizer { position: relative; }
+.board { position: absolute; left: 0; top: 0; width: 1360px; padding: 18px; transform-origin: 0 0; display: flex; flex-direction: column; gap: 30px; }
+.edges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 1; }
+.edges path { fill: none; stroke: var(--edge); stroke-width: 1.2; opacity: .32; }
+.edges .hov path { opacity: 1; stroke-width: 1.8; }
+.edges .hov path.out { stroke: var(--accent); }
+.edges .hov path.in { stroke: var(--l-recall); stroke-dasharray: 5 4; }
+.edges marker path { opacity: 1; stroke: none; }
+.board.focus .edges .base path { opacity: .12; }
+.lane { background: var(--lane); border-radius: 14px; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.lane-h > * { position: relative; z-index: 2; background: var(--lane); padding-right: 6px; }
+.lane-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.lane-h h3 { margin: 0; font: 700 11px/1.2 var(--display); text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.lane-h p { margin: 0; font-size: 12px; color: var(--muted); }
+.lane-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.node { position: relative; z-index: 2; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px 8px; width: 196px; cursor: pointer; transition: border-color .12s, box-shadow .12s, opacity .12s; }
+.node:hover, .node.hl { border-color: var(--line-strong); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.node-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.node-file { font: 400 11px/1.3 var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.node-title { font: 600 13.5px/1.3 var(--text); margin-top: 2px; }
+.node-meta { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.tag { font: 500 10px/1 var(--text); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; margin-left: auto; flex: none; }
+.warn { margin-left: auto; flex: none; width: 15px; height: 15px; border-radius: 50%; background: var(--warn); color: var(--on-color); font: 700 10px/15px var(--text); text-align: center; }
+.cluster { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 7px 9px 9px; display: flex; flex-direction: column; gap: 6px; flex: 1 1 260px; min-width: 200px; }
+.cluster-h { font: 400 11px/1.3 var(--mono); color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; max-width: 100%; }
+.chip:hover, .chip.hl { border-color: var(--line-strong); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.chip .warn { margin-left: 2px; width: 13px; height: 13px; line-height: 13px; font-size: 9px; }
+
+/* ---------- conflict badges: red counters on docs and rules; a click opens the conflicting parts ---------- */
+.cbadge { flex: none; display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border: 0; border-radius: 9px; background: var(--warn); color: var(--on-color); font: 700 10.5px/1 var(--text); font-variant-numeric: tabular-nums; cursor: pointer; position: relative; z-index: 3; box-shadow: 0 0 0 2px var(--surface); }
+.cbadge:hover { filter: brightness(1.12); }
+.cbadge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.node-top .cbadge, .feat .node-title .cbadge, .rule .cbadge, .part-h .cbadge { margin-left: auto; }
+.node-top .cbadge + .tag { margin-left: 4px; }
+.part-h .cbadge { align-self: center; }
+.rule .cbadge { align-self: center; }
+.chip .cbadge, .src .cbadge { min-width: 16px; height: 16px; padding: 0 4px; font-size: 9.5px; margin-left: 2px; }
+.ep .cbadge { position: absolute; top: -9px; right: -9px; min-width: 15px; height: 15px; padding: 0 4px; font-size: 9px; }
+.ep:has(.cbadge) { margin-right: 7px; }
+.eps:has(.cbadge) { padding-top: 5px; }
+.legend .cbadge { cursor: default; box-shadow: none; }
+.cmenu { position: fixed; z-index: 5000; width: max-content; min-width: 240px; max-width: min(400px, calc(100vw - 24px)); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: var(--shadow); padding: 6px; display: flex; flex-direction: column; gap: 1px; }
+.cmenu h4 { margin: 3px 8px 5px; font: 700 11px/1.3 var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.cmenu button { display: flex; gap: 8px; align-items: baseline; text-align: left; border: 0; background: transparent; border-radius: 6px; padding: 6px 8px; cursor: pointer; font-size: 12.5px; line-height: 1.35; }
+.cmenu button:hover, .cmenu button:focus-visible { background: var(--sunken); outline: none; }
+.cmenu small { margin-left: auto; padding-left: 10px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.plan-top { display: flex; flex-wrap: wrap; gap: 10px; }
+.parts { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 12px; align-items: start; }
+.part[data-part="learning-track"] .feats, .part[data-part="mobile"] .feats { grid-template-columns: 1fr; }
+.part { border: 1px solid var(--line); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; background: color-mix(in srgb, var(--surface) 45%, transparent); }
+.part-h.node { width: auto; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.part-h .node-title { font: 700 15px/1.2 var(--display); margin: 0; }
+.part-h .node-meta { margin: 0; }
+.feats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.feat.node { width: auto; padding: 6px 8px 7px; }
+.feat .node-title { font-size: 13px; margin: 0; display: flex; gap: 6px; align-items: center; }
+.eps { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+.ep { position: relative; z-index: 2; font: 500 10.5px/1.2 var(--mono); padding: 2px 5px; border-radius: 4px; border: 1px solid var(--s-draft); color: var(--fg); background: var(--surface); cursor: pointer; font-variant-numeric: tabular-nums; }
+.ep[data-s="ready"] { border-color: var(--s-ready); color: var(--s-ready); }
+.ep[data-s="in progress"] { background: var(--s-progress); border-color: var(--s-progress); color: var(--on-color); }
+.ep[data-s="done"] { background: var(--s-done); border-color: var(--s-done); color: var(--on-color); }
+.ep.ghost { border-style: dashed; color: var(--muted); background: transparent; cursor: help; }
+.ep:not(.ghost):hover, .ep.hl { outline: 2px solid var(--accent); outline-offset: 1px; }
+.status-legend { display: inline-flex; gap: 5px; align-items: center; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
+.status-legend .ep { cursor: default; }
+
+.board.focus .node:not(.cur):not(.rel):not(.part):not(.feat), .board.focus .chip:not(.cur):not(.rel), .board.focus .ep:not(.cur):not(.rel) { opacity: .38; }
+.board.focus .feat:not(.cur):not(.rel):not(:has(.cur, .rel)) { opacity: .38; }
+.board.focus .part-h:not(.cur):not(.rel) { opacity: .55; }
+.node.cur, .chip.cur, .ep.cur { box-shadow: 0 0 0 2px var(--accent); opacity: 1; }
+@keyframes flash { 0%, 100% { box-shadow: 0 0 0 2px transparent; } 30%, 70% { box-shadow: 0 0 0 4px var(--accent); } }
+.flash { animation: flash 1.1s ease 2; }
+
+/* ---------- context pane ---------- */
+.ctx { padding: 14px 16px 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px 32px; }
+.ctx-side, .ctx-main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+@media (min-width: 900px) { .ctx { grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); }  }
+.meter { display: flex; flex-direction: column; gap: 8px; }
+.meter-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.meter-head b { font: 700 20px/1 var(--display); font-variant-numeric: tabular-nums; }
+.meter-head span { color: var(--muted); font-size: 12.5px; }
+.bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--sunken); gap: 2px; }
+.bar i { display: block; height: 100%; }
+.bar-key { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 8px; font-size: 12px; align-items: center; }
+.bar-key .mark { margin-top: 1px; }
+.bar-key .n { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
+
+.layers { display: flex; flex-direction: column; gap: 0; position: relative; }
+.layer { position: relative; padding: 0 0 14px 30px; }
+.layer::before { content: ""; position: absolute; left: 10px; top: 22px; bottom: 0; width: 1px; background: var(--line); }
+.layer:last-child::before { display: none; }
+.layer-num { position: absolute; left: 0; top: 0; width: 21px; height: 21px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--surface); font: 600 11px/19px var(--text); text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+.layer-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-height: 21px; }
+.layer-h h3 { margin: 0; font: 700 13.5px/1.3 var(--display); }
+.layer-h .n { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.layer-when { margin: 1px 0 6px; color: var(--muted); font-size: 12px; }
+.layer.sys { opacity: .75; }
+.srcs { display: flex; flex-direction: column; gap: 4px; }
+.src { display: grid; grid-template-columns: 20px auto minmax(0, 1fr) auto; align-items: center; gap: 0 7px; padding: 5px 8px 5px 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.src:hover, .src.hl { border-color: var(--line-strong); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.src-name { min-width: 0; display: flex; align-items: baseline; gap: 7px; overflow: hidden; }
+.src-name b { font-weight: 600; white-space: nowrap; }
+.src-name small { font: 400 11px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.src-meta { font-size: 11.5px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.src .warn { margin: 0 0 0 2px; width: 14px; height: 14px; line-height: 14px; font-size: 9px; display: inline-block; }
+.chev { width: 20px; height: 20px; border: 0; background: transparent; cursor: pointer; border-radius: 5px; color: var(--muted); display: grid; place-items: center; padding: 0; }
+.chev:hover { background: var(--sunken); color: var(--fg); }
+.chev svg { transition: transform .15s; }
+.chev[aria-expanded="true"] svg { transform: rotate(90deg); }
+.chev:disabled { visibility: hidden; }
+.rules { list-style: none; margin: 2px 0 6px 12px; padding: 0 0 0 10px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 1px; }
+.rule { display: flex; align-items: baseline; gap: 7px; padding: 3px 6px; border-radius: 6px; cursor: pointer; font-size: 12.5px; line-height: 1.4; }
+.rule:hover { background: var(--sunken); }
+.rule.off { opacity: .6; }
+.tchip { flex: none; font: 500 10px/1.5 var(--text); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; white-space: nowrap; }
+.schip { flex: none; display: inline-flex; align-items: center; gap: 4px; font: 400 10.5px/1.5 var(--mono); color: var(--muted); white-space: nowrap; }
+.rule .rt { min-width: 0; }
+.topic { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto auto; align-items: center; gap: 0 8px; padding: 5px 8px 5px 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.topic:hover { border-color: var(--line-strong); }
+.topic b { font-weight: 600; }
+.topic .dots { display: flex; gap: 3px; }
+.topic .n { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.never { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.notes h3 { margin: 0 0 6px; font: 700 13.5px/1.3 var(--display); }
+.note { display: flex; align-items: baseline; gap: 8px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 12.5px; background: var(--surface); margin-bottom: 4px; }
+.note:hover { border-color: var(--line-strong); }
+.pill { flex: none; font: 600 10px/1.6 var(--text); letter-spacing: .05em; text-transform: uppercase; border-radius: 4px; padding: 0 5px; color: var(--on-color); background: var(--l-manual); }
+.pill[data-k="gap"] { background: var(--l-recall); }
+.pill[data-k="conflict"] { background: var(--warn); }
+.pill[data-k="stale"] { background: var(--l-manual); }
+.pill[data-k="override"] { background: var(--l-rule); }
+
+/* ---------- tooltip ---------- */
+.tip { position: fixed; z-index: 10000; max-width: 340px; background: var(--surface); color: var(--fg); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: var(--shadow); padding: 9px 11px; font-size: 12.5px; line-height: 1.45; pointer-events: none; }
+.tip-h { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 13.5px; }
+.tip-path { font: 400 11px var(--mono); color: var(--muted); margin-top: 1px; word-break: break-all; }
+.tip p { margin: 6px 0 0; }
+.tip .k { color: var(--muted); }
+.tip ul { margin: 6px 0 0; padding-left: 16px; }
+.tip li { margin: 1px 0; }
+.tip-hint { margin: -2px 0 6px; color: var(--muted); font-size: 11px; }
+.tip-hint kbd { font: 600 10.5px var(--mono); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; }
+.tip-off .tip { visibility: hidden; }
+.tip-foot { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11.5px; }
+
+/* ---------- windows ---------- */
+.win-layer { position: fixed; inset: 0; pointer-events: none; z-index: 1000; }
+.win { position: fixed; pointer-events: auto; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; min-width: 280px; min-height: 160px; }
+.win.front { border-color: color-mix(in srgb, var(--accent) 55%, var(--line-strong)); }
+.win-bar { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; background: var(--sunken); border-bottom: 1px solid var(--line); cursor: grab; user-select: none; touch-action: none; }
+.win-bar:active { cursor: grabbing; }
+.win-title { min-width: 0; display: flex; align-items: baseline; gap: 8px; flex: 1; overflow: hidden; }
+.win-title b { font: 700 14px/1.3 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; max-width: 70%; }
+.win-title small { flex: 1 1 0; min-width: 0; }
+.win-title small { font: 400 11px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wbtn { border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 2px 7px; font-size: 12px; cursor: pointer; color: var(--muted); white-space: nowrap; }
+.wbtn:hover { background: var(--surface); border-color: var(--line); color: var(--fg); }
+.wbtn.x { font-size: 16px; line-height: 1; padding: 2px 7px 4px; }
+.win-body { flex: 1; min-height: 0; overflow: auto; }
+.rz { position: absolute; z-index: 2; touch-action: none; }
+.rz[data-d="n"], .rz[data-d="s"] { left: 8px; right: 8px; height: 7px; cursor: ns-resize; }
+.rz[data-d="e"], .rz[data-d="w"] { top: 8px; bottom: 8px; width: 7px; cursor: ew-resize; }
+.rz[data-d="n"] { top: -3px; } .rz[data-d="s"] { bottom: -3px; } .rz[data-d="e"] { right: -3px; } .rz[data-d="w"] { left: -3px; }
+.rz[data-d="ne"], .rz[data-d="nw"], .rz[data-d="se"], .rz[data-d="sw"] { width: 14px; height: 14px; }
+.rz[data-d="ne"] { top: -3px; right: -3px; cursor: nesw-resize; } .rz[data-d="sw"] { bottom: -3px; left: -3px; cursor: nesw-resize; }
+.rz[data-d="nw"] { top: -3px; left: -3px; cursor: nwse-resize; } .rz[data-d="se"] { bottom: -3px; right: -3px; cursor: nwse-resize; }
+.rz[data-d="se"]::after { content: ""; position: absolute; right: 6px; bottom: 6px; width: 7px; height: 7px; border-right: 2px solid var(--line-strong); border-bottom: 2px solid var(--line-strong); border-radius: 0 0 2px 0; }
+
+.dw { container-type: inline-size; height: 100%; display: flex; flex-direction: column; }
+.dw-tabs { display: flex; gap: 2px; padding: 6px 10px 0; border-bottom: 1px solid var(--line); flex: none; }
+.dw-tabs button { border: 0; background: transparent; padding: 5px 10px 6px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; font-size: 12.5px; }
+.dw-tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+.dw-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.dw-doc, .dw-sum { min-width: 0; min-height: 0; overflow: auto; }
+.dw-doc { padding: 16px 20px 28px; }
+.dw-sum { padding: 14px 16px 22px; display: flex; flex-direction: column; gap: 12px; font-size: 12.5px; }
+.dw:not([data-tab="sum"]) .dw-sum { display: none; }
+.dw[data-tab="sum"] .dw-doc { display: none; }
+@container (min-width: 760px) {
+  .dw-tabs { display: none; }
+  .dw-grid { grid-template-columns: minmax(0, 1fr) 280px; }
+  .dw[data-tab] .dw-sum { display: flex; }
+  .dw[data-tab] .dw-doc { display: block; }
+  .dw-sum { border-left: 1px solid var(--line); background: color-mix(in srgb, var(--sunken) 40%, var(--surface)); }
+}
+.sum-h { font: 700 11px/1.2 var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 5px; }
+.sum-load { display: flex; gap: 8px; align-items: baseline; }
+.sum-load .mark { margin-top: 3px; }
+.sum p { margin: 0; }
+.sum .rules { margin: 0; padding: 0; border: 0; }
+.sum .chips .chip { font-size: 11.5px; }
+.more { border: 0; background: transparent; color: var(--accent); cursor: pointer; padding: 3px 6px; font-size: 12px; text-align: left; }
+
+.rw { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; }
+.rw h3 { margin: 0; font: 700 17px/1.3 var(--display); text-wrap: balance; }
+.rw p { margin: 0; max-width: 64ch; }
+.rw .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
+.rw .sup { border-left: 2px solid var(--l-recall); padding-left: 10px; color: var(--muted); font-size: 12.5px; }
+.rw .act { align-self: flex-start; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 7px; padding: 4px 11px; cursor: pointer; font-size: 12.5px; }
+.rw .act:hover { border-color: var(--accent); }
+
+/* ---------- rendered markdown ---------- */
+.md { max-width: 76ch; font-size: 14px; line-height: 1.6; }
+.md > :first-child { margin-top: 0; }
+.md h1 { font: 800 22px/1.2 var(--display); margin: 0 0 12px; text-wrap: balance; }
+.md h2 { font: 700 17px/1.3 var(--display); margin: 26px 0 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.md h3 { font: 700 14.5px/1.3 var(--display); margin: 20px 0 6px; }
+.md h4 { font: 600 13.5px/1.3 var(--text); margin: 16px 0 4px; }
+.md p, .md ul, .md ol { margin: 0 0 10px; }
+.md ul, .md ol { padding-left: 22px; }
+.md li { margin: 2px 0; }
+.md a { color: var(--accent); text-underline-offset: 2px; }
+.md a.dead { color: inherit; text-decoration: underline dotted var(--muted); }
+.md code { font: 400 12.5px/1.4 var(--mono); background: var(--sunken); border-radius: 4px; padding: 1px 4px; }
+.md code.doclink { cursor: pointer; color: var(--accent); }
+.md pre { background: var(--sunken); border-radius: 8px; padding: 10px 12px; overflow: auto; }
+.md pre code { background: none; padding: 0; font-size: 12px; }
+.md blockquote { margin: 0 0 12px; padding: 6px 12px; border-left: 3px solid var(--line-strong); color: var(--muted); }
+.md blockquote p { margin: 0; }
+.md .tbl { overflow-x: auto; margin: 0 0 12px; }
+.md table { border-collapse: collapse; font-size: 12.5px; min-width: 100%; }
+.md th, .md td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+.md th { background: var(--sunken); font-weight: 600; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+.md .fm { font: 400 12px/1.5 var(--mono); background: var(--sunken); border-radius: 8px; padding: 8px 12px; margin: 0 0 14px; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+.md .md-comment { font-size: 12.5px; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 8px; padding: 6px 10px; margin: 0 0 12px; white-space: pre-wrap; }
+.md .md-comment::before { content: "Guidance comment"; display: block; font: 700 10px/1.4 var(--display); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+.md .sec-flash { background: color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 4px; transition: background 1.5s; }
+pre.src { display: block; font: 400 11.5px/1.45 var(--mono); white-space: pre; overflow: auto; background: var(--sunken); padding: 12px; border: 0; border-radius: 8px; margin: 0; cursor: text; }
+
+/* ---------- item window: one window per finding, its parts side by side ---------- */
+.iw { container-type: inline-size; height: 100%; display: flex; flex-direction: column; }
+.iw-head { flex: none; max-height: 50%; overflow: auto; padding: 10px 14px 12px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 7px; background: color-mix(in srgb, var(--warn) 7%, var(--surface)); }
+.iw[data-kind="override"] .iw-head { background: color-mix(in srgb, var(--l-rule) 7%, var(--surface)); }
+.iw[data-kind="gap"] .iw-head { background: color-mix(in srgb, var(--l-recall) 7%, var(--surface)); max-height: none; flex: 1; border-bottom: 0; }
+.cw-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.cw-t b { font: 700 14px/1.3 var(--display); min-width: 0; }
+.cw-load { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.iw-text, .iw-fix { margin: 0; max-width: 80ch; font-size: 13px; }
+.iw-fix { color: var(--muted); font-size: 12.5px; }
+.iw-fix b { color: var(--fg); font-weight: 600; }
+.iw-note { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.iw-note b { color: var(--fg); font-weight: 600; }
+.iw details { font-size: 12.5px; }
+.iw summary { cursor: pointer; color: var(--muted); width: max-content; max-width: 100%; }
+.iw details .rules { margin: 4px 0 0; padding: 0; border: 0; }
+.iw-parts { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); }
+.pp { min-width: 0; min-height: 0; display: flex; flex-direction: column; border-left: 1px solid var(--line); }
+.pp:first-child { border-left: 0; }
+.pp-h { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.pp-h b { font: 700 13px/1.3 var(--display); min-width: 0; }
+.pp-h small { flex-basis: 100%; min-width: 0; font: 400 11px var(--mono); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-body { flex: 1; min-height: 0; overflow: auto; padding: 12px 14px 16px; }
+.pp-body .md { font-size: 13.5px; }
+.pp-f { flex: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 7px 12px 10px; border-top: 1px solid var(--line); }
+@container (max-width: 699px) {
+  .iw { overflow: auto; }
+  .iw-head { max-height: none; }
+  .iw-parts { flex: none; grid-template-columns: minmax(0, 1fr); }
+  .pp { border-left: 0; border-top: 1px solid var(--line); }
+  .pp-body { flex: none; overflow: visible; }
+}
+.role { flex: none; font: 600 10px/1.6 var(--text); letter-spacing: .05em; text-transform: uppercase; border-radius: 4px; padding: 0 6px; border: 1px solid currentColor; white-space: nowrap; }
+.role[data-r="outdated"] { color: var(--warn); }
+.role[data-r="current"] { color: var(--s-done); }
+.role[data-r="says"], .role[data-r="rule"] { color: var(--muted); }
+.role[data-r="wins"] { color: var(--l-rule); }
+.cw-gap { display: block; color: var(--muted); text-align: center; letter-spacing: .4em; margin: 2px 0 12px; user-select: none; }
+.cw-miss { color: var(--muted); font-size: 12px; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 6px 10px; margin: 0 0 12px; }
+.cw-note { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+.act { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 7px; padding: 4px 11px; cursor: pointer; font-size: 12.5px; }
+.act:hover { border-color: var(--accent); }
+.act:disabled { opacity: .55; cursor: default; }
+.act.primary { background: var(--warn); color: var(--on-color); border-color: transparent; font-weight: 600; }
+mark.cq { color: inherit; border-radius: 3px; padding: 0 1px; background: color-mix(in srgb, var(--warn) 20%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 50%, transparent); }
+[data-role="current"] mark.cq { background: color-mix(in srgb, var(--s-done) 22%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--s-done) 50%, transparent); }
+[data-role="wins"] mark.cq { background: color-mix(in srgb, var(--l-rule) 18%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--l-rule) 45%, transparent); }
+[data-role="says"] mark.cq, [data-role="rule"] mark.cq { background: color-mix(in srgb, var(--l-recall) 20%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--l-recall) 50%, transparent); }
+.pp-body pre.src { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pp-body pre.src .ln { display: inline-block; min-width: 3.4em; color: var(--muted); user-select: none; }
+.pp-body .md tr.cut td { text-align: center; color: var(--muted); letter-spacing: .3em; }
+
+/* ---------- the list: kind tags, marks, notes for Claude ---------- */
+.notes h4 { margin: 12px 0 5px; font: 700 11px/1.2 var(--display); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.note .cnt { margin-left: auto; padding-left: 8px; color: var(--muted); font-size: 11.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nid { flex: none; font: 600 10.5px/1.6 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.note .nt { min-width: 0; }
+.mk { flex: none; width: 15px; height: 15px; margin: 0; align-self: center; accent-color: var(--warn); cursor: pointer; }
+.note.marked { border-color: color-mix(in srgb, var(--warn) 55%, var(--line)); background: color-mix(in srgb, var(--warn) 7%, var(--surface)); }
+.mk-l { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 12px; color: var(--fg); cursor: pointer; white-space: nowrap; }
+.notes-hint, .notes-empty { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+.markbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 8px; padding: 7px 8px 7px 10px; border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); border-radius: 8px; background: color-mix(in srgb, var(--warn) 7%, var(--surface)); font-size: 12.5px; }
+.markbar:empty { display: none; }
+.markbar span { margin-right: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+.markbar .act, .savemsg .act { padding: 2px 9px; font-size: 12px; }
+.savemsg { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+.savemsg .act { margin-left: 4px; }
+.note-box { margin: -1px 0 6px 31px; }
+.note-in { display: block; width: 100%; min-height: 2.8em; max-height: 16em; field-sizing: content; resize: vertical; font: 13px/1.45 var(--text); color: var(--fg); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 7px; padding: 6px 8px; }
+.note-in::placeholder { color: var(--muted); }
+.note-in:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>WibeBlock Docs Map</h1>
+      <p id="tagline">Every doc in the repo, how the docs link, and which rules reach Claude's context in a session started here.</p>
+    </div>
+    <div class="legend" id="legend"></div>
+  </header>
+  <main class="panes">
+    <section class="pane map" aria-labelledby="mapTitle">
+      <div class="pane-bar">
+        <h2 id="mapTitle">Document map</h2>
+        <span class="sub" id="mapSub"></span>
+        <span class="spacer"></span>
+        <label class="tgl"><input type="checkbox" id="allLinks"> All links</label>
+        <div class="seg" role="group" aria-label="Zoom">
+          <button type="button" id="zOut" aria-label="Zoom out">−</button>
+          <button type="button" id="zFit" class="zl" aria-label="Fit to width">100%</button>
+          <button type="button" id="zIn" aria-label="Zoom in">+</button>
+        </div>
+      </div>
+      <div class="pane-body" id="mapScroll"><div class="sizer" id="sizer"><div class="board" id="board"></div></div></div>
+    </section>
+    <section class="pane ctxp" aria-labelledby="ctxTitle">
+      <div class="pane-bar">
+        <h2 id="ctxTitle">Session context</h2>
+        <span class="sub">a session started in WibeBlock/</span>
+        <span class="spacer"></span>
+        <div class="seg" role="group" aria-label="Group rules">
+          <button type="button" id="vOrder" aria-pressed="true">Load order</button>
+          <button type="button" id="vTopic" aria-pressed="false">By topic</button>
+        </div>
+      </div>
+      <div class="pane-body"><div class="ctx" id="ctx"></div></div>
+    </section>
+  </main>
+</div>
+<div class="tip" id="tip" hidden></div>
+<div class="win-layer" id="winLayer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script>const DATA = __DATA__;</script>
+<script>
+(() => {
+const D = DATA;
+const docs = new Map(D.docs.map((d) => [d.id, d]));
+const rules = new Map(D.rules.map((r) => [r.id, r]));
+const rulesBySrc = new Map();
+for (const r of D.rules) { if (!rulesBySrc.has(r.src)) rulesBySrc.set(r.src, []); rulesBySrc.get(r.src).push(r); }
+const inbound = new Map(D.docs.map((d) => [d.id, []]));
+for (const d of D.docs) for (const l of d.links) inbound.get(l)?.push(d.id);
+// ---------- findings: Claude writes findings.json next to this page; removing items here saves that file ----------
+let F = { items: [] }, findingsState = 'loading';
+const byNote = new Map(), cByDoc = new Map(), cByRule = new Map();
+const pushTo = (m, k, v) => { if (!m.has(k)) m.set(k, []); if (!m.get(k).includes(v)) m.get(k).push(v); };
+const docsOf = (n) => [...new Set([...(n.sides || []).map((s) => s.doc), ...(n.also || [])])];
+const indexFindings = () => {
+  byNote.clear(); cByDoc.clear(); cByRule.clear();
+  for (const n of F.items) {
+    byNote.set(n.id, n);
+    if (n.kind !== 'conflict' || ticked.has(n.id) || hasNote(n)) continue;
+    for (const s of n.sides || []) pushTo(cByDoc, s.doc, n.id);
+    for (const r of n.rules || []) pushTo(cByRule, r, n.id);
+  }
+};
+const cList = (key) => (key.startsWith('doc:') ? cByDoc.get(key.slice(4)) : cByRule.get(key.slice(5))) || [];
+const badge = (key) => { const n = cList(key).length; return n ? `<button type="button" class="cbadge" data-cbadge="${key.replace(/"/g, '&quot;')}" aria-label="${n} conflict${n > 1 ? 's' : ''}: compare the parts">${n}</button>` : ''; };
+const ruleBadge = (rid) => badge('rule:' + rid);
+const LOADS = {
+  auto: 'Always loaded', recall: 'Recalled from memory', rule: 'Read when a rule says so',
+  skill: 'Picked by Claude when it fits', command: 'Loaded by a command', manual: 'Only when opened', none: 'Not loaded by Claude Code',
+};
+const G = '~/.claude/CLAUDE.md', C = 'CLAUDE.md', MI = 'memory/MEMORY.md';
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tokN = (chars) => Math.round(chars / 4);
+const fmtTok = (t) => t >= 1000 ? (t / 1000).toFixed(t >= 10000 ? 0 : 1) + 'k' : String(t);
+const tok = (chars) => fmtTok(tokN(chars));
+const rc = (id) => (rulesBySrc.get(id) || []).length;
+const short = (id) => { const d = docs.get(id); return d.kind === 'memory' || d.name === 'SKILL.md' ? d.title : d.name; };
+const $ = (s, el = document) => el.querySelector(s);
+const sel = (id) => `[data-node="${CSS.escape(id)}"]`;
+const chevSvg = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+// ---------- legend ----------
+$('#legend').innerHTML = Object.entries(LOADS).map(([k, v]) => `<span><i class="mark" data-l="${k}"></i>${v}</span>`).join('') +
+  '<span id="legendC" hidden><i class="cbadge" aria-hidden="true">2</i>Conflicts: click a badge to compare the parts</span>';
+
+// ---------- board ----------
+const board = $('#board'), sizer = $('#sizer'), scroller = $('#mapScroll');
+const placed = new Set();
+const card = (id, o = {}) => {
+  const d = docs.get(id); if (!d) return ''; placed.add(id);
+  const n = rc(id);
+  return `<div class="node ${o.cls || ''}" data-doc="${esc(id)}" data-node="${esc(id)}" tabindex="0" role="button">
+    <div class="node-top"><i class="mark" data-l="${d.load}"></i><span class="node-file">${esc(o.file || d.name)}</span>${o.tag ? `<span class="tag">${o.tag}</span>` : ''}</div>
+    <div class="node-title">${esc(d.title)}</div>
+    <div class="node-meta">${n ? n + ' rules · ' : ''}≈${tok(d.size)} tokens</div></div>`;
+};
+const chip = (id, label) => {
+  const d = docs.get(id); if (!d) return ''; placed.add(id);
+  return `<span class="chip" data-doc="${esc(id)}" data-node="${esc(id)}" tabindex="0" role="button"><i class="mark" data-l="${d.load}"></i>${esc(label || d.title)}</span>`;
+};
+const lane = (title, note, inner) => `<div class="lane"><div class="lane-h"><h3>${title}</h3><p>${note}</p></div>${inner}</div>`;
+const memFiles = D.docs.filter((d) => d.kind === 'memory');
+const PARTS = ['studio', 'platform', 'learning-track', 'mobile'];
+const epicById = new Map(D.docs.filter((d) => d.kind === 'epic').map((d) => [d.epic, d]));
+
+let html = '<svg class="edges" id="edges"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="var(--edge)"/></marker><marker id="ahA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="var(--accent)"/></marker><marker id="ahI" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="var(--l-recall)"/></marker></defs><g class="base"></g><g class="hov"></g></svg>';
+html += lane('Loaded at session start', 'In context before you type anything.',
+  `<div class="lane-row">${card(G, { file: '~/.claude/CLAUDE.md', tag: 'Global' })}${card(C)}${card(MI, { file: 'memory/MEMORY.md', tag: 'Memory' })}
+   <div class="cluster"><div class="cluster-h">memory/ · ${memFiles.length} files, outside the repo</div><div class="chips">${memFiles.map((d) => chip(d.id)).join('')}</div></div></div>`);
+html += lane('Skills', 'Commands you type, and skills Claude picks when the task matches. Their bodies load only when used.',
+  `<div class="lane-row">${card('.claude/skills/whats-next/SKILL.md', { file: '.claude/skills/whats-next/', tag: 'Project' })}${card('.claude/skills/plan-part/SKILL.md', { file: '.claude/skills/plan-part/', tag: 'Project' })}${card('.claude/skills/docs-check/SKILL.md', { file: '.claude/skills/docs-check/', tag: 'Project' })}${card('~/.claude/skills/guide-me/SKILL.md', { file: '~/.claude/skills/guide-me/', tag: 'Personal' })}${card('~/.claude/skills/teach-me/SKILL.md', { file: '~/.claude/skills/teach-me/', tag: 'Personal' })}${card('~/.claude/skills/create-ticket/SKILL.md', { file: '~/.claude/skills/create-ticket/', tag: 'Personal' })}</div>`);
+html += lane('Read on demand', 'A loaded rule tells Claude when to read these.',
+  `<div class="lane-row">${['docs/development.md', 'docs/conventions.md', '.github/ISSUE_TEMPLATE/ticket.md'].map((id) => card(id)).join('')}</div>`);
+const partHtml = PARTS.map((p) => {
+  const pid = `docs/plan/parts/${p}/${p}.md`; const pd = docs.get(pid); placed.add(pid);
+  const feats = D.docs.filter((d) => d.kind === 'feature' && d.part === p);
+  const epicFiles = D.docs.filter((d) => d.kind === 'epic' && d.part === p).length;
+  return `<div class="part" data-part="${p}"><div class="part-h node" data-doc="${esc(pid)}" data-node="${esc(pid)}" tabindex="0" role="button"><i class="mark" data-l="${pd.load}"></i><span class="node-title">${esc(pd.title)}</span><span class="node-meta">${feats.length} features · ${epicFiles} epic files</span></div>
+    <div class="feats">${feats.map((f) => {
+      placed.add(f.id);
+      const inFolder = D.docs.filter((d) => d.kind === 'epic' && d.feature === f.feature && d.part === p).map((d) => d.epic);
+      const list = [...f.epicList, ...inFolder.filter((e) => !f.epicList.includes(e))];
+      const chips = list.map((e) => {
+        const ed = epicById.get(e);
+        if (ed && ed.feature === f.feature) { placed.add(ed.id); return `<span class="ep" data-doc="${esc(ed.id)}" data-node="${esc(ed.id)}" data-s="${esc(ed.status)}" tabindex="0" role="button">${e}</span>`; }
+        if (ed) return `<span class="ep ghost" data-ghost="${e}" data-where="${esc(ed.feature)}">${e}</span>`;
+        return `<span class="ep ghost" data-ghost="${e}">${e}</span>`;
+      }).join('');
+      return `<div class="feat node" data-doc="${esc(f.id)}" data-node="${esc(f.id)}" tabindex="0" role="button"><div class="node-title"><i class="mark" data-l="${f.load}"></i>${esc(f.title)}</div><div class="eps">${chips}</div></div>`;
+    }).join('')}</div></div>`;
+}).join('');
+html += lane('The plan · docs/plan', `Read upward before working on an epic. <span class="status-legend">Epic status: <span class="ep" data-s="draft">draft</span><span class="ep" data-s="ready">ready</span><span class="ep" data-s="in progress">in progress</span><span class="ep" data-s="done">done</span><span class="ep ghost" style="cursor:default">no file yet</span></span>`,
+  `<div class="plan-top">${['docs/plan/00-master.md', 'docs/plan/decisions.md', 'docs/plan/epic-template.md', 'docs/plan/visual/plan-map.html'].map((id) => card(id)).join('')}</div><div class="parts">${partHtml}</div>`);
+const rrRefs = D.docs.filter((d) => d.id.startsWith('apps/platform/.agents/skills/react-router/references/'));
+html += lane('Reference', 'Nothing tells Claude to read these.',
+  `<div class="lane-row">${['README.md', 'IDEA.md', 'apps/studio/README.md', 'apps/platform/README.md', 'packages/ui/TOKENS.md'].map((id) => card(id, { file: id.includes('/') && id !== 'packages/ui/TOKENS.md' ? id : undefined })).join('')}
+   <div class="cluster"><div class="cluster-h">apps/platform/.agents/skills/react-router/</div><div class="chips">${chip('apps/platform/.agents/skills/react-router/SKILL.md', 'SKILL.md')}${rrRefs.map((d) => chip(d.id, d.name)).join('')}</div></div></div>`);
+const rest = D.docs.filter((d) => !placed.has(d.id));
+if (rest.length) html += lane('Other files', 'Not grouped above.', `<div class="lane-row">${rest.map((d) => card(d.id, { file: d.id })).join('')}</div>`);
+board.innerHTML = html;
+const edgesSvg = $('#edges', board);
+const totalLinks = D.docs.reduce((a, d) => a + d.links.length, 0);
+$('#mapSub').textContent = `${D.docs.length} files · ${totalLinks} links`;
+
+// ---------- edges ----------
+const kindOf = (id) => docs.get(id);
+const contained = (a, b) => {
+  const x = kindOf(a), y = kindOf(b);
+  if (!x.part || !y.part || x.part !== y.part) return false;
+  if (x.kind === 'part' || y.kind === 'part') return true;
+  return x.feature && x.feature === y.feature;
+};
+const START = new Set([G, C, MI, 'docs/development.md', 'docs/conventions.md', '.github/ISSUE_TEMPLATE/ticket.md', '.claude/skills/plan-part/SKILL.md', '.claude/skills/whats-next/SKILL.md', '.claude/skills/docs-check/SKILL.md', '~/.claude/skills/guide-me/SKILL.md', '~/.claude/skills/teach-me/SKILL.md', '~/.claude/skills/create-ticket/SKILL.md']);
+const allEdges = [];
+for (const d of D.docs) for (const t of d.links) if (!contained(d.id, t)) allEdges.push([d.id, t]);
+const baseEdges = allEdges.filter(([a, b]) => (START.has(a) || a === 'docs/plan/00-master.md') && !['epic', 'feature'].includes(kindOf(b).kind) || (a === 'docs/plan/00-master.md' && kindOf(b).kind === 'part'));
+let scale = 1, fitMode = true;
+const rectOf = (id) => {
+  const el = board.querySelector(sel(id)); if (!el) return null;
+  const r = el.getBoundingClientRect(), b = board.getBoundingClientRect();
+  return { x: (r.left - b.left) / scale, y: (r.top - b.top) / scale, w: r.width / scale, h: r.height / scale };
+};
+const pathFor = (a, b) => {
+  const ax = a.x + a.w / 2, ay = a.y + a.h / 2, bx = b.x + b.w / 2, by = b.y + b.h / 2;
+  const dy = by - ay, dx = bx - ax;
+  if (Math.abs(dy) > (a.h + b.h) / 2 + 6) {
+    const sy = dy > 0 ? a.y + a.h : a.y, ey = dy > 0 ? b.y - 2 : b.y + b.h + 2;
+    const sx = ax + Math.max(-a.w / 3, Math.min(a.w / 3, dx / 6)), ex = bx;
+    const c = Math.max(28, Math.abs(ey - sy) * .45) * Math.sign(dy);
+    return `M${sx.toFixed(1)} ${sy.toFixed(1)}C${sx.toFixed(1)} ${(sy + c).toFixed(1)} ${ex.toFixed(1)} ${(ey - c).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+  }
+  const sx = dx > 0 ? a.x + a.w : a.x, ex = dx > 0 ? b.x - 2 : b.x + b.w + 2;
+  const c = Math.max(24, Math.abs(ex - sx) * .4) * Math.sign(dx || 1);
+  return `M${sx.toFixed(1)} ${ay.toFixed(1)}C${(sx + c).toFixed(1)} ${ay.toFixed(1)} ${(ex - c).toFixed(1)} ${by.toFixed(1)} ${ex.toFixed(1)} ${by.toFixed(1)}`;
+};
+const drawSet = (list, cls, marker) => list.map(([a, b, c]) => { const ra = rectOf(a), rb = rectOf(b); return ra && rb ? `<path class="${c || cls}" d="${pathFor(ra, rb)}" marker-end="url(#${c === 'in' ? 'ahI' : marker})"/>` : ''; }).join('');
+const drawBase = () => {
+  edgesSvg.setAttribute('width', board.offsetWidth); edgesSvg.setAttribute('height', board.offsetHeight);
+  $('.base', edgesSvg).innerHTML = drawSet($('#allLinks').checked ? allEdges : baseEdges, '', 'ah');
+};
+let focusId = null;
+const focusDoc = (id) => {
+  if (focusId === id) return; clearFocus(); focusId = id;
+  const rel = new Set([...docs.get(id).links, ...inbound.get(id)]);
+  board.querySelectorAll(sel(id)).forEach((e) => e.classList.add('cur'));
+  rel.forEach((r) => board.querySelectorAll(sel(r)).forEach((e) => e.classList.add('rel')));
+  document.querySelectorAll(`.src[data-doc="${CSS.escape(id)}"]`).forEach((e) => e.classList.add('hl'));
+  board.classList.add('focus');
+  const list = [...docs.get(id).links.filter((t) => !contained(id, t)).map((t) => [id, t, 'out']), ...inbound.get(id).filter((s) => !contained(s, id)).map((s) => [s, id, 'in'])];
+  $('.hov', edgesSvg).innerHTML = drawSet(list, 'out', 'ahA');
+};
+// highlight every doc that holds a part of the hovered badge's conflicts
+const focusSet = (ids) => {
+  const key = '#' + ids.join('|'); if (focusId === key) return; clearFocus(); focusId = key;
+  ids.forEach((x) => board.querySelectorAll(sel(x)).forEach((e) => e.classList.add('cur')));
+  board.classList.add('focus');
+};
+const clearFocus = () => {
+  focusId = null; board.classList.remove('focus');
+  document.querySelectorAll('.cur, .rel, .hl').forEach((e) => e.classList.remove('cur', 'rel', 'hl'));
+  $('.hov', edgesSvg).innerHTML = '';
+};
+
+// ---------- zoom ----------
+const applyScale = () => {
+  board.style.transform = `scale(${scale})`;
+  sizer.style.width = board.offsetWidth * scale + 'px'; sizer.style.height = board.offsetHeight * scale + 'px';
+  $('#zFit').textContent = Math.round(scale * 100) + '%';
+  $('#zFit').setAttribute('aria-pressed', String(fitMode));
+};
+const fit = () => { scale = Math.max(.3, Math.min(1.25, (scroller.clientWidth - 2) / board.offsetWidth)); applyScale(); };
+const zoomBy = (f) => { fitMode = false; scale = Math.max(.3, Math.min(2.2, scale * f)); applyScale(); drawBase(); };
+$('#zIn').onclick = () => zoomBy(1.15);
+$('#zOut').onclick = () => zoomBy(1 / 1.15);
+$('#zFit').onclick = () => { fitMode = true; fit(); drawBase(); };
+scroller.addEventListener('wheel', (e) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.08 : 1 / 1.08); } }, { passive: false });
+$('#allLinks').onchange = drawBase;
+const relayout = () => { if (fitMode) fit(); else applyScale(); drawBase(); };
+new ResizeObserver(relayout).observe(scroller);
+document.fonts?.ready.then(relayout);
+
+const locate = (id) => {
+  const el = board.querySelector(sel(id)); if (!el) return;
+  el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+};
+
+// ---------- context pane ----------
+const ctx = $('#ctx');
+const ruleLi = (r, mode) => {
+  const off = ['manual', 'none'].includes(docs.get(r.src).load);
+  const lead = mode === 'topic'
+    ? `<span class="schip"><i class="mark" data-l="${docs.get(r.src).load}"></i>${esc(short(r.src))}</span>`
+    : `<span class="tchip">${esc(D.topics[r.topic] || r.topic)}</span>`;
+  return `<li class="rule${off ? ' off' : ''}" data-rule="${esc(r.id)}" tabindex="0" role="button">${lead}<span class="rt">${esc(r.t)}</span>${ruleBadge(r.id)}</li>`;
+};
+const srcRow = (id, o = {}) => {
+  const d = docs.get(id); const rs = rulesBySrc.get(id) || [];
+  const items = o.items || rs.map((r) => ruleLi(r)).join('');
+  const count = o.count ?? (rs.length ? `${rs.length} rules` : '');
+  return `<div class="src" data-doc="${esc(id)}" tabindex="0" role="button">
+      <button type="button" class="chev" aria-expanded="false" aria-label="Show rules"${items ? '' : ' disabled'}>${chevSvg}</button>
+      <i class="mark" data-l="${d.load}"></i>
+      <span class="src-name"><b>${esc(o.label || d.title)}</b><small>${esc(o.file || d.id)}</small></span>
+      <span class="src-meta">${count}${count ? ' · ' : ''}≈${tok(d.size)}</span>
+    </div>${items ? `<ul class="rules" hidden>${items}</ul>` : ''}`;
+};
+const sum = (ids) => ids.reduce((a, id) => a + (docs.get(id)?.size || 0), 0);
+const indexed = [...docs.get(MI).content.matchAll(/\]\(([^)]+\.md)\)/g)].map((m) => 'memory/' + m[1]).filter((id) => docs.has(id));
+const unindexed = memFiles.map((d) => d.id).filter((id) => !indexed.includes(id));
+const startIds = [G, C, MI];
+const planCore = ['docs/plan/00-master.md', 'docs/plan/decisions.md'];
+const planRest = D.docs.filter((d) => ['part', 'feature', 'epic'].includes(d.kind));
+const avg = (k) => { const l = planRest.filter((d) => d.kind === k); return l.reduce((a, d) => a + d.size, 0) / l.length; };
+const planTypical = sum(planCore) + avg('part') + avg('feature') + avg('epic');
+const seg = [
+  { l: 'auto', name: 'At session start', n: sum(startIds) },
+  { l: 'recall', name: 'Memory files, if all are recalled', n: sum(indexed) },
+  { l: 'rule', name: 'development.md + conventions.md', n: sum(['docs/development.md', 'docs/conventions.md']) },
+  { l: 'rule', name: 'Plan for one epic (master, decisions, part, feature, epic)', n: planTypical, alt: true },
+  { l: 'command', name: 'A learning session: /guide-me', n: sum(['~/.claude/skills/guide-me/SKILL.md']) },
+];
+const segTotal = seg.reduce((a, s) => a + s.n, 0);
+const startRules = startIds.reduce((a, id) => a + rc(id), 0);
+const layer = (num, title, when, n, inner, cls = '') => `<div class="layer ${cls}"><span class="layer-num">${num}</span><div class="layer-h"><h3>${title}</h3>${n ? `<span class="n">≈${fmtTok(tokN(n))} tokens</span>` : ''}</div><p class="layer-when">${when}</p>${inner ? `<div class="srcs">${inner}</div>` : ''}</div>`;
+const pointerItems = [...docs.get(MI).content.matchAll(/^- \[([^\]]+)\]\(([^)]+)\)\s*—?\s*(.*)$/gm)].map((m) => {
+  const id = 'memory/' + m[2];
+  return `<li class="rule" data-doc="${esc(id)}" tabindex="0" role="button"><span class="tchip">Pointer</span><span class="rt">${esc(m[1])}: ${esc(m[3])}</span></li>`;
+}).join('');
+const orderView = `<div class="layers">
+  ${layer(0, 'Claude Code itself', 'System prompt, tools, the environment, and the descriptions of skills Claude may pick (whats-next, create-ticket). Only those descriptions come from your files.', 0, '', 'sys')}
+  ${layer(1, 'Loaded at session start', 'Global rules first, then the project, then the memory index.', sum(startIds),
+    srcRow(G, { file: '~/.claude/CLAUDE.md' }) + srcRow(C) + srcRow(MI, { items: pointerItems, count: `${indexed.length} pointers`, file: 'memory/MEMORY.md' }))}
+  ${layer(2, 'Recalled when relevant', `Claude reads a memory file when its pointer matches the task.${unindexed.length ? ` ${unindexed.length} file has no pointer.` : ''}`, sum(indexed),
+    memFiles.map((d) => srcRow(d.id, { file: d.id })).join(''))}
+  ${layer(3, 'Read when a rule says so', 'CLAUDE.md names when each doc is read: every development session, when writing code, when creating a ticket, and before and after work on an epic.', 0,
+    srcRow('docs/development.md') + srcRow('docs/conventions.md') + srcRow('.github/ISSUE_TEMPLATE/ticket.md') + srcRow('docs/plan/00-master.md') + srcRow('docs/plan/decisions.md') + srcRow('docs/plan/epic-template.md') +
+    `<div class="src grp" tabindex="0" role="button"><button type="button" class="chev" aria-expanded="false" aria-label="Show parts">${chevSvg}</button><i class="mark" data-l="rule"></i><span class="src-name"><b>Part, feature and epic docs</b><small>docs/plan/parts/</small></span><span class="src-meta">${planRest.length} files</span></div><ul class="rules" hidden>${PARTS.map((p) => { const id = `docs/plan/parts/${p}/${p}.md`; return `<li class="rule" data-doc="${esc(id)}" tabindex="0" role="button"><span class="tchip">Part</span><span class="rt">${esc(docs.get(id).title)}: ${D.docs.filter((d) => d.part === p && d.kind !== 'part').length} feature and epic docs</span></li>`; }).join('')}</ul>`)}
+  ${layer(4, 'Picked by Claude when it fits', 'The skill body loads when your request matches its description: asking what to work on, or needing a ticket.', 0, srcRow('.claude/skills/whats-next/SKILL.md', { file: '.claude/skills/whats-next/' }) + srcRow('~/.claude/skills/create-ticket/SKILL.md', { file: '~/.claude/skills/create-ticket/' }))}
+  ${layer(5, 'Loaded by a command', 'Only when you type the command. Their descriptions are hidden from Claude, so it never starts them itself.', 0, srcRow('.claude/skills/plan-part/SKILL.md', { file: '.claude/skills/plan-part/' }) + srcRow('.claude/skills/docs-check/SKILL.md', { file: '.claude/skills/docs-check/' }) + srcRow('~/.claude/skills/guide-me/SKILL.md', { file: '~/.claude/skills/guide-me/' }) + srcRow('~/.claude/skills/teach-me/SKILL.md', { file: '~/.claude/skills/teach-me/' }))}
+  ${layer(6, 'Never loaded on their own', 'Claude sees these only if you or a task opens them.', 0,
+    `<div class="never">${D.docs.filter((d) => ['manual', 'none'].includes(d.load)).map((d) => `<span class="chip" data-doc="${esc(d.id)}" tabindex="0" role="button"><i class="mark" data-l="${d.load}"></i>${esc(d.name === 'SKILL.md' ? 'react-router SKILL.md' : d.name)}${rc(d.id) ? ` · ${rc(d.id)}` : ''}</span>`).join('')}</div>`)}
+</div>`;
+const topicCounts = Object.keys(D.topics).map((k) => ({ k, list: D.rules.filter((r) => r.topic === k) })).filter((t) => t.list.length).sort((a, b) => b.list.length - a.list.length);
+const topicView = `<div class="srcs">${topicCounts.map((t) => {
+  const srcs = [...new Set(t.list.map((r) => r.src))];
+  return `<div class="topic" tabindex="0" role="button"><button type="button" class="chev" aria-expanded="false" aria-label="Show rules">${chevSvg}</button><b>${esc(D.topics[t.k])}</b><span class="dots">${srcs.map((s) => `<i class="mark" data-l="${docs.get(s).load}" title="${esc(short(s))}"></i>`).join('')}</span><span class="n">${t.list.length}</span></div><ul class="rules" hidden>${t.list.map((r) => ruleLi(r, 'topic')).join('')}</ul>`;
+}).join('')}</div>`;
+ctx.innerHTML = `<div class="ctx-side">
+  <div class="meter">
+    <div class="meter-head"><b>≈${fmtTok(tokN(sum(startIds)))} tokens</b><span>from 3 docs at session start, carrying ${startRules} rules and ${indexed.length} memory pointers</span></div>
+    <div class="bar" aria-hidden="true">${seg.map((s) => `<i style="flex:${s.n.toFixed(0)};background:var(--l-${s.l});${s.alt ? 'opacity:.6' : ''}" title="${esc(s.name)}"></i>`).join('')}</div>
+    <div class="bar-key">${seg.map((s) => `<i class="mark" data-l="${s.l}"${s.alt ? ' style="opacity:.6"' : ''}></i><span>${esc(s.name)}</span><span class="n">≈${fmtTok(tokN(s.n))}</span>`).join('')}</div>
+  </div>
+  <div class="notes" id="notes">
+    <h3 id="notesTitle">Things to check</h3>
+    <p class="notes-hint" id="notesHint" hidden>Tick an item to write what Claude should do with it. Notes save to findings.json, and Claude follows them on the next /docs-check. Ticked items without a note can be removed from the list.</p>
+    <div class="markbar" id="markbar"></div>
+    <p class="savemsg" id="saveMsg" role="status" hidden><span id="saveText"></span><button type="button" class="act" data-undo hidden>Undo</button></p>
+    <div id="notesList"></div>
+  </div>
+  </div><div class="ctx-main">
+  <div id="viewOrder">${orderView}</div>
+  <div id="viewTopic" hidden>${topicView}</div>
+  </div>`;
+const setView = (topic) => {
+  $('#viewOrder').hidden = topic; $('#viewTopic').hidden = !topic;
+  $('#vOrder').setAttribute('aria-pressed', String(!topic)); $('#vTopic').setAttribute('aria-pressed', String(topic));
+};
+$('#vOrder').onclick = () => setView(false);
+$('#vTopic').onclick = () => setView(true);
+try { if (localStorage.getItem('docsmap.view') === 'topic') setView(true); } catch (e) {}
+$('#vTopic').addEventListener('click', () => { try { localStorage.setItem('docsmap.view', 'topic'); } catch (e) {} });
+$('#vOrder').addEventListener('click', () => { try { localStorage.setItem('docsmap.view', 'order'); } catch (e) {} });
+
+const toggleRow = (row) => {
+  const b = row.querySelector('.chev'); const ul = row.nextElementSibling;
+  if (!b || b.disabled || !ul || !ul.classList.contains('rules')) return;
+  const open = b.getAttribute('aria-expanded') !== 'true';
+  b.setAttribute('aria-expanded', String(open)); ul.hidden = !open;
+};
+
+// ---------- tooltip ----------
+const tip = $('#tip');
+let tipEl = null, lastPointer = 'mouse';
+const docTip = (id) => {
+  const d = docs.get(id); const rs = rulesBySrc.get(id) || [];
+  return `<div class="tip-h"><i class="mark" data-l="${d.load}"></i>${esc(d.kind === 'epic' ? d.epic + ' · ' + d.title : d.title)}</div><div class="tip-path">${esc(d.id)}</div>
+    ${d.desc ? `<p>${esc(d.desc)}</p>` : ''}
+    ${d.kind === 'epic' ? `<p><span class="k">Status:</span> ${esc(d.status)}</p>` : ''}
+    <p><span class="k">${LOADS[d.load]}:</span> ${esc(d.trigger)}</p>
+    ${rs.length ? `<ul>${rs.slice(0, 3).map((r) => `<li>${esc(r.t)}</li>`).join('')}${rs.length > 3 ? `<li class="k">${rs.length - 3} more rules</li>` : ''}</ul>` : ''}
+    ${cByDoc.get(id) ? `<p><span class="pill" data-k="conflict">conflict</span> ${cByDoc.get(id).length} here: the red badge opens the parts</p>` : ''}
+    <div class="tip-foot">${d.links.length} links out · ${inbound.get(id).length} in · ≈${tok(d.size)} tokens · click to open</div>`;
+};
+const cbadgeTip = (key) => {
+  const l = cList(key).map((id) => byNote.get(id));
+  return `<div class="tip-h"><span class="pill" data-k="conflict">conflict</span>${l.length === 1 ? esc(l[0].id + ' ' + l[0].title) : `${l.length} conflicts`}</div>
+    ${l.length > 1 ? `<ul>${l.map((n) => `<li>${esc(n.id + ' ' + n.title)}</li>`).join('')}</ul>` : `<p>${esc(l[0].text)}</p>`}
+    <div class="tip-foot">${l.length === 1 ? `Click to open its ${l[0].sides.length} parts side by side` : 'Click to pick one and open its parts side by side'}</div>`;
+};
+const ruleTip = (id) => {
+  const r = rules.get(id); const d = docs.get(r.src);
+  return `<div class="tip-h"><span class="tchip">${esc(D.topics[r.topic])}</span></div><p><b>${esc(r.t)}</b></p>${r.d ? `<p>${esc(r.d)}</p>` : ''}${r.sup ? `<p class="k">${esc(r.sup)}</p>` : ''}${cByRule.get(id) ? `<p><span class="pill" data-k="conflict">conflict</span> part of ${cByRule.get(id).length}: the red badge opens the parts</p>` : ''}
+    <div class="tip-foot"><i class="mark" data-l="${d.load}"></i> ${esc(d.id)}${r.sec ? ' › ' + esc(r.sec) : ''} · click for details</div>`;
+};
+const noteTip = (id) => { const n = byNote.get(id); return n ? `<div class="tip-h"><span class="pill" data-k="${n.kind}">${n.kind}</span>${esc(n.id + ' ' + n.title)}</div><p>${esc(n.text)}</p>${hasNote(n) ? `<p><span class="k">Your note:</span> ${esc(n.note)}</p>` : ''}<div class="tip-foot">Click to open it with its parts side by side</div>` : ''; };
+const ghostTip = (el) => {
+  const e = el.dataset.ghost;
+  return el.dataset.where ? `<div class="tip-h">${e}</div><p>Listed in this feature, but its epic file lives under the <b>${esc(el.dataset.where)}</b> feature.</p>` : `<div class="tip-h">${e}</div><p>Planned in this feature's epic table. It has no epic file yet.</p>`;
+};
+const placeTip = (x, y) => {
+  const w = tip.offsetWidth, h = tip.offsetHeight, vw = innerWidth, vh = innerHeight;
+  let l = x + 14, t = y + 16;
+  if (l + w > vw - 8) l = Math.max(8, x - w - 14);
+  if (t + h > vh - 8) t = Math.max(8, y - h - 12);
+  tip.style.left = l + 'px'; tip.style.top = t + 'px';
+};
+const targetOf = (e) => (e.target.closest?.('.mk, .markbar, .savemsg') ? null : e.target.closest?.('[data-cbadge],[data-doc],[data-rule],[data-note],[data-ghost]'));
+document.addEventListener('pointerover', (e) => {
+  lastPointer = e.pointerType;
+  const t = targetOf(e);
+  if (t === tipEl) return;
+  tipEl = t;
+  if (!t || e.pointerType === 'touch') { tip.hidden = true; if (!t) clearFocus(); return; }
+  if (t.closest('.status-legend')) { tip.hidden = true; return; }
+  tip.innerHTML = t.dataset.cbadge ? cbadgeTip(t.dataset.cbadge) : t.dataset.doc ? docTip(t.dataset.doc) : t.dataset.rule ? ruleTip(t.dataset.rule) : t.dataset.note ? noteTip(t.dataset.note) : ghostTip(t);
+  if (tip.innerHTML) tip.insertAdjacentHTML('afterbegin', '<div class="tip-hint">Hold <kbd>Shift</kbd> to hide this tip</div>');
+  tip.hidden = !tip.innerHTML; placeTip(e.clientX, e.clientY);
+  if (t.dataset.cbadge) focusSet(cList(t.dataset.cbadge).flatMap((id) => byNote.get(id).sides.map((s) => s.doc)));
+  else if (t.dataset.note && byNote.get(t.dataset.note)) focusSet(docsOf(byNote.get(t.dataset.note)));
+  else if (t.dataset.doc) focusDoc(t.dataset.doc); else if (t.dataset.rule && !board.contains(t)) focusDoc(rules.get(t.dataset.rule).src); else clearFocus();
+});
+document.addEventListener('pointermove', (e) => { if (!tip.hidden) placeTip(e.clientX, e.clientY); });
+const tipOff = (on) => document.documentElement.classList.toggle('tip-off', on);
+document.addEventListener('keydown', (e) => { if (e.key === 'Shift') tipOff(true); });
+document.addEventListener('keyup', (e) => { if (e.key === 'Shift') tipOff(false); });
+addEventListener('blur', () => tipOff(false));
+document.addEventListener('pointerdown', () => { tip.hidden = true; });
+document.addEventListener('scroll', (e) => { tip.hidden = true; if (cmenuEl && !cmenuEl.contains(e.target)) closeCMenu(); }, true);
+document.documentElement.addEventListener('pointerleave', () => { tip.hidden = true; tipEl = null; clearFocus(); });
+
+// ---------- clicks ----------
+document.addEventListener('click', (e) => {
+  const mk = e.target.closest('.mk[data-mark]');
+  if (mk) { e.stopPropagation(); setMark(mk.dataset.mark, mk.checked, !!mk.closest('#notesList')); return; }
+  if (e.target.closest('.mk-l, .note-box, .iw-note')) return;
+  const cb = e.target.closest('[data-cbadge]');
+  if (cb) {
+    e.preventDefault(); e.stopPropagation(); tip.hidden = true;
+    const l = cList(cb.dataset.cbadge);
+    if (l.length === 1) { closeCMenu(); openItem(l[0]); } else if (l.length) openCMenu(cb, l);
+    return;
+  }
+  const oi = e.target.closest('[data-open-item]');
+  if (oi) { closeCMenu(); tip.hidden = true; openItem(oi.dataset.openItem); return; }
+  if (!e.target.closest('.cmenu')) closeCMenu();
+  if (e.target.closest('[data-remove-marked]')) { removeMarked(); return; }
+  if (e.target.closest('[data-clear-marks]')) { [...ticked].forEach((id) => setMark(id, false)); return; }
+  if (e.target.closest('[data-undo]')) { undoRemove(); return; }
+  const lc = e.target.closest('[data-locate]');
+  if (lc) { locate(lc.dataset.locate); return; }
+  const chev = e.target.closest('.chev');
+  if (chev) { e.stopPropagation(); toggleRow(chev.parentElement); return; }
+  const topic = e.target.closest('.topic, .grp');
+  if (topic) { toggleRow(topic); return; }
+  const more = e.target.closest('[data-more]');
+  if (more) { more.previousElementSibling.querySelectorAll('[hidden]').forEach((x) => (x.hidden = false)); more.remove(); return; }
+  const t = e.target.closest('[data-doc],[data-rule],[data-note]');
+  if (!t || t.closest('.status-legend')) return;
+  e.preventDefault(); tip.hidden = true;
+  if (t.dataset.doc) openDoc(t.dataset.doc, t.dataset.sec);
+  else if (t.dataset.rule) openRule(t.dataset.rule);
+  else openItem(t.dataset.note);
+});
+document.addEventListener('keydown', (e) => {
+  if (cmenuEl && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    const items = [...cmenuEl.querySelectorAll('button')], k = items.indexOf(document.activeElement);
+    e.preventDefault(); items[(k + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus(); return;
+  }
+  if (e.key === 'Escape' && cmenuEl) { const a = cmenuAnchor; closeCMenu(); a?.focus(); return; }
+  if (e.key === 'Escape' && e.target.matches?.('textarea')) { e.target.blur(); return; }
+  if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey && e.target.matches?.('.note-in')) {
+    const t = e.target, k = PRESETS.indexOf(t.value.trim());
+    if (t.value.trim() && k < 0) return;
+    e.preventDefault(); t.value = PRESETS[(k + 1) % PRESETS.length]; t.dispatchEvent(new Event('input', { bubbles: true })); return;
+  }
+  if (e.key === 'Escape') { const f = [...WM.wins.values()].sort((a, b) => b.style.zIndex - a.style.zIndex)[0]; if (f) closeWin(f); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[role="button"]')) { e.preventDefault(); e.target.click(); }
+});
+
+// ---------- window manager ----------
+const WM = { z: 1000, n: 0, wins: new Map() };
+const layer$ = $('#winLayer');
+// the phone's safe-area insets, so floating windows stay clear of system bars
+const probe = document.createElement('div');
+probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+document.body.appendChild(probe);
+const insets = () => { const s = getComputedStyle(probe); return { t: parseFloat(s.paddingTop) || 0, r: parseFloat(s.paddingRight) || 0, b: parseFloat(s.paddingBottom) || 0, l: parseFloat(s.paddingLeft) || 0 }; };
+const front = (w) => { w.style.zIndex = ++WM.z; WM.wins.forEach((x) => x.classList.toggle('front', x === w)); };
+const closeWin = (w) => { WM.wins.delete(w.dataset.key); w.remove(); };
+const clampWin = (w) => {
+  const vw = innerWidth, vh = innerHeight, ins = insets();
+  let l = parseFloat(w.style.left), t = parseFloat(w.style.top);
+  l = Math.min(Math.max(l, 80 - w.offsetWidth), vw - 80); t = Math.min(Math.max(t, ins.t), vh - 40);
+  w.style.left = l + 'px'; w.style.top = t + 'px';
+};
+const makeWin = (key, { title, sub, load, w = 760, h = 600, actions = '', pos }) => {
+  if (WM.wins.has(key)) { const ex = WM.wins.get(key); front(ex); return null; }
+  const ins = insets(), vw = innerWidth - ins.l - ins.r, vh = innerHeight - ins.t - ins.b;
+  w = Math.min(w, vw - 24); h = Math.min(h, vh - 24);
+  const k = WM.n++ % 7;
+  const win = document.createElement('section');
+  win.className = 'win'; win.dataset.key = key; win.setAttribute('role', 'dialog'); win.setAttribute('aria-label', title);
+  win.style.width = w + 'px'; win.style.height = h + 'px';
+  win.style.left = ins.l + (pos ? pos.l : Math.max(12, Math.min(vw - w - 12, (vw - w) / 2 - 90 + k * 30))) + 'px';
+  win.style.top = ins.t + (pos ? pos.t : Math.max(12, Math.min(vh - h - 12, 48 + k * 28))) + 'px';
+  win.innerHTML = `<div class="win-bar"><div class="win-title">${load ? `<i class="mark" data-l="${load}" style="align-self:center"></i>` : ''}<b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div>${actions}<button type="button" class="wbtn x" aria-label="Close">×</button></div><div class="win-body"></div>` +
+    ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map((d) => `<div class="rz" data-d="${d}"></div>`).join('');
+  layer$.appendChild(win); WM.wins.set(key, win); front(win);
+  win.addEventListener('pointerdown', () => front(win));
+  $('.x', win).onclick = () => closeWin(win);
+  const bar = $('.win-bar', win);
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    e.preventDefault(); bar.setPointerCapture(e.pointerId);
+    const sx = e.clientX, sy = e.clientY, l0 = parseFloat(win.style.left), t0 = parseFloat(win.style.top);
+    const mv = (ev) => { win.style.left = l0 + ev.clientX - sx + 'px'; win.style.top = t0 + ev.clientY - sy + 'px'; clampWin(win); };
+    const up = () => { bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', up); };
+    bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up);
+  });
+  win.querySelectorAll('.rz').forEach((hd) => hd.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); e.stopPropagation(); front(win); hd.setPointerCapture(e.pointerId);
+    const d = hd.dataset.d, sx = e.clientX, sy = e.clientY;
+    const r0 = { l: parseFloat(win.style.left), t: parseFloat(win.style.top), w: win.offsetWidth, h: win.offsetHeight };
+    const MINW = 300, MINH = 180;
+    const mv = (ev) => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy; let { l, t, w, h } = r0;
+      if (d.includes('e')) w = Math.max(MINW, r0.w + dx);
+      if (d.includes('s')) h = Math.max(MINH, r0.h + dy);
+      if (d.includes('w')) { w = Math.max(MINW, r0.w - dx); l = r0.l + r0.w - w; }
+      if (d.includes('n')) { h = Math.max(MINH, r0.h - dy); t = Math.max(0, r0.t + r0.h - h); h = r0.t + r0.h - t; }
+      Object.assign(win.style, { left: l + 'px', top: t + 'px', width: w + 'px', height: h + 'px' });
+    };
+    const up = () => { hd.removeEventListener('pointermove', mv); hd.removeEventListener('pointerup', up); };
+    hd.addEventListener('pointermove', mv); hd.addEventListener('pointerup', up);
+  }));
+  return win;
+};
+addEventListener('resize', () => WM.wins.forEach(clampWin));
+
+// ---------- markdown ----------
+const normPath = (p) => { const out = []; for (const s of p.split('/')) { if (s === '..') out.pop(); else if (s && s !== '.') out.push(s); } return out.join('/'); };
+const resolve = (from, href) => {
+  if (!href || /^[a-z]+:/i.test(href) || href.startsWith('#')) return null;
+  const p = decodeURIComponent(href.split('#')[0]);
+  const dir = from === G ? '' : from.split('/').slice(0, -1).join('/');
+  for (const c of [normPath((dir ? dir + '/' : '') + p), normPath(p)]) if (docs.has(c) && c !== from) return c;
+  return null;
+};
+const renderMd = (d) => {
+  let src = d.content;
+  let fm = '';
+  src = src.replace(/^---\n([\s\S]*?)\n---\n?/, (m, body) => { fm = `<div class="fm">${esc(body)}</div>\n\n`; return ''; });
+  src = src.replace(/<!--([\s\S]*?)-->/g, (m, body) => `\n<div class="md-comment">${esc(body.trim())}</div>\n`);
+  src = src.replace(/\[\[([\w-]+)\]\]/g, (m, n) => `[${n}](${n}.md)`);
+  let html;
+  try { html = window.marked ? window.marked.parse(src, { gfm: true }) : `<pre>${esc(src)}</pre>`; } catch (e) { html = `<pre>${esc(src)}</pre>`; }
+  const el = document.createElement('article'); el.className = 'md'; el.innerHTML = fm + html;
+  el.querySelectorAll('table').forEach((t) => { const w = document.createElement('div'); w.className = 'tbl'; t.replaceWith(w); w.appendChild(t); });
+  el.querySelectorAll('a[href]').forEach((a) => {
+    const href = a.getAttribute('href');
+    if (/^https?:/i.test(href)) { a.target = '_blank'; a.rel = 'noopener'; return; }
+    const id = resolve(d.id, href);
+    if (id) { a.dataset.doc = id; a.setAttribute('href', '#'); a.title = id; }
+    else { a.removeAttribute('href'); a.className = 'dead'; a.title = href + ' (not a doc in this map)'; }
+  });
+  el.querySelectorAll('code').forEach((c) => {
+    if (c.closest('pre')) return;
+    const id = resolve(d.id, c.textContent.trim());
+    if (id) { c.classList.add('doclink'); c.dataset.doc = id; c.title = 'Open ' + id; }
+  });
+  return el;
+};
+const scrollToSec = (win, sec) => {
+  if (!sec) return;
+  const want = sec.replace(/`/g, '').toLowerCase();
+  const hs = [...win.querySelectorAll('.md h1, .md h2, .md h3, .md h4')];
+  const h = hs.find((x) => x.textContent.toLowerCase() === want) || hs.find((x) => x.textContent.toLowerCase().includes(want));
+  if (!h) return;
+  const dw = win.querySelector('.dw'); if (dw) dw.dataset.tab = 'doc';
+  win.querySelectorAll('.dw-tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === 'doc')));
+  h.scrollIntoView({ block: 'start' }); h.classList.add('sec-flash'); setTimeout(() => h.classList.remove('sec-flash'), 1600);
+};
+
+// ---------- doc window ----------
+const chipList = (ids) => ids.length ? `<div class="chips">${ids.map((i) => `<span class="chip" data-doc="${esc(i)}" tabindex="0" role="button"><i class="mark" data-l="${docs.get(i).load}"></i>${esc(short(i))}</span>`).join('')}</div>` : '<p class="k" style="color:var(--muted)">None</p>';
+const openDoc = (id, sec) => {
+  const d = docs.get(id); if (!d) return;
+  const win = makeWin('doc:' + id, { title: d.kind === 'epic' ? `${d.epic} ${d.title}` : d.title, sub: d.id, load: d.load,
+    actions: board.querySelector(sel(id)) ? '<button type="button" class="wbtn loc">Show in map</button>' : '' });
+  if (!win) { const ex = WM.wins.get('doc:' + id); scrollToSec(ex, sec); return; }
+  const rs = rulesBySrc.get(id) || [];
+  const notes = F.items.filter((n) => docsOf(n).includes(id));
+  const LIM = 14;
+  const sumHtml = `<div class="sum">
+      <div><h4 class="sum-h">When it loads</h4><div class="sum-load"><i class="mark" data-l="${d.load}"></i><p><b>${LOADS[d.load]}.</b> ${esc(d.trigger)}</p></div></div>
+      ${d.desc ? `<div><h4 class="sum-h">About</h4><p>${esc(d.desc)}</p></div>` : ''}
+      ${d.kind === 'epic' ? `<div><h4 class="sum-h">Epic</h4><p><span class="ep" data-s="${esc(d.status)}" style="cursor:default">${esc(d.status)}</span> ${esc(d.head.replace(/·\s*Status:.*$/, ''))}</p></div>` : ''}
+      ${rs.length ? `<div><h4 class="sum-h">Rules · ${rs.length}</h4><ul class="rules">${rs.map((r, i) => ruleLi(r).replace('<li ', i >= LIM ? '<li hidden ' : '<li ')).join('')}</ul>${rs.length > LIM ? `<button type="button" class="more" data-more>Show all ${rs.length}</button>` : ''}</div>` : ''}
+      ${notes.length ? `<div><h4 class="sum-h">Things to check</h4>${notes.map((n) => noteRow(n, false)).join('')}</div>` : ''}
+      <div><h4 class="sum-h">Links to · ${d.links.length}</h4>${chipList(d.links)}</div>
+      <div><h4 class="sum-h">Linked from · ${inbound.get(id).length}</h4>${chipList(inbound.get(id))}</div>
+      <p style="color:var(--muted);font-variant-numeric:tabular-nums">${d.size.toLocaleString()} characters · ≈${tok(d.size)} tokens</p>
+    </div>`;
+  const body = $('.win-body', win);
+  body.style.overflow = 'hidden';
+  body.innerHTML = `<div class="dw" data-tab="doc"><div class="dw-tabs" role="tablist"><button type="button" role="tab" data-tab="doc" aria-selected="true">Document</button><button type="button" role="tab" data-tab="sum" aria-selected="false">Summary${rs.length ? ' · ' + rs.length + ' rules' : ''}</button></div><div class="dw-grid"><div class="dw-doc"></div><aside class="dw-sum">${sumHtml}</aside></div></div>`;
+  const docPane = $('.dw-doc', body);
+  if (d.lang === 'html') docPane.innerHTML = `<div class="md"><p>HTML source of the published plan map: <a href="https://claude.ai/artifact/CjKkK1RtSsxGyfrNjbRUUM" target="_blank" rel="noopener">open the map</a>.</p></div><pre class="src">${esc(d.content)}</pre>`;
+  else docPane.appendChild(renderMd(d));
+  body.querySelectorAll('.dw-tabs button').forEach((b) => b.onclick = () => {
+    $('.dw', body).dataset.tab = b.dataset.tab;
+    body.querySelectorAll('.dw-tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  });
+  const loc = $('.loc', win); if (loc) loc.onclick = () => locate(id);
+  if (sec) requestAnimationFrame(() => scrollToSec(win, sec));
+};
+
+// ---------- rule window ----------
+const openRule = (rid) => {
+  const r = rules.get(rid); const d = docs.get(r.src);
+  const win = makeWin('rule:' + rid, { title: D.topics[r.topic] + ' rule', sub: short(r.src) + (r.sec ? ' › ' + r.sec : ''), load: d.load, w: 520, h: 460 });
+  if (!win) return;
+  const notes = F.items.filter((n) => (n.rules || []).includes(rid));
+  const same = D.rules.filter((x) => x.topic === r.topic && x.src !== r.src && x.topic !== 'decision').slice(0, 12);
+  $('.win-body', win).innerHTML = `<div class="rw">
+    <div class="meta"><span class="tchip">${esc(D.topics[r.topic])}</span><span>from</span><span class="chip" data-doc="${esc(r.src)}" data-sec="${esc(r.sec || '')}" tabindex="0" role="button"><i class="mark" data-l="${d.load}"></i>${esc(short(r.src))}${r.sec ? ' › ' + esc(r.sec) : ''}</span></div>
+    <h3>${esc(r.t)}</h3>
+    ${r.d ? `<p>${esc(r.d)}</p>` : ''}
+    ${r.sup ? `<p class="sup">${esc(r.sup)}</p>` : ''}
+    <p class="meta"><i class="mark" data-l="${d.load}"></i><span><b>${LOADS[d.load]}.</b> ${esc(d.trigger)}</span></p>
+    <button type="button" class="act" data-doc="${esc(r.src)}" data-sec="${esc(r.sec || '')}">Show in source</button>
+    ${notes.length ? `<div><h4 class="sum-h">Things to check</h4>${notes.map((n) => noteRow(n, false)).join('')}</div>` : ''}
+    ${same.length ? `<div><h4 class="sum-h">Same topic, other sources</h4><ul class="rules" style="margin:0;padding:0;border:0">${same.map((x) => ruleLi(x, 'topic')).join('')}</ul></div>` : ''}
+  </div>`;
+};
+
+// ---------- findings: shared bits ----------
+const ROLE = { outdated: 'Out of date', current: 'Up to date', says: 'Says', rule: 'General rule', wins: 'Takes precedence' };
+const KINDS = [['conflict', 'Conflicts'], ['override', 'Overrides'], ['gap', 'Gaps']];
+const PRESETS = ['Fix as suggested', 'Keep as is', 'Fix the other doc instead'];
+const ticked = new Set(); // ids of ticked items (not "marked": that name is the Markdown library)
+const hasNote = (n) => !!(n && n.note && n.note.trim());
+const markBox = (n) => `<label class="mk-l"><input type="checkbox" class="mk" data-mark="${esc(n.id)}"${ticked.has(n.id) ? ' checked' : ''}>Mark</label>`;
+const noteBox = (n) => `<div class="note-box"><textarea class="note-in" data-note-for="${esc(n.id)}" rows="2" aria-label="What to do with ${esc(n.id)}" placeholder="What should Claude do? Tab: fix as suggested · keep as is · fix the other doc">${esc(n.note || '')}</textarea></div>`;
+const noteRow = (n, box = true) => `<div class="note${ticked.has(n.id) ? ' marked' : ''}" data-note="${esc(n.id)}" tabindex="0" role="button">${box ? `<input type="checkbox" class="mk" data-mark="${esc(n.id)}" aria-label="Mark ${esc(n.id)}"${ticked.has(n.id) ? ' checked' : ''}>` : ''}<span class="pill" data-k="${n.kind}">${n.kind}</span><span class="nid">${esc(n.id)}</span><span class="nt">${esc(n.title)}</span>${(n.sides || []).length > 1 ? `<span class="cnt">${n.sides.length} parts</span>` : ''}</div>${box && (ticked.has(n.id) || hasNote(n)) ? noteBox(n) : ''}`;
+
+// ---------- conflict chooser: a badge that counts more than one conflict ----------
+let cmenuEl = null, cmenuAnchor = null;
+const closeCMenu = () => { cmenuEl?.remove(); cmenuEl = null; cmenuAnchor = null; };
+const openCMenu = (anchor, list) => {
+  closeCMenu();
+  const m = document.createElement('div'); m.className = 'cmenu'; m.setAttribute('role', 'menu'); m.setAttribute('aria-label', 'Conflicts');
+  m.innerHTML = `<h4>${list.length} conflicts · pick one</h4>` + list.map((id) => { const n = byNote.get(id); return `<button type="button" role="menuitem" data-open-item="${esc(id)}"><span class="pill" data-k="${n.kind}">${n.kind}</span><span class="nid">${esc(id)}</span><span>${esc(n.title)}</span><small>${n.sides.length} parts</small></button>`; }).join('');
+  document.body.appendChild(m); cmenuEl = m; cmenuAnchor = anchor;
+  const r = anchor.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+  let t = r.bottom + 6; if (t + h > innerHeight - 8) t = Math.max(8, r.top - h - 6);
+  m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left - 8)) + 'px'; m.style.top = t + 'px';
+  m.querySelector('button')?.focus({ preventScroll: true });
+};
+
+// ---------- the part of a doc that a side points at, with its quotes marked ----------
+const normT = (s) => s.replace(/\s+/g, ' ').trim();
+// wrap the first occurrence of q (whitespace-insensitive) in <mark>, across inline elements
+const highlight = (root, q) => {
+  const nodes = [], walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let t;
+  while ((t = walker.nextNode())) nodes.push(t);
+  let flat = '', space = true; const map = [];
+  nodes.forEach((node, ni) => {
+    const v = node.nodeValue;
+    for (let ci = 0; ci < v.length; ci++) {
+      if (/\s/.test(v[ci])) { if (space) continue; flat += ' '; space = true; } else { flat += v[ci]; space = false; }
+      map.push([ni, ci]);
+    }
+  });
+  const nq = normT(q), at = flat.indexOf(nq); if (!nq || at < 0) return false;
+  const [sn, sc] = map[at], [en, ec] = map[at + nq.length - 1];
+  for (let ni = sn; ni <= en; ni++) {
+    const node = nodes[ni], a = ni === sn ? sc : 0, b = ni === en ? ec + 1 : node.nodeValue.length;
+    if (b <= a || !node.nodeValue.slice(a, b).trim()) continue;
+    const r = document.createRange(); r.setStart(node, a); r.setEnd(node, b);
+    const m = document.createElement('mark'); m.className = 'cq'; r.surroundContents(m);
+  }
+  return true;
+};
+const isHead = (el) => /^H[1-4]$/.test(el.tagName);
+const trimTables = (root) => root.querySelectorAll('table').forEach((tb) => {
+  const rows = [...tb.querySelectorAll('tbody tr')]; if (rows.length <= 10) return;
+  const keep = new Set(); rows.forEach((r, k) => { if (r.querySelector('mark')) [k - 1, k, k + 1].forEach((x) => keep.add(x)); });
+  if (!keep.size) return;
+  const cols = rows[0].children.length; let cut = false;
+  rows.forEach((r, k) => {
+    if (keep.has(k)) { cut = false; return; }
+    if (!cut) { const g = document.createElement('tr'); g.className = 'cut'; g.innerHTML = `<td colspan="${cols}">· · ·</td>`; r.before(g); cut = true; }
+    r.remove();
+  });
+});
+// the part a side points at: the section holding the quote, or the blocks around it when the section is long
+const renderPart = (d, s) => {
+  const quotes = [].concat(s.quote || []);
+  if (d.lang === 'html') {
+    const lines = d.content.split('\n'), keep = new Set(), miss = [];
+    for (const q of quotes) { const k = lines.findIndex((l) => l.includes(q)); if (k < 0) miss.push(q); else for (let j = Math.max(0, k - 1); j <= Math.min(lines.length - 1, k + 1); j++) keep.add(j); }
+    let html = '', prev = null;
+    for (const j of [...keep].sort((a, b) => a - b)) {
+      if (prev !== null && j > prev + 1) html += '<span class="cw-gap">· · ·</span>';
+      let line = esc(lines[j]); for (const q of quotes) line = line.split(esc(q)).join(`<mark class="cq">${esc(q)}</mark>`);
+      html += `<span class="ln">${j + 1}</span>${line}\n`; prev = j;
+    }
+    const el = document.createElement('div');
+    el.innerHTML = `${miss.length ? `<p class="cw-miss">Not found any more: ${miss.map((q) => `"${esc(q.slice(0, 90))}"`).join(', ')}. Run /docs-check again.</p>` : ''}<p class="cw-note">Source lines of the page, around each quote.</p><pre class="src">${html}</pre>`;
+    return { el, sec: s.sec || '' };
+  }
+  const blocks = [...renderMd(d).children], keep = new Set();
+  let sec = s.sec || '';
+  for (const q of quotes) {
+    const k = blocks.findIndex((b) => normT(b.textContent).includes(normT(q))); if (k < 0) continue;
+    let hk = -1; for (let j = k; j >= 0; j--) if (isHead(blocks[j])) { hk = j; break; }
+    const lvl = hk >= 0 ? +blocks[hk].tagName[1] : 9, start = Math.max(hk, 0);
+    let end = blocks.length; for (let j = Math.max(hk, k) + 1; j < blocks.length; j++) if (isHead(blocks[j]) && +blocks[j].tagName[1] <= lvl) { end = j; break; }
+    if (!sec && hk >= 0) sec = blocks[hk].textContent.trim();
+    if (end - start <= 12) for (let j = start; j < end; j++) keep.add(j);
+    else { if (hk >= 0) keep.add(hk); for (let j = Math.max(start + 1, k - 2); j <= Math.min(end - 1, k + 2); j++) keep.add(j); }
+    keep.add(k);
+  }
+  const el = document.createElement('article'); el.className = 'md';
+  let prev = null;
+  for (const j of [...keep].sort((a, b) => a - b)) {
+    const b = blocks[j];
+    if (b.classList.contains('fm') || (b.classList.contains('md-comment') && !quotes.some((q) => normT(b.textContent).includes(normT(q))))) continue;
+    if (prev !== null && j > prev + 1) el.insertAdjacentHTML('beforeend', '<span class="cw-gap" aria-hidden="true">· · ·</span>');
+    el.appendChild(b); prev = j;
+  }
+  if (!keep.size) blocks.filter((b) => !b.classList.contains('fm')).slice(0, 8).forEach((b) => el.appendChild(b));
+  const miss = quotes.filter((q) => !highlight(el, q));
+  if (miss.length) el.insertAdjacentHTML('afterbegin', window.marked
+    ? `<p class="cw-miss">Not found any more: ${miss.map((q) => `"${esc(q.slice(0, 90))}"`).join(', ')}. The doc may have changed; run /docs-check again.</p>`
+    : '<p class="cw-miss">The Markdown renderer did not load, so the doc shows as plain text and the quote is not marked. Reload the page.</p>');
+  trimTables(el);
+  return { el, sec };
+};
+
+// ---------- item window: one window per finding, with its parts side by side ----------
+const openItem = (id) => {
+  const n = byNote.get(id); if (!n) return;
+  const key = 'item:' + id;
+  if (WM.wins.has(key)) { front(WM.wins.get(key)); return; }
+  const sides = (n.sides || []).filter((s) => docs.has(s.doc));
+  const ins = insets(), vw = innerWidth - ins.l - ins.r, vh = innerHeight - ins.t - ins.b;
+  const w = Math.min(vw - 24, sides.length ? Math.max(640, sides.length * 440) : 560);
+  const h = Math.min(vh - 48, sides.length ? 860 : 520);
+  const win = makeWin(key, { title: `${n.id} · ${n.title}`, sub: n.kind, w, h, pos: { l: Math.max(12, Math.round((vw - w) / 2)), t: 24 } });
+  if (!win) return;
+  const rs = (n.rules || []).filter((r) => rules.has(r)), ds = docsOf(n).filter((x) => docs.has(x));
+  const body = $('.win-body', win); body.style.overflow = 'hidden';
+  body.innerHTML = `<div class="iw" data-kind="${n.kind}">
+    <div class="iw-head">
+      <div class="cw-t"><span class="pill" data-k="${n.kind}">${n.kind}</span><span class="nid">${esc(n.id)}</span><b>${esc(n.title)}</b>${markBox(n)}</div>
+      <p class="iw-text">${esc(n.text)}</p>
+      ${n.fix ? `<p class="iw-fix"><b>Suggested fix:</b> ${esc(n.fix)}</p>` : ''}
+      <label class="iw-note"><span><b>What to do</b> · saved to findings.json; Claude follows it on the next /docs-check</span><textarea class="note-in" data-note-for="${esc(n.id)}" rows="2" placeholder="Tab: fix as suggested · keep as is · fix the other doc">${esc(n.note || '')}</textarea></label>
+      ${rs.length ? `<details><summary>Rules involved · ${rs.length}</summary><ul class="rules">${rs.map((r) => ruleLi(rules.get(r), 'topic')).join('')}</ul></details>` : ''}
+      ${!sides.length && ds.length ? `<div><h4 class="sum-h">Docs</h4>${chipList(ds)}</div>` : ''}
+    </div>
+    ${sides.length ? `<div class="iw-parts" style="--cols:${sides.length}"></div>` : ''}
+  </div>`;
+  const parts = $('.iw-parts', body);
+  sides.forEach((s) => {
+    const d = docs.get(s.doc), part = renderPart(d, s);
+    const pane = document.createElement('section'); pane.className = 'pp'; pane.dataset.role = s.role;
+    pane.innerHTML = `<header class="pp-h"><span class="role" data-r="${s.role}">${ROLE[s.role] || esc(s.role)}</span><b>${esc(d.kind === 'epic' ? `${d.epic} ${d.title}` : d.title)}</b><span class="cw-load"><i class="mark" data-l="${d.load}"></i>${LOADS[d.load]}</span><small title="${esc(d.id)}">${esc(d.id)}${part.sec ? ' › ' + esc(part.sec) : ''}</small></header><div class="pp-body"></div><footer class="pp-f"><button type="button" class="act" data-doc="${esc(s.doc)}" data-sec="${esc(part.sec)}">Open the whole doc</button>${board.querySelector(sel(s.doc)) ? `<button type="button" class="act" data-locate="${esc(s.doc)}">Show in map</button>` : ''}</footer>`;
+    $('.pp-body', pane).appendChild(part.el);
+    parts.appendChild(pane);
+  });
+  requestAnimationFrame(() => body.querySelectorAll('.pp-body').forEach((pb) => {
+    const m = pb.querySelector('mark.cq');
+    if (m) pb.scrollTop = Math.max(0, m.getBoundingClientRect().top - pb.getBoundingClientRect().top - pb.clientHeight / 3);
+  }));
+};
+
+// ---------- the list: mark items, write what to do, remove marked items that have no note ----------
+let lastRemoved = null, saveTimer = null, saving = false, again = false;
+const setStatus = (text, undo = false) => { const p = $('#saveMsg'); p.hidden = !text; $('#saveText').textContent = text; $('[data-undo]', p).hidden = !undo; };
+const removable = () => [...ticked].filter((id) => byNote.has(id) && !hasNote(byNote.get(id)));
+const renderMarkbar = () => {
+  const k = removable().length;
+  $('#markbar').innerHTML = k ? `<span>${k} marked without a note</span><button type="button" class="act primary" data-remove-marked>Remove from list</button><button type="button" class="act" data-clear-marks>Unmark all</button>` : '';
+};
+const renderNotes = () => {
+  // the list is rebuilt, so keep focus (and the caret in a note) where it was
+  const a = document.activeElement, inList = a && $('#notesList').contains(a);
+  const keep = !inList ? null : a.dataset.noteFor ? { sel: `.note-in[data-note-for="${CSS.escape(a.dataset.noteFor)}"]`, s: a.selectionStart, e: a.selectionEnd }
+    : a.dataset.mark ? { sel: `.mk[data-mark="${CSS.escape(a.dataset.mark)}"]` } : null;
+  $('#notesTitle').textContent = `Things to check · ${F.items.length}`;
+  $('#notesHint').hidden = !(findingsState === 'ready' && F.items.length);
+  renderMarkbar();
+  $('#notesList').innerHTML = findingsState === 'loading' ? '<p class="notes-empty">Loading findings.json…</p>'
+    : findingsState === 'missing' ? '<p class="notes-empty">No findings.json next to this page yet. Run /docs-check in a Claude session to write it.</p>'
+    : !F.items.length ? '<p class="notes-empty">The list is empty. Run /docs-check to check the docs again.</p>'
+    : KINDS.map(([k, label]) => { const l = F.items.filter((n) => n.kind === k); return l.length ? `<h4>${label} · ${l.length}</h4>${l.map((n) => noteRow(n)).join('')}` : ''; }).join('');
+  const t = keep && $('#notesList ' + keep.sel);
+  if (t) { t.focus({ preventScroll: true }); if (keep.s != null) t.setSelectionRange(keep.s, keep.e); }
+};
+// red counters on every doc and rule that holds a part of a conflict
+const paintBadges = () => {
+  document.querySelectorAll('button.cbadge').forEach((b) => b.remove());
+  const put = (host, html, before) => { if (host && html) host.insertAdjacentHTML(before ? 'beforebegin' : 'beforeend', html); };
+  board.querySelectorAll('[data-node]').forEach((el) => {
+    const h = badge('doc:' + el.dataset.node); if (!h) return;
+    const top = el.querySelector(':scope > .node-top');
+    if (top) { const tag = top.querySelector('.tag'); tag ? put(tag, h, true) : put(top, h); }
+    else put(el.classList.contains('feat') ? el.querySelector('.node-title') : el, h);
+  });
+  ctx.querySelectorAll('.src[data-doc]').forEach((el) => put(el.querySelector('.src-name'), badge('doc:' + el.dataset.doc)));
+  ctx.querySelectorAll('.never .chip[data-doc]').forEach((el) => put(el, badge('doc:' + el.dataset.doc)));
+  document.querySelectorAll('.rule[data-rule]').forEach((el) => put(el, ruleBadge(el.dataset.rule)));
+  const n = F.items.filter((x) => x.kind === 'conflict' && !ticked.has(x.id) && !hasNote(x)).length;
+  $('#legendC').hidden = !n;
+  $('#mapSub').textContent = `${D.docs.length} files · ${totalLinks} links` + (findingsState === 'ready' ? ` · ${n} open conflict${n === 1 ? '' : 's'}` : '');
+};
+const refresh = () => { indexFindings(); paintBadges(); renderNotes(); };
+const setMark = (id, on, fromList) => {
+  if (on) ticked.add(id); else ticked.delete(id);
+  document.querySelectorAll('.mk[data-mark]').forEach((c) => { if (c.dataset.mark === id) c.checked = on; });
+  indexFindings(); paintBadges(); renderNotes();
+  if (on && fromList) $(`#notesList .note-in[data-note-for="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+};
+
+// saving: the page publishes only findings.json, a moment after you stop typing
+const artifactApi = () => (window.claude?.use ? window.claude.use('artifact').catch(() => null) : Promise.resolve(null));
+const PENDING = 'docsmap.pending';
+const stash = () => { try { sessionStorage.setItem(PENDING, JSON.stringify({ notes: Object.fromEntries(F.items.filter(hasNote).map((n) => [n.id, n.note])), removed: lastRemoved ? lastRemoved.map(([n]) => n.id) : [] })); } catch (e) {} };
+const unstash = () => { try { sessionStorage.removeItem(PENDING); } catch (e) {} };
+const saveError = (err) => {
+  const c = err?.code;
+  if (c === 'conflict') return 'The page changed meanwhile and is reloading; your notes come back after it.';
+  if (['not_writer', 'not_granted', 'not_declared', 'capability_disabled', 'capability_removed', 'consent_required'].includes(c)) return 'Not saved: this view cannot change the page.';
+  if (c === 'rate_limited') return 'Not saved: too many saves in a row; it saves again with your next change.';
+  return 'Not saved: ' + (err?.message || 'unknown error') + '.';
+};
+const flushSave = async (what = '') => {
+  clearTimeout(saveTimer); saveTimer = null;
+  if (saving) { again = true; return; }
+  const lead = what ? what + ' ' : '';
+  saving = true; setStatus(lead + 'Saving…');
+  const api = await artifactApi();
+  if (!api) { saving = false; setStatus(lead + 'Not saved: only the published page can save findings.json.', !!lastRemoved); return; }
+  stash();
+  try {
+    await api.publish({ 'findings.json': JSON.stringify({ ...F, updated: new Date().toISOString().slice(0, 10) }, null, 2) + '\n' });
+    unstash(); setStatus(lead + 'Saved to findings.json.', !!lastRemoved);
+  } catch (err) {
+    if (err?.code !== 'conflict') unstash();
+    setStatus(lead + saveError(err), !!lastRemoved && err?.code !== 'conflict');
+  }
+  saving = false;
+  if (again) { again = false; flushSave(); }
+};
+const scheduleSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => flushSave(), 1500); setStatus('Saving your note in a moment…'); };
+document.addEventListener('visibilitychange', () => { if (document.hidden && saveTimer) flushSave(); });
+document.addEventListener('input', (e) => {
+  const t = e.target.closest?.('.note-in'), n = t && byNote.get(t.dataset.noteFor); if (!n) return;
+  const had = hasNote(n);
+  if (t.value.trim()) n.note = t.value; else delete n.note;
+  if (had !== hasNote(n)) { indexFindings(); paintBadges(); }
+  document.querySelectorAll('.note-in').forEach((x) => { if (x !== t && x.dataset.noteFor === n.id) x.value = t.value; });
+  lastRemoved = null; renderMarkbar(); scheduleSave();
+});
+// a note typed in a window shows up in the list once you leave the field
+document.addEventListener('focusout', (e) => { if (e.target.matches?.('.note-in') && !e.target.closest('#notesList')) setTimeout(renderNotes, 0); });
+const removeMarked = () => {
+  const ids = removable(); if (!ids.length || saving) return;
+  lastRemoved = F.items.map((n, i) => [n, i]).filter(([n]) => ids.includes(n.id));
+  F.items = F.items.filter((n) => !ids.includes(n.id));
+  ids.forEach((id) => { ticked.delete(id); const w = WM.wins.get('item:' + id); if (w) closeWin(w); });
+  refresh(); flushSave(`Removed ${ids.join(', ')}.`);
+};
+const undoRemove = () => {
+  if (!lastRemoved || saving) return;
+  for (const [n, i] of lastRemoved) F.items.splice(Math.min(i, F.items.length), 0, n);
+  const ids = lastRemoved.map(([n]) => n.id); lastRemoved = null;
+  refresh(); flushSave(`Put back ${ids.join(', ')}.`);
+};
+(async () => {
+  renderNotes();
+  try {
+    const r = await fetch('findings.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error(String(r.status));
+    const j = await r.json();
+    F = { ...j, items: Array.isArray(j.items) ? j.items : [] }; findingsState = 'ready';
+  } catch (e) { findingsState = 'missing'; }
+  // notes and removals that never saved (the page reloaded under them) come back
+  let back = false;
+  try {
+    const p = JSON.parse(sessionStorage.getItem(PENDING) || 'null'); unstash();
+    if (p) {
+      for (const [id, text] of Object.entries(p.notes || {})) { const n = F.items.find((x) => x.id === id); if (n && !hasNote(n)) { n.note = text; back = true; } }
+      for (const id of p.removed || []) if (F.items.some((x) => x.id === id)) { ticked.add(id); back = true; }
+    }
+  } catch (e) {}
+  refresh();
+  if (back) { setStatus('The page changed while you were working; your notes and marks are back.'); if (F.items.some(hasNote)) scheduleSave(); }
+})();
+})();
+</script>

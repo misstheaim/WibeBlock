@@ -18,10 +18,10 @@ Arguments: `$ARGUMENTS`
 ## Where this fits
 
 ```
-plan part (this skill) → epics → user stories → tickets (written by the owner) → /teach-me or /guide-me, 1–2 tickets per session
+plan part (this skill) → epics → user stories → tickets (written by Claude with create-ticket, when the work is about to start) → /teach-me or /guide-me, 1–2 tickets per session
 ```
 
-You stop at user stories. Tickets and implementation come later, in other sessions.
+You stop at user stories. Tickets and implementation come later, in other sessions (see `CLAUDE.md`).
 
 ## What you produce, and what you don't
 

@@ -461,7 +461,7 @@ header h1 span { color: var(--red); }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Development plan · v1.1 · 2026-10-28</div>
+    <div class="eyebrow">Development plan · v1.2 · 2026-11-28</div>
     <h1>Wibe<span>Block</span> plan map</h1>
     <p class="lead">You lay out the frames and the AI fills the bodies. Compact then exports a project you own. This map shows how the system is built, the order of work, and every epic in the plan with its dependencies. The plan is a direction, and it changes as development goes on.</p>
     <div class="meta" id="counts"></div>
@@ -736,7 +736,7 @@ header h1 span { color: var(--red); }
 
   <section aria-labelledby="h-next">
     <h2 id="h-next">Next</h2>
-    <div class="next">Work starts with the <b>platform skeleton</b> (Phase 0, D-33): in progress. Done: <b>P-17</b> US-1 and US-2 (UI package, palette), <b>P-08</b> US-1 to US-4 (skeleton, layout, editor route, MSW mocks with the API client). Next, frontend against mocks: <b>P-17</b> US-3 and US-4 (form controls, overlays), <b>P-08</b> US-6 and US-5 (loading and errors, light/dark), <b>P-19</b> US-1 to US-4 (profile and account). Then the backend skeleton (<b>P-01</b>, <b>P-03</b>, <b>P-02</b>), then <b>P-18</b> sign-in directly against Identity (D-39, no mock login server). The landing page (<b>P-20</b>) moved to Phase 4. The Studio part is planned and <span class="status ready">ready</span>, starting with S-01 / US-1 after the skeleton. The rest of the platform (P-04 onwards) is planned in a later <code>/plan-part</code> session, after the Studio alpha.</div>
+    <div class="next">Work starts with the <b>platform skeleton</b> (Phase 0, D-33): in progress. Done: <b>P-17</b> US-1 to US-4 (UI package, palette, form controls, overlays), <b>P-08</b> US-1 to US-4 and US-6 (skeleton, layout, editor route, MSW mocks with the API client, loading and errors), <b>P-19</b> US-1 and US-2 (profile page, display name). Next: <b>P-19</b> US-4 (account page), then the backend skeleton (<b>P-01</b>, <b>P-03</b>, <b>P-02</b>), then <b>P-18</b> sign-in directly against Identity (D-39), then <b>P-19</b> US-5 and US-6. Last in Phase 0: the light/dark switch (<b>P-08</b> US-5), the mode in the profile (<b>P-19</b> US-3) and Storybook (<b>P-17</b> US-5) (D-40). Platform pages stay on plain loaders (D-42), and the platform frontend's conventions are the reference for generated projects (D-41). The landing page (<b>P-20</b>) moved to Phase 4. The Studio part is planned and <span class="status ready">ready</span>, starting with S-01 / US-1 after the skeleton. The rest of the platform (P-04 onwards) is planned in a later <code>/plan-part</code> session, after the Studio alpha.</div>
   </section>
 </div>
 
@@ -998,9 +998,9 @@ const EPICS = [
   ["M-01","Mobile layout workflow","mobile-layout",7,["S-03","S-18","S-19","S-06"],"Mobile view, computed defaults, overrides with reset, diagnostics, AI-proposed adaptations."],
   ["M-02","Companion app","companion",7,["S-06","S-09"],"QR pairing, live preview on a device, LAN security, notifications later."],
   ["M-03","React Native / Expo target","native",7,["S-17","M-01"],"HTML to native mapping with NativeWind, conformance validator, Expo Router."],
-  ["P-17","UI foundation","connected",0,[],"packages/ui: semantic tokens with light and dark modes, base components, overlays and toasts, Storybook; later the app theme edited with the S-05 theme studio.","draft","skeleton, later"],
-  ["P-08","Platform app shell","connected",0,["P-17"],"Server-rendered shell against MSW mocks: top bar with user menu, dashboard placeholder, Studio stub, light/dark without flash, errors; later the project list and Local import/export.","draft","skeleton, foundation, connected"],
-  ["P-19","Profile & account","connected",0,["P-08"],"Profile page, display name, light/dark preference, account security links; Core API Accounts module with first-use profiles; mocks replaced by generated types.","draft","skeleton"],
+  ["P-17","UI foundation","connected",0,[],"packages/ui: semantic tokens with light and dark modes, base components, overlays and toasts, Storybook; later the app theme edited with the S-05 theme studio.","progress","skeleton, later"],
+  ["P-08","Platform app shell","connected",0,["P-17"],"Server-rendered shell against MSW mocks: top bar with user menu, dashboard placeholder, Studio stub, light/dark without flash, errors; later the project list and Local import/export.","progress","skeleton, foundation, connected"],
+  ["P-19","Profile & account","connected",0,["P-08"],"Profile page, display name, light/dark preference, account security links; Core API Accounts module with first-use profiles; mocks replaced by generated types.","progress","skeleton"],
   ["P-20","Landing page","connected",4,["P-17","P-08"],"One-page Astro site linking to the platform app, with docs and pricing (moved out of Phase 0 by D-39).","draft","later"],
   ["P-01","Backend foundation","foundation",0,[],"One-command Aspire AppHost (services, platform app), one trace end to end, module template, per-module migrations; later Azurite and enforced module boundaries.","draft","skeleton, foundation"],
   ["P-03","Identity service","identity",0,["P-01","P-17"],"OpenIddict + Razor Pages: sign-up with email confirmation, sign-in, reset, GitHub login and linking, account security, token lifetimes and keys; later Google, roles and service clients.","draft","skeleton, foundation, connected"],
@@ -1019,7 +1019,7 @@ const EPICS = [
   ["P-14","Account extras","connected",4,["P-19","P-09"],"BYO API keys encrypted at rest, plan and usage pages, data export and account deletion."],
   ["P-15","Serverless jobs (Azure Functions)","serverless",5,["P-04","P-09","L-01"],"Stripe webhook intake to a queue, export cleanup timer, asset thumbnails; Core Tools + Azurite locally, Terraform in P-13."],
   ["L-01","Message bus (RabbitMQ / Service Bus)","events",5,["P-01","P-04"],"RabbitMQ locally, Azure Service Bus in Cloud, contracts, outbox publisher, idempotent consumers, dead-letter queues, event-log replay."],
-  ["L-02","Design Graph read model (Neo4j)","design-graph",5,["L-01","P-11"],"Kafka projection, Cypher insights, Studio Insights panel."],
+  ["L-02","Design Graph read model (Neo4j)","design-graph",5,["L-01","P-11"],"Projection fed from the message bus (D-15), Cypher insights, Studio Insights panel."],
   ["L-03","Observability","observability",5,["P-01","L-01"],"Traces across every transport, Grafana stack, dashboards, SLOs."],
   ["L-04","Load & performance testing","observability",5,["P-05","L-03"],"k6 + NBomber with the fake provider, capacity report."],
   ["L-05","Resilience & chaos","observability",5,["L-03","L-08"],"Polly, bulkheads, Chaos Mesh experiments, game days."],

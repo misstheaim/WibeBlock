@@ -12,7 +12,7 @@ To run it you need Node LTS (see `.nvmrc`) and pnpm. From the repo root, run `pn
 
 - Plan: [docs/plan/00-master.md](docs/plan/00-master.md)
 - Visual map of the plan: https://claude.ai/artifact/CjKkK1RtSsxGyfrNjbRUUM (private for now)
-- Workflow: [docs/development.md](docs/development.md) · Conventions: [docs/conventions.md](docs/conventions.md) · Technologies: the plan
+- Workflow and conventions: [docs/development.md](docs/development.md) · Technologies: the plan
 
 ## License
 

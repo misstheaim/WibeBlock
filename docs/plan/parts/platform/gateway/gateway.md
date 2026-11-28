@@ -18,4 +18,4 @@ Single entry point for API traffic from the platform app's server (and its `/api
 
 | ID | Epic | Summary | Depends on | Phase |
 |---|---|---|---|---|
-| [P-02](epics/P-02-gateway.md) | **Gateway (YARP)** | Routing through service discovery, JWT validation at the edge, per-user rate limits with 429, request telemetry, local TLS; later SignalR proxying and shared limits. | P-01 | 0, 3 |
+| [P-02](epics/P-02-gateway.md) | **Gateway (YARP)** | Routing through service discovery, JWT validation at the edge, per-user rate limits with 429, request telemetry, local TLS; later SignalR proxying and shared limits. | P-01, P-03 | 0, 3 |

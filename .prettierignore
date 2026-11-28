@@ -8,5 +8,6 @@ apps/platform/.react-router/
 # Markdown: hand-written plans and docs; Prettier would realign every table and rewrite list markers
 *.md
 
-# Source of the plan-map artifact, edited as one document
+# Sources of the plan-map and docs-map artifacts, edited as one document
 docs/plan/visual/plan-map.html
+.claude/skills/docs-check/map/template.html
