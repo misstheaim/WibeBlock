@@ -7,18 +7,15 @@ A **pet project of the owner, built for learning**. Two goals carry equal weight
 
 ## How work is done here
 
-The flow from plan to code:
-
 ```
 plan part (/plan-part) → epics → user stories → tickets → /teach-me or /guide-me, 1–2 tickets per session
 ```
 
-- **Planning** a part of the plan uses the project skill **`/plan-part`** (`.claude/skills/plan-part/`): a design discussion where the owner describes what they want, Claude proposes solutions, and both refine them until the final version, which is then written as epics and user stories. It designs and does not implement.
-- **Tickets** come from user stories. The owner may write them; otherwise the agent does. **No implementation starts without a ticket**: before the first step of any implementation work (including `/guide-me` and `/teach-me`, where the agent writes no code), check for a GitHub issue for the work. If there is none, write one with the `create-ticket` skill (reference `<epic> / US-n`). Every ticket, of any type, uses the one template in [.github/ISSUE_TEMPLATE/ticket.md](.github/ISSUE_TEMPLATE/ticket.md). **Creating tickets needs no approval** (standing permission from the owner, 2026-11-04): create the GitHub issue straight away, whether the owner asked for it or it is needed before implementation, then show its link and body. This covers creating issues only; editing, closing or labelling existing ones still needs approval. Then branch, commit and title the PR with its number. Don't use `decompose-feature` here, and don't create tickets for work that isn't about to start.
-- **Project board:** every ticket lives on the GitHub Project **WibeBlock** with the statuses `Todo` → `In Progress` → `In Review` → `Done`, plus `Blocked`. The agent keeps its ticket's status in step without asking (standing permission from the owner, 2026-11-23): `Todo` when it creates the ticket, `In Progress` at the first step of the work (including `/guide-me` and `/teach-me`), `Blocked` once the owner agrees a started ticket must wait for another feature (the branch is kept; back to `In Progress` when work resumes), `In Review` when it opens the PR; when the owner opens the PR, the session-end git block includes the `gh project item-edit` command that moves it. `Done` is automatic: the merged PR closes the issue and the board's "Item closed" workflow sets it. Commands and IDs: "Project board" in [docs/development.md](docs/development.md).
-- **Implementation** happens with the owner's learning skills, one or two tickets per session: **`/teach-me`** (Claude implements step by step and explains each step) or **`/guide-me`** (Claude guides, the owner writes the code). In those modes the goal is the owner's understanding, not speed. Explain the technology, not just the change.
-- **Tests are optional** (D-14): never required for a ticket to be done. When the owner wants them, they are usually written by an AI agent after the implementation; epics list where they would pay off.
-- No CI on pull requests. GitHub Actions is used only for releases and deployment (see [docs/development.md](docs/development.md)).
+- **Planning** uses the project skill **`/plan-part`**: a design discussion that ends in epics and user stories. It designs and does not implement.
+- **No implementation starts without a ticket**, including `/guide-me` and `/teach-me`. If there is no GitHub issue for the work, write one with the `create-ticket` skill from the one template ([.github/ISSUE_TEMPLATE/ticket.md](.github/ISSUE_TEMPLATE/ticket.md)), referencing `<epic> / US-n`. **Creating tickets needs no approval** (standing permission, 2026-11-04): create it, then show its link and body. Editing, closing or labelling existing issues still needs approval. Don't use `decompose-feature`, and don't create tickets for work that isn't about to start.
+- **Project board:** the agent keeps its ticket's status in step without asking (standing permission, 2026-11-23): `Todo` on creation, `In Progress` at the first step, `Blocked` when the owner agrees it must wait, `In Review` when the PR opens. When the owner opens the PR, the session-end git block includes the command. Statuses, IDs and commands: [docs/development.md](docs/development.md).
+- **Implementation** uses the owner's learning skills: **`/teach-me`** (Claude implements and explains each step) or **`/guide-me`** (Claude guides, the owner writes the code). The goal is the owner's understanding, not speed. Explain the technology, not just the change.
+- **Tests are optional** (D-14). No CI on pull requests.
 
 ## The plan
 
@@ -36,17 +33,36 @@ docs/plan/parts/<part>/<feature>/epics/<ID>-<name>.md   epic: detailed feature, 
 
 Epic IDs: `S-nn` Studio, `M-nn` Mobile, `P-nn` Platform, `L-nn` Learning track. Tickets refer to them as `S-04 / US-3`.
 
-**The plan is a direction, not a final decision.** Any part, feature or epic can be changed, merged, split or dropped when development teaches us something. Expect that, and act on it:
+**The plan is a direction, not a final decision.** Any part, feature or epic can be changed, merged, split or dropped when development teaches us something:
 
 - Before working on something, read the master plan, the relevant part and feature docs, and the epic. Read upward too: an epic depends on decisions made in its feature and part docs.
 - If the code, a new finding or the owner's request conflicts with the plan, say so and suggest updating the plan. Don't silently work around it, and don't treat the plan as a reason to refuse a better idea.
 - When a decision changes, update the affected docs at every level (master, part, feature, epic) and add or supersede an entry in `decisions.md`. Mark superseded decisions; don't delete them.
+- **When a ticket's work is done** (before the session-end git block, in the same branch), bring the plan in line with what was built. Update the epic where the implementation differs from it (a story split or changed, an approach replaced), and the higher levels and `decisions.md` if a decision changed. Set the epic's `Status`: `in progress` from its first merged ticket, `done` when all its stories are. Keep it short: the plan says what and why, not how the code does it.
 - `IDEA.md` is the original idea draft, kept for history. The plan wins where they differ.
 
-## Technologies and conventions
+## Docs
 
-Read [docs/development.md](docs/development.md) when you need the tech stack, repository layout, how to run things locally, or the branching and release workflow. Not every task needs it.
+| File | Holds | Read |
+|---|---|---|
+| `CLAUDE.md` | what every session needs | always |
+| [docs/development.md](docs/development.md) | running and checking the code, git, tickets, the board | every development session |
+| [docs/conventions.md](docs/conventions.md) | rules for writing code | when writing code |
+| `docs/plan/` | what to build, technologies, decisions | before working on an epic, and again when the work is done (see "The plan") |
+
+Keep them small. When work ends, add to them only what the code can't tell you:
+- a convention for new code;
+- a non-obvious reason;
+- how to run or try something;
+- a trap.
+
+Write each item as one or two lines in the file it belongs to. Don't describe what a file does, its props or a message table, and don't list features here. This also applies when an epic or ticket asks to "document X in development.md". `Current state` below stays at a few lines: the phase, what exists, what comes next.
 
 ## Current state
 
-The repo has a plan and a pnpm workspace at the root (D-32): `apps/studio` (`@wibeblock/studio-app`, Vite 8 + React 19 + React Compiler) is the thin local host that renders `<Studio />` from `packages/studio` (`@wibeblock/studio`, a source-only package with React as a peer dependency, linked with `workspace:*`). `apps/platform` (`@wibeblock/platform-app`, React Router v8 framework mode with server rendering, D-36) is being built out by P-08: React Compiler, a route config (`app/routes.ts`), a signed-in layout with a top bar (`/projects` dashboard placeholder), and the full-screen editor route `/projects/:id/edit` that renders the Studio stub with a host-filled slot (`externalTools`) for the user menu; the user's profile comes from `GET /accounts/me` through the server-only API client (`app/lib/api.server.ts`, endpoint functions in `app/lib/accounts.server.ts`), loaded by the signed-in layout's and the editor's loaders. Until the backend exists, MSW in the server process answers (`app/mocks/`, switched on with `API_MOCKS=on`; settings, endpoints and the client in `docs/development.md`); there is no sign-in yet (P-18). Shared versions live in the catalog in `pnpm-workspace.yaml`; TypeScript projects extend `tsconfig.base.json`. Run with `pnpm install` and `pnpm dev` from the root (every app in parallel), or `pnpm dev:studio` / `pnpm dev:platform` for one; `pnpm build` is recursive; `pnpm lint` (one root ESLint config) and `pnpm format` (Prettier) run once from the root. Nothing else is built yet: no sessions, adapters or stores; the code structure inside `apps/platform` is in `docs/development.md`, and inside `packages/studio` is decided in S-02. **Work starts with the platform skeleton** (Phase 0, D-33): `packages/ui` (P-17) and `apps/platform` (P-08, P-19) frontend first against MSW mocks, then the backend skeleton (P-01, P-03, P-02), then sign-in (P-18) against Identity (D-39); the light/dark switch and Storybook come last (D-40). The platform frontend's structure is the reference for generated projects (D-41). The Studio is a stub until the Studio alpha. Branches follow D-31 (`develop` → `master`).
+Phase 0, the platform skeleton (D-33). What exists:
+- `packages/ui`: the UI kit (P-17);
+- `apps/platform`: the React Router v8 frontend (P-08, P-19), against MSW mocks, with no sign-in yet;
+- `apps/studio` + `packages/studio`: a stub until the Studio alpha.
+
+Next comes the backend skeleton (P-01, P-03, P-02), then sign-in (P-18). The light/dark switch and Storybook come last (D-40).

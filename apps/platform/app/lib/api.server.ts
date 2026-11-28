@@ -36,11 +36,18 @@ export async function apiRequest<T>(
   const url = `${getApiBaseUrl()}${path}`;
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const response = await fetch(url, {
-    method: method,
-    headers: headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: method,
+      headers: headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (error) {
+    console.error("API unreachable:", error);
+    throw Response.json({ reason: "unreachable" }, { status: 503 });
+  }
   if (!response.ok) {
     const contentType = response.headers.get("Content-Type");
     let problem: ProblemDetails | null = null;

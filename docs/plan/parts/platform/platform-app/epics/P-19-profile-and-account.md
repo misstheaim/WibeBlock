@@ -1,6 +1,6 @@
 # P-19 — Profile & account
 
-> Part: Platform · Phase: 0 · Stages: skeleton · Depends on: P-08, P-17 (P-18 for the signed-in checks; P-01, P-02, P-03 for US-5 and US-6) · Status: draft
+> Part: Platform · Phase: 0 · Stages: skeleton · Depends on: P-08, P-17 (P-18 for the signed-in checks; P-01, P-02, P-03 for US-5 and US-6) · Status: in progress
 
 ## Goal
 A signed-in user can see and edit their profile, has their light/dark choice follow them to any device, and finds their account security actions. The epic crosses the whole stack in the skeleton: the frontend is built first against mocks (D-33), then a small **Accounts module** in the Core API serves the real data through the Gateway, and the mocks are switched off. Identity stays responsible for credentials and security only; the profile lives in the Core API (D-34).

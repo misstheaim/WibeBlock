@@ -1,6 +1,6 @@
 # P-08 — Platform app shell
 
-> Part: Platform · Phase: 0, 2, 3 · Stages: skeleton, foundation, connected · Depends on: P-17 (P-04 for the project list, S-01 for import/export) · Status: draft
+> Part: Platform · Phase: 0, 2, 3 · Stages: skeleton, foundation, connected · Depends on: P-17 (P-04 for the project list, S-01 for import/export) · Status: in progress
 
 ## Goal
 `apps/platform` becomes a real, server-rendered React app (React Router v8 framework mode, D-26): the layouts, navigation and user menu, a dashboard placeholder, the editor route rendering the `<Studio />` stub, clear error and loading states, and a light/dark switch that is right from the first paint. During the skeleton it runs against a **mocked backend** (D-33), so the whole frontend can be built before any .NET service exists. This is where the project learns server-side React: loaders, actions, nested layouts, error boundaries and hydration.
@@ -53,7 +53,7 @@
 - Data: **loaders and actions** for all platform pages; no TanStack Query here (D-33). Streaming with Suspense only where a page has a slow, non-critical part.
 - Node server: the framework's default server first; a custom server (Express) only if P-18 or P-06 needs it (e.g. WebSocket proxying).
 - Styling: Tailwind v4 with `@wibeblock/ui` (P-17).
-- Code structure inside `apps/platform` (route modules thin, features in folders, where server code lives) is decided in the first step and written up in `docs/development.md`, mirroring S-02's decision for `packages/studio`.
+- Code structure inside `apps/platform` (route modules thin, features in folders, where server code lives) is decided in the first step and written up in `docs/conventions.md`, mirroring S-02's decision for `packages/studio`.
 
 ## Learning notes
 Concepts in a sensible order:
@@ -77,8 +77,8 @@ A Playwright smoke run (open dashboard, open editor, switch mode, reload; sign-i
 - **React Compiler with framework mode**: confirm the Babel plugin setup works with the React Router Vite plugin.
 
 ## Done when
-- [ ] (skeleton) The app runs with server rendering from the repo root, against mocks.
-- [ ] (skeleton) Dashboard placeholder, editor stub with user menu, 404 and error pages work; navigation shows progress.
+- [x] (skeleton) The app runs with server rendering from the repo root, against mocks.
+- [x] (skeleton) Dashboard placeholder, editor stub with user menu, 404 and error pages work; navigation shows progress.
 - [ ] (skeleton) Light/dark switch survives reload with no flash.
 - [ ] (foundation) The dashboard lists real projects.
 - [ ] (connected) Local projects can be imported and downloaded.

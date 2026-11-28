@@ -6,3 +6,26 @@ html,
 body {
   @apply bg-background text-foreground;
 }
+
+@theme {
+  --animate-progress-appear: progress-appear 150ms 150ms both;
+  --animate-progress-slide: progress-slide 1.1s ease-in-out infinite;
+
+  @keyframes progress-appear {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes progress-slide {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(400%);
+    }
+  }
+}

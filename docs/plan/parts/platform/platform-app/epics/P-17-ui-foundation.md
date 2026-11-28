@@ -1,6 +1,6 @@
 # P-17 — UI foundation (`packages/ui`)
 
-> Part: Platform · Phase: 0 · Stages: skeleton, later · Depends on: — · Status: draft
+> Part: Platform · Phase: 0 · Stages: skeleton, later · Depends on: — · Status: in progress
 
 ## Goal
 The platform app gets a small, polished design system to build on, and the Studio later inherits it: `packages/ui` with **semantic design tokens** in a **light and a dark mode**, the base components the platform skeleton needs (buttons, form fields, menus, dialogs, toasts, avatars…), and a Storybook catalogue. It is the first frontend work of the project (D-33), so it also sets the conventions every later component follows. The app theme has the same shape as the themes users build for their projects, so the Studio's theme editor can customise it later (D-35).
@@ -47,7 +47,7 @@ The platform app gets a small, polished design system to build on, and the Studi
 - The shadcn approach: Radix primitives for hard behaviour, component source owned in the repo, CVA for variants, a small class-merging helper for overrides.
 - Storybook with the Vite builder, the accessibility addon and a theme toolbar.
 - Package conventions follow D-32: source-only, `exports` pointing at the sources, React and React DOM as peers from the catalog. The kit has no knowledge of the platform app, the Studio or React Router.
-- Folder structure inside the package (one folder per component vs flat files) is decided in the first step; document it in `docs/development.md`. Decided: one folder per component.
+- Folder structure inside the package (one folder per component vs flat files) is decided in the first step; document it in `docs/conventions.md`. Decided: one folder per component.
 - **Modes with `light-dark()`** (decided 2026-11-03): each colour token is declared once as `light-dark(light, dark)` on `:root` with `color-scheme: light dark`, so the OS preference applies with no script; the mode attribute on `<html>` only narrows `color-scheme` to `light` or `dark`.
 - **Themes are datasets** (D-37): the default theme, every preset and every user's custom theme are datasets of the same shape (same shape as S-05 project themes), applied by one mechanism: the active theme's values become the CSS variables on `:root`. A theme supports light, dark or both modes. The mode attribute on `<html>` is `data-mode` (`light` / `dark`), rendered by the server from the effective mode (the user's choice if the theme supports it, otherwise the theme's only mode).
 - **Theme source is CSS for now** (decided 2026-11-03): until the theme object exists, the default dataset is written by hand as the `:root` block of the kit's stylesheet. The object and a generator (dataset → CSS) come when the first consumer needs them: presets or custom themes (US-6), the Storybook Tokens page (US-5), the S-05 theme schema, or the native mobile target; the hand-written block then becomes generated output and stays the fallback. Custom themes are validated on the server with the same Zod schema the editor uses, because they reach the server as requests.
