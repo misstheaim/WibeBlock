@@ -44,7 +44,7 @@ See the layout sketch in the [Studio part](../../studio.md) §4. The top bar hol
 Adapter contract tests with the in-memory adapter; route search-param parsing.
 
 ## Risks and open questions
-- **Code structure inside `packages/studio` (decide in the first step of this epic).** Not decided while setting up the workspace. Before the shell, stores and routes are written, decide and write up in `docs/development.md` (workspace conventions) and `decisions.md`:
+- **Code structure inside `packages/studio` (decide in the first step of this epic).** Not decided while setting up the workspace. Before the shell, stores and routes are written, decide and write up in `docs/conventions.md` and `decisions.md`:
   - folders **by feature** (`features/canvas`, `features/projects`, … each with its components, hooks and state) vs **by type** (`components/`, `hooks/`, `store/`);
   - TanStack Router **file-based** routes (generated route tree, Vite plugin in the host) vs **code-based** routes, keeping in mind that the Studio is a package rendered by several hosts and must accept a base path (risk below);
   - **barrel files** only at the package boundary (`src/index.ts`), no `index.ts` re-exports inside the package.

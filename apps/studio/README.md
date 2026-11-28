@@ -22,4 +22,4 @@ To run only this app's scripts: `pnpm --filter @wibeblock/studio-app <dev|build|
 
 Changes in `packages/studio` hot-reload here, because the package is source-only and Vite compiles it directly.
 
-See [docs/development.md](../../docs/development.md) for the workspace conventions and workflow.
+See [docs/development.md](../../docs/development.md) for the workflow and [docs/conventions.md](../../docs/conventions.md) for the conventions.
