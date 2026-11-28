@@ -50,6 +50,76 @@ for (const f of fs.readdirSync(memDir).filter((n) => n.endsWith(".md")))
   add("memory/" + f, path.join(memDir, f));
 const byId = new Map(docs.map((d) => [d.id, d]));
 
+// ---- checkpoint: a content hash per doc, so the next run knows what changed. It compares; it judges nothing.
+//   --changes      lists the docs changed, added or removed since the last checkpoint, and accepted items whose docs changed
+//   --checkpoint   records the current state (run it after a successful publish)
+const checkpointFile = path.join(path.dirname(dataFile), "checkpoint.json");
+const findingsFile = path.join(path.dirname(dataFile), "findings.json");
+if (
+  process.argv.includes("--changes") ||
+  process.argv.includes("--checkpoint")
+) {
+  const crypto = require("crypto");
+  const hash = (s) =>
+    crypto.createHash("sha1").update(s).digest("hex").slice(0, 12);
+  const now = Object.fromEntries(docs.map((d) => [d.id, hash(d.content)]));
+  const cp = fs.existsSync(checkpointFile)
+    ? JSON.parse(fs.readFileSync(checkpointFile, "utf8"))
+    : null;
+  if (process.argv.includes("--changes")) {
+    if (!cp) {
+      console.log("No checkpoint yet: read everything.");
+      process.exit(0);
+    }
+    const changed = Object.keys(now).filter(
+      (id) => cp.docs[id] && cp.docs[id] !== now[id],
+    );
+    const added = Object.keys(now).filter((id) => !cp.docs[id]);
+    const removed = Object.keys(cp.docs).filter((id) => !now[id]);
+    console.log(
+      `Checkpoint ${cp.at}${cp.commit ? ` at commit ${cp.commit.slice(0, 7)}` : ""}: ${changed.length} changed, ${added.length} new, ${removed.length} removed, of ${docs.length} docs.`,
+    );
+    for (const id of changed) console.log("changed  " + id);
+    for (const id of added) console.log("new      " + id);
+    for (const id of removed) console.log("removed  " + id);
+    for (const [item, hs] of Object.entries(cp.accepted || {})) {
+      const moved = Object.keys(hs).filter((id) => now[id] !== hs[id]);
+      if (moved.length)
+        console.log(
+          `reopen   ${item}: ${moved.join(", ")} changed since it was accepted`,
+        );
+    }
+    process.exit(0);
+  }
+  // accepted items keep the hashes from when they were accepted; newly accepted ones take today's
+  const f = fs.existsSync(findingsFile)
+    ? JSON.parse(fs.readFileSync(findingsFile, "utf8"))
+    : {};
+  const accepted = {};
+  for (const a of f.accepted || []) {
+    const ids = (a.docs || []).filter((id) => now[id]);
+    accepted[a.id] =
+      cp?.accepted?.[a.id] ||
+      Object.fromEntries(ids.map((id) => [id, now[id]]));
+  }
+  let commit = null;
+  try {
+    commit = execSync("git rev-parse HEAD", { cwd: repo }).toString().trim();
+  } catch {}
+  fs.writeFileSync(
+    checkpointFile,
+    JSON.stringify(
+      { at: new Date().toISOString(), commit, docs: now, accepted },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(
+    `Checkpoint written: ${docs.length} docs, ${Object.keys(accepted).length} accepted items, commit ${commit ? commit.slice(0, 7) : "none"}.`,
+  );
+  process.exit(0);
+}
+
 // ---- titles, descriptions and load classes; plan docs describe themselves
 const plain = (s) =>
   s
